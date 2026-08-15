@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Визуализация движения воздуха в воздуховоде · Вентпром</title>
+<meta name="description" content="Поле скорости в воздуховоде: профиль по сечению, зоны отрыва, потери давления на отводе, расширении, тройнике и заслонке. Одномерная инженерная модель, не CFD.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=PT+Sans+Narrow:wght@700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/wp.css">
+<style>
+/* Только композиция этой страницы. Ни одного нового цвета. */
+
+/* ── Герой ─────────────────────────────────────────────────── */
+.fl-hero{ padding:var(--s6) 0 var(--s7) }
+.fl-head{ max-width:76ch; margin-bottom:var(--s5) }
+.fl-head h1{ margin:var(--s3) 0 var(--s3) }
+.fl-head p{ color:var(--ink-2); font-size:17px; max-width:66ch; margin:0 }
+
+/* ── Сцена: холст плюс панель управления поверх него ───────── */
+.fl-stage{ position:relative; background:var(--sheet); border:1px solid var(--rule);
+           border-radius:var(--r); box-shadow:var(--lift); overflow:hidden }
+.fl-canvas{ display:block; width:100%; height:clamp(380px,54vw,640px);
+            background:var(--sheet) }
+.fl-canvas:focus-visible{ outline:2px solid var(--blue); outline-offset:-4px }
+
+.fl-panel{ position:absolute; left:var(--s3); top:var(--s3); bottom:var(--s3); width:272px;
+  display:flex; flex-direction:column; background:var(--sheet);
+  border:1px solid var(--rule); border-radius:var(--r); box-shadow:var(--float); z-index:2 }
+.fl-panel-in{ overflow-y:auto; padding:var(--s3) var(--s3) var(--s4);
+              display:grid; gap:var(--s3); align-content:start }
+.fl-grp{ display:grid; gap:var(--s2) }
+.fl-grp > h3{ font:700 10.5px/1 var(--f-plate); letter-spacing:.14em; text-transform:uppercase;
+              color:var(--ink-3); margin:0 }
+.fl-panel .inp{ height:36px }
+.fl-panel .inp input{ font-size:13.5px; padding:0 var(--s2) }
+.fl-panel .seg{ width:100% }
+.fl-panel .seg button{ flex:1; padding:5px 4px; font-size:12.5px }
+.fl-two{ display:grid; grid-template-columns:1fr 1fr; gap:var(--s2) }
+[hidden]{ display:none !important }
+.fl-lab{ display:flex; justify-content:space-between; align-items:baseline; gap:var(--s2);
+         font:600 12px/1.2 var(--f-ui); color:var(--ink-2) }
+.fl-lab b{ font:500 12.5px/1 var(--f-num); color:var(--ink) }
+.fl-rng{ -webkit-appearance:none; appearance:none; width:100%; height:20px; margin:0; background:none }
+.fl-rng::-webkit-slider-runnable-track{ height:3px; background:var(--rule-hard); border-radius:2px }
+.fl-rng::-webkit-slider-thumb{ -webkit-appearance:none; width:16px; height:16px; margin-top:-6.5px;
+  border-radius:50%; background:var(--sheet); border:2px solid var(--blue); box-shadow:var(--lift); cursor:grab }
+.fl-rng::-moz-range-track{ height:3px; background:var(--rule-hard); border-radius:2px }
+.fl-rng::-moz-range-thumb{ width:14px; height:14px; border-radius:50%; background:var(--sheet);
+  border:2px solid var(--blue); cursor:grab }
+
+.fl-els{ display:grid; gap:2px }
+.fl-els button{ display:grid; gap:0; text-align:left; width:100%; padding:4px 8px 5px; border:0;
+  border-radius:var(--r-sm); background:none; cursor:pointer; color:var(--ink-2);
+  transition:background var(--fast), color var(--fast) }
+.fl-els button:hover{ background:var(--sheet-2); color:var(--ink) }
+.fl-els button[aria-pressed="true"]{ background:var(--blue-wash); color:var(--blue-ink) }
+.fl-els b{ font:600 13px/1.35 var(--f-ui) }
+.fl-els span{ font-size:10.5px; color:var(--ink-4); line-height:1.25 }
+.fl-panel .fopt{ padding:3px 6px; font-size:12.5px }
+.fl-els button[aria-pressed="true"] span{ color:var(--blue-ink); opacity:.75 }
+
+/* ── Строка показаний под холстом ──────────────────────────── */
+.fl-read{ display:grid; grid-template-columns:repeat(6,1fr); gap:1px;
+  background:var(--rule); border:1px solid var(--rule); border-top:0;
+  border-radius:0 0 var(--r) var(--r); overflow:hidden; margin-top:-1px }
+.fl-read div{ background:var(--sheet); padding:var(--s3) var(--s3) 10px; display:grid; gap:2px;
+              min-width:0 }
+.fl-read dt{ font:600 10.5px/1.2 var(--f-plate); letter-spacing:.1em; text-transform:uppercase;
+             color:var(--ink-3); margin:0 }
+.fl-read dd{ margin:0; font:500 clamp(16px,1.5vw,21px)/1 var(--f-num);
+             font-variant-numeric:tabular-nums; color:var(--ink); letter-spacing:-.03em }
+.fl-read dd small{ font:400 11px/1 var(--f-ui); color:var(--ink-3); margin-left:3px }
+.fl-formula{ display:flex; gap:var(--s3); flex-wrap:wrap; align-items:baseline;
+  padding:10px var(--s4); border:1px solid var(--rule); border-top:0; background:var(--sheet-2);
+  border-radius:0 0 var(--r) var(--r); font-size:12.5px; color:var(--ink-2); margin-top:-1px }
+.fl-formula > *{ min-width:0; overflow-wrap:anywhere }
+.fl-formula code{ font-family:var(--f-num); font-size:12.5px; color:var(--blue-ink) }
+.fl-hint{ margin:var(--s3) 0 0; font-size:12.5px; color:var(--ink-3) }
+
+/* ── Сравнение ─────────────────────────────────────────────── */
+.fl-vs{ display:grid; grid-template-columns:1fr 1fr; gap:var(--s5); align-items:start }
+.fl-vs figure{ margin:0; display:grid; gap:0 }
+.fl-vs canvas{ display:block; width:100%; height:clamp(240px,26vw,330px);
+  background:var(--sheet); border:1px solid var(--rule); border-radius:var(--r) var(--r) 0 0 }
+.fl-vs figcaption{ border:1px solid var(--rule); border-top:0; border-radius:0 0 var(--r) var(--r);
+  background:var(--sheet); padding:var(--s4) }
+.fl-vs h3{ font-size:16px; margin-bottom:var(--s2) }
+.fl-nums{ display:grid; grid-template-columns:repeat(3,1fr); gap:var(--s3); margin-top:var(--s3);
+          padding-top:var(--s3); border-top:1px solid var(--rule-soft) }
+.fl-nums div{ display:grid; gap:2px }
+.fl-nums dt{ font-size:11px; color:var(--ink-3); margin:0 }
+.fl-nums dd{ margin:0; font:500 17px/1 var(--f-num); font-variant-numeric:tabular-nums;
+             letter-spacing:-.03em }
+.fl-delta{ display:flex; align-items:center; gap:var(--s4); flex-wrap:wrap; margin-top:var(--s5);
+  padding:var(--s4) var(--s5); background:var(--blue-wash); border:1px solid var(--blue-edge);
+  border-left:3px solid var(--blue); border-radius:var(--r) }
+.fl-delta b{ font:600 clamp(22px,2.4vw,30px)/1 var(--f-num); color:var(--blue-ink);
+             letter-spacing:-.04em }
+.fl-delta p{ margin:0; font-size:14px; color:var(--ink-2); max-width:60ch }
+
+/* ── Карточки «что показывает картинка» ────────────────────── */
+.fl-card{ padding:var(--s5); display:grid; gap:var(--s3); align-content:start }
+.fl-card h3{ font-size:17px }
+.fl-card p{ margin:0; font-size:14px; color:var(--ink-2) }
+.fl-card .out{ margin-top:auto; padding-top:var(--s3); border-top:1px solid var(--rule-soft);
+  font-size:13.5px; color:var(--ink) }
+.fl-card .out b{ color:var(--sig-ink); font-weight:600 }
+
+/* ── Мостик ────────────────────────────────────────────────── */
+.fl-next{ display:grid; grid-template-columns:1fr 1fr; gap:var(--s5) }
+.fl-next a{ display:grid; gap:var(--s2); padding:var(--s5); text-decoration:none; color:inherit }
+.fl-next a:hover{ text-decoration:none }
+.fl-next h3{ font-size:18px; color:var(--blue-ink) }
+.fl-next p{ margin:0; font-size:14px; color:var(--ink-2) }
+
+@media (max-width:1023px){
+  .fl-panel{ position:static; width:auto; box-shadow:none; border:0; border-bottom:1px solid var(--rule);
+             border-radius:0 }
+  .fl-panel-in{ padding:var(--s4) }
+  .fl-canvas{ height:clamp(300px,64vw,420px) }
+  .fl-read{ grid-template-columns:repeat(3,1fr) }
+  .fl-vs{ grid-template-columns:1fr }
+  .fl-next{ grid-template-columns:1fr }
+}
+@media (max-width:720px){
+  .fl-read{ grid-template-columns:repeat(2,1fr) }
+  .fl-canvas{ height:clamp(260px,72vw,360px) }
+  .fl-nums{ grid-template-columns:1fr 1fr }
+}
+</style>
+</head>
+<body>
+<main id="main">
+
+  <!-- ═══ 1. Герой ═══════════════════════════════════════════ -->
+  <section class="fl-hero grid-bg">
+    <div class="wrap">
+      <div class="fl-head">
+        <span class="eyebrow">Инженеру · открытая методика</span>
+        <h1>Как воздух идёт по воздуховоду</h1>
+        <p>Картинка нужна ровно за двумя вещами: увидеть, где в вашей сети теряется
+           давление, и понять, откуда придёт шум. Переключайте элемент трассы, ведите
+           сечение-зонд по каналу и читайте числа — они считаются по той же методике,
+           что и в калькуляторе потерь.</p>
+      </div>
+
+      <div class="fl-stage">
+        <!-- панель управления поверх холста -->
+        <div class="fl-panel" id="panel">
+          <div class="fl-panel-in">
+
+            <div class="fl-grp">
+              <h3>Расход</h3>
+              <label class="fl-lab" for="rL">Q<b><span id="lVal">6 000</span> м³/ч</b></label>
+              <input class="fl-rng" type="range" id="rL" min="300" max="40000" step="100" value="6000">
+            </div>
+
+            <div class="fl-grp">
+              <h3>Сечение</h3>
+              <div class="seg" role="group" aria-label="Форма сечения">
+                <button type="button" data-sec="round" aria-pressed="true">Круглое</button>
+                <button type="button" data-sec="rect"  aria-pressed="false">Прямоугольное</button>
+              </div>
+              <div id="secRound">
+                <div class="inp"><input type="number" id="fD" value="500" min="80" max="2000" step="10"
+                     aria-label="Диаметр воздуховода, мм"><span class="suf">Ø мм</span></div>
+              </div>
+              <div id="secRect" hidden class="fl-two">
+                <div class="inp"><input type="number" id="fA" value="600" min="100" max="2500" step="50"
+                     aria-label="Ширина воздуховода, мм"><span class="suf">a</span></div>
+                <div class="inp"><input type="number" id="fB" value="400" min="100" max="2500" step="50"
+                     aria-label="Высота воздуховода, мм"><span class="suf">b</span></div>
+              </div>
+            </div>
+
+            <div class="fl-grp">
+              <h3>Элемент трассы</h3>
+              <div class="fl-els" id="els" role="group" aria-label="Элемент трассы"></div>
+            </div>
+
+            <div class="fl-grp" id="paramBox">
+              <h3>Параметр элемента</h3>
+              <label class="fl-lab" for="rP"><span id="pLab">Радиус</span><b id="pVal">1,50</b></label>
+              <input class="fl-rng" type="range" id="rP" min="0" max="1" step="0.01" value="0.5">
+            </div>
+
+            <div class="fl-grp">
+              <h3>Слои</h3>
+              <div id="layers"></div>
+            </div>
+
+            <div class="fl-grp">
+              <h3>Показ</h3>
+              <div class="seg" role="group" aria-label="Замедление показа">
+                <button type="button" data-ts="1"    aria-pressed="false">×1</button>
+                <button type="button" data-ts="0.5"  aria-pressed="false">½</button>
+                <button type="button" data-ts="0.25" aria-pressed="true">¼</button>
+                <button type="button" data-ts="0.1"  aria-pressed="false">⅒</button>
+              </div>
+              <button class="btn btn-sm btn-ghost" type="button" id="btnPause"
+                      aria-pressed="false" style="width:100%">Пауза</button>
+            </div>
+
+          </div>
+        </div>
+
+        <canvas class="fl-canvas" id="cv" tabindex="0"></canvas>
+      </div>
+
+      <dl class="fl-read" id="read">
+        <div><dt>u средняя</dt><dd id="rUavg">—<small>м/с</small></dd></div>
+        <div><dt>u max в сечении</dt><dd id="rUmax">—<small>м/с</small></dd></div>
+        <div><dt>u min в сечении</dt><dd id="rUmin">—<small>м/с</small></dd></div>
+        <div><dt>Re</dt><dd id="rRe">—</dd></div>
+        <div><dt>Pд</dt><dd id="rPd">—<small>Па</small></dd></div>
+        <div><dt>Δp на элементе</dt><dd id="rDp">—<small>Па</small></dd></div>
+      </dl>
+      <p class="fl-formula">
+        <span>ζ = <code id="rZ">—</code> по <span id="rRef">—</span></span>
+        <span><code id="rF">—</code></span>
+        <span class="muted" id="rN"></span>
+      </p>
+      <p class="fl-hint" id="hint">
+        Сечение-зонд двигается мышью по холсту или стрелками ← → при фокусе на холсте
+        (Shift — крупный шаг), пробел — пауза. Оранжевым показано возвратное течение.
+      </p>
+      <p id="srDesc" style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;
+         clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <hr class="hr">
+
+  <!-- ═══ 2. Что показывает картинка ═════════════════════════ -->
+  <section class="sec-tight">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <span class="eyebrow">Чтение картинки</span>
+          <h2>Что здесь видно и что с этим делать</h2>
+          <p>Четыре вещи, ради которых стоит смотреть на поле скорости, а не только
+             на итоговую цифру потерь.</p>
+        </div>
+      </div>
+      <div class="g4">
+        <article class="card fl-card rise">
+          <h3>Где растут потери</h3>
+          <p>Местная потеря равна ζ·ρu²/2 — скорость входит в квадрате. Подняли
+             6 м/с до 9 — потери выросли в 2,25 раза, а не в полтора. Отвод R/D = 1,0
+             стоит ζ = 0,21, тот же отвод при R/D = 1,5 — уже 0,16.</p>
+          <p class="out"><b>Следствие:</b> на магистрали дешевле поднять сечение
+             на типоразмер, чем добирать давление вентилятором.</p>
+        </article>
+        <article class="card fl-card rise">
+          <h3>Откуда берётся шум</h3>
+          <p>Шум рождается там, где поток срывается: за заслонкой, на кромке врезки
+             тройника, у внутренней стенки крутого отвода. На холсте это оранжевые
+             зоны возвратного течения. Звуковая мощность растёт примерно как пятая
+             степень скорости в узком месте — быстрее, чем потери.</p>
+          <p class="out"><b>Следствие:</b> расход регулировать частотником, заслонку
+             оставить наладке; в жилых зонах считать скорость, а не только Δp.</p>
+        </article>
+        <article class="card fl-card rise">
+          <h3>Зачем прямой участок у вентилятора</h3>
+          <p>Колесо рассчитано на равномерный подвод. Отвод вплотную к всасу приносит
+             на колесо перекошенную эпюру, и часть лопаток работает вне расчётной точки.
+             Каталожная характеристика снята на стенде с прямым подводом — эта потеря
+             в неё не заложена.</p>
+          <p class="out"><b>Следствие:</b> 1,5 D прямого участка перед всасом и 2–3 D
+             после нагнетания, иначе фактическая характеристика окажется ниже паспортной.</p>
+        </article>
+        <article class="card fl-card rise">
+          <h3>Чем плох резкий переход</h3>
+          <p>Внезапное расширение теряет ρ(u₁ − u₂)²/2 целиком — это Борда — Карно,
+             и потеря не зависит от того, насколько аккуратно сварен шов. Конфузор при
+             тех же сечениях почти ничего не теряет: ускоряющийся поток не отрывается.</p>
+          <p class="out"><b>Следствие:</b> расширять диффузором с углом до 15–20°,
+             резкий переход допускать только там, где физически нет длины, — и считать его.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 3. Сравнение ═══════════════════════════════════════ -->
+  <section class="sec-tight">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <span class="eyebrow">Одна и та же сеть, две компоновки</span>
+          <h2>Отвод вплотную к вентилятору и отвод через прямой участок</h2>
+          <p>Расход, диаметр и сам отвод R/D = 1,5 одинаковы. Разница только в том,
+             есть ли между отводом и колесом прямой участок 1,5 D.</p>
+        </div>
+      </div>
+      <div class="fl-vs">
+        <figure>
+          <canvas id="cvBad" aria-label="Отвод вплотную к входу в вентилятор"></canvas>
+          <figcaption>
+            <h3>Отвод вплотную к всасу</h3>
+            <p class="muted" style="font-size:13.5px;margin:0">Поток приходит на колесо
+               перекошенным: ядро прижато к одной стенке, у противоположной — отрыв.</p>
+            <dl class="fl-nums">
+              <div><dt>ζ суммарное</dt><dd id="badZ">—</dd></div>
+              <div><dt>Δp, Па</dt><dd id="badP">—</dd></div>
+              <div><dt>u max / u ср</dt><dd id="badR">—</dd></div>
+            </dl>
+          </figcaption>
+        </figure>
+        <figure>
+          <canvas id="cvGood" aria-label="Отвод через прямой участок 1,5 D перед входом в вентилятор"></canvas>
+          <figcaption>
+            <h3>Прямой участок 1,5 D</h3>
+            <p class="muted" style="font-size:13.5px;margin:0">Полутора калибров хватает,
+               чтобы эпюра успела выровняться, а отрыв за отводом — закрыться.</p>
+            <dl class="fl-nums">
+              <div><dt>ζ суммарное</dt><dd id="goodZ">—</dd></div>
+              <div><dt>Δp, Па</dt><dd id="goodP">—</dd></div>
+              <div><dt>u max / u ср</dt><dd id="goodR">—</dd></div>
+            </dl>
+          </figcaption>
+        </figure>
+      </div>
+      <div class="fl-delta">
+        <b id="vsPct">—</b>
+        <p id="vsText">Разница считается по той же формуле, что и вся страница.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 4. Мостик ══════════════════════════════════════════ -->
+  <section class="sec-tight">
+    <div class="wrap">
+      <div class="fl-next">
+        <a class="card card-hover corners fl-next-a" href="calc.html#aero">
+          <h3>Посчитать потери своей сети →</h3>
+          <p>Аэродинамический расчёт по участкам: длины, местные сопротивления,
+             скорости и суммарные потери. Открытые формулы, без регистрации.</p>
+        </a>
+        <a class="card card-hover corners fl-next-a" href="podbor.html">
+          <h3>Подобрать вентилятор по Q и P →</h3>
+          <p>Введите расход и потери давления — покажем серии, чья рабочая область
+             накрывает вашу точку, с КПД именно в ней.</p>
+        </a>
+      </div>
+      <p class="demo-note" style="margin-top:var(--s5)">
+        <b>О модели.</b>
+        <span>Поле скорости на этой странице строится <b>одномерным инженерным
+        расчётом</b> и не является численным моделированием: это не CFD.
+        Профиль по сечению — степенной закон турбулентного течения
+        u = u_max·(1 − r/R)<sup>1/n</sup>, показатель n определяется числом Рейнольдса
+        и при развитом режиме близок к 7, отношение u_max/u_ср = (n+1)(2n+1)/2n² ≈ 1,22.
+        Расход при изменении сечения сохраняется точно: u₂ = u₁·F₁/F₂. Внезапное
+        расширение считается по Борда — Карно, трение — по Дарси — Вейсбаху с λ
+        по формуле Альтшуля, местные сопротивления — по табличным ζ. Длины зон отрыва,
+        углы раскрытия струй и надбавка на неравномерность потока перед колесом —
+        оценки, они помечены на экране. Трёхмерные эффекты (парный вихрь Дина в отводе,
+        закрутка за заслонкой) в плоском разрезе не показаны. Для рабочего проекта
+        считайте по действующим методикам, а спорные узлы согласуйте с заводом.</span>
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<script type="module">
+import { mountShell, fmt, $, $$ } from './assets/shell.js';
+import { mountFlow, ELEMENTS, elementByKey, sectionOf, stateOf, elementLoss }
+  from './assets/flow.js';
+
+mountShell({ page:'flow' });
+
+/* ═══ Состояние страницы ═════════════════════════════════════ */
+const LAYERS = [
+  ['particles',   'Частицы-трассеры',        true ],
+  ['field',       'Заливка поля скорости',   true ],
+  ['profile',     'Эпюра в сечении-зонде',   true ],
+  ['streamlines', 'Линии тока',              false],
+  ['vectors',     'Векторное поле',          false]
+];
+
+/* Ссылка вида flow.html#damper открывает сразу нужный элемент трассы —
+   с этого места на страницу ссылаются калькуляторы и карточки серий. */
+const fromHash = ELEMENTS.some(e => e.key === location.hash.slice(1))
+  ? location.hash.slice(1) : 'bend';
+
+const state = {
+  L: 6000, shape: 'round', D: 500, a: 600, b: 400,
+  element: fromHash,
+  params: Object.fromEntries(ELEMENTS.map(e => [e.param.key, e.param.def])),
+  layers: Object.fromEntries(LAYERS.map(([k, , v]) => [k, v])),
+  timeScale: 0.25
+};
+
+/* ═══ Панель: элементы трассы ════════════════════════════════ */
+const elsBox = $('#els');
+elsBox.innerHTML = ELEMENTS.map(e =>
+  `<button type="button" data-el="${e.key}" aria-pressed="${e.key === state.element}">
+     <b>${e.name}</b><span>${e.tag}</span></button>`).join('');
+
+/* ═══ Панель: слои ═══════════════════════════════════════════ */
+$('#layers').innerHTML = LAYERS.map(([k, label, on]) =>
+  `<label class="fopt"><input type="checkbox" data-layer="${k}"${on ? ' checked' : ''}>
+     <span>${label}</span></label>`).join('');
+
+/* ═══ Холст ══════════════════════════════════════════════════ */
+const cv = $('#cv'), panel = $('#panel');
+const insetLeft = () =>
+  getComputedStyle(panel).position === 'absolute' ? panel.offsetWidth + 28 : 0;
+
+const flow = mountFlow(cv, {
+  L: state.L, shape: state.shape, D: state.D, a: state.a, b: state.b,
+  element: state.element, params: state.params, layers: state.layers,
+  timeScale: state.timeScale, inset: { left: insetLeft() },
+  liveRegion: $('#srDesc'),
+  onRead: paint
+});
+
+/* Панель то лежит поверх холста, то уходит под него — отступ под неё
+   пересчитывается по факту изменения раскладки, а не по таймеру. */
+let lastInset = insetLeft();
+new ResizeObserver(() => {
+  const v = insetLeft();
+  if(v !== lastInset){ lastInset = v; flow.set({ inset: { left: v } }); }
+}).observe(panel);
+
+/* ═══ Вывод чисел ════════════════════════════════════════════ */
+function paint(r){
+  if(!r) return;
+  const p = r.probe;
+  $('#rUavg').innerHTML = fmt.n(p.uAvg, 2) + '<small>м/с</small>';
+  $('#rUmax').innerHTML = fmt.n(p.uMax, 2) + '<small>м/с</small>';
+  $('#rUmin').innerHTML = fmt.n(p.uMin, 2) + '<small>м/с</small>';
+  $('#rRe').textContent  = fmt.n(Math.round(p.Re / 100) * 100);
+  $('#rPd').innerHTML   = fmt.n(p.pd, 0) + '<small>Па</small>';
+  $('#rDp').innerHTML   = fmt.n(r.loss.dp, r.loss.dp < 100 ? 1 : 0) + '<small>Па</small>';
+  $('#rZ').textContent   = fmt.n(r.loss.zeta, 3);
+  $('#rRef').textContent = r.loss.ref;
+  $('#rF').textContent   = r.loss.formula;
+  $('#rN').textContent   = r.loss.note;
+}
+
+/* ═══ Ползунок расхода ═══════════════════════════════════════ */
+const rL = $('#rL');
+rL.addEventListener('input', () => {
+  state.L = +rL.value;
+  $('#lVal').textContent = fmt.n(state.L);
+  flow.set({ L: state.L });
+  paintVs();
+});
+
+/* ═══ Сечение ════════════════════════════════════════════════ */
+$$('[data-sec]').forEach(b => b.addEventListener('click', () => {
+  state.shape = b.dataset.sec;
+  $$('[data-sec]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  $('#secRound').hidden = state.shape !== 'round';
+  $('#secRect').hidden  = state.shape !== 'rect';
+  flow.set({ shape: state.shape });
+  paintVs();
+}));
+const bindNum = (id, key) => $(id).addEventListener('input', () => {
+  const v = +$(id).value;
+  if(!Number.isFinite(v) || v < 50) return;
+  state[key] = v; flow.set({ [key]: v }); paintVs();
+});
+bindNum('#fD', 'D'); bindNum('#fA', 'a'); bindNum('#fB', 'b');
+
+/* ═══ Элемент трассы и его параметр ══════════════════════════ */
+const rP = $('#rP');
+function syncParam(){
+  const e = elementByKey(state.element), pr = e.param;
+  rP.min = pr.min; rP.max = pr.max; rP.step = pr.step;
+  rP.value = state.params[pr.key];
+  rP.setAttribute('aria-label', pr.label);
+  $('#pLab').textContent = pr.label;
+  $('#pVal').textContent = fmt.n(state.params[pr.key], pr.dec) + (pr.unit ? ' ' + pr.unit : '');
+}
+elsBox.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-el]');
+  if(!b) return;
+  state.element = b.dataset.el;
+  $$('[data-el]', elsBox).forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  syncParam();
+  flow.set({ element: state.element, params: state.params });
+});
+rP.addEventListener('input', () => {
+  const pr = elementByKey(state.element).param;
+  state.params[pr.key] = +rP.value;
+  $('#pVal').textContent = fmt.n(state.params[pr.key], pr.dec) + (pr.unit ? ' ' + pr.unit : '');
+  flow.set({ params: state.params });
+});
+syncParam();
+
+/* ═══ Слои, замедление, пауза ════════════════════════════════ */
+$('#layers').addEventListener('change', ev => {
+  const i = ev.target.closest('[data-layer]');
+  if(!i) return;
+  state.layers[i.dataset.layer] = i.checked;
+  flow.set({ layers: state.layers });
+});
+$$('[data-ts]').forEach(b => b.addEventListener('click', () => {
+  state.timeScale = +b.dataset.ts;
+  $$('[data-ts]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  flow.set({ timeScale: state.timeScale });
+}));
+const btnPause = $('#btnPause');
+btnPause.addEventListener('click', () => {
+  const on = btnPause.getAttribute('aria-pressed') !== 'true';
+  btnPause.setAttribute('aria-pressed', String(on));
+  btnPause.textContent = on ? 'Продолжить' : 'Пауза';
+  on ? flow.pause() : flow.resume();
+});
+if(matchMedia('(prefers-reduced-motion:reduce)').matches){
+  btnPause.disabled = true;
+  $('#hint').textContent = 'Включён режим уменьшенной анимации: показан один статичный ' +
+    'кадр с линиями тока. Сечение-зонд двигается мышью или стрелками ← → при фокусе на холсте.';
+}
+
+/* ═══ Сравнение «плохо / хорошо» ═════════════════════════════ */
+const vsOpts = k => ({
+  element: 'fanInlet', params: { straightD: k }, still: true, compact: true,
+  interactive: false, layers: { particles:false, field:true, streamlines:true,
+                                vectors:false, profile:false }
+});
+/* Неравномерность на колесе приходит из самого поля — её пишет модуль. */
+const bad  = mountFlow($('#cvBad'),
+  Object.assign({ L: state.L, onRead: r => { $('#badR').textContent  = fmt.n(r.exit.ratio, 2); } },
+                vsOpts(0)));
+const good = mountFlow($('#cvGood'),
+  Object.assign({ L: state.L, onRead: r => { $('#goodR').textContent = fmt.n(r.exit.ratio, 2); } },
+                vsOpts(1.5)));
+
+function paintVs(){
+  const sz = { L: state.L, shape: state.shape, D: state.D, a: state.a, b: state.b };
+  bad.set(sz); good.set(sz);
+  /* Числа считаем теми же экспортированными функциями, что и модуль. */
+  const st = stateOf({ L: state.L, section: sectionOf(state) });
+  const A = elementLoss('fanInlet', { straightD: 0 },   st);
+  const B = elementLoss('fanInlet', { straightD: 1.5 }, st);
+  $('#badZ').textContent  = fmt.n(A.zeta, 2);
+  $('#goodZ').textContent = fmt.n(B.zeta, 2);
+  $('#badP').textContent  = fmt.n(A.dp, 1);
+  $('#goodP').textContent = fmt.n(B.dp, 1);
+  const pct = A.dp > 0 ? Math.round(100 * (A.dp - B.dp) / A.dp) : 0;
+  $('#vsPct').textContent = '−' + pct + ' %';
+  $('#vsText').textContent =
+    `На ${fmt.n(state.L)} м³/ч и сечении ${st.sec.label} прямой участок 1,5 D снимает ` +
+    `${fmt.n(A.dp - B.dp, 1)} Па из ${fmt.n(A.dp, 1)} Па. При КПД вентилятора 0,7 это ` +
+    `${fmt.n((state.L / 3600) * (A.dp - B.dp) / 0.7, 0)} Вт на валу — круглосуточно, весь срок службы. ` +
+    `Надбавка на неравномерность здесь — инженерная оценка, а не табличная величина: ` +
+    `она помечена в разборе ζ.`;
+}
+paintVs();
+</script>
+</body>
+</html>

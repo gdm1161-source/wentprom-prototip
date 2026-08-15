@@ -1,0 +1,1276 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Подбор по расходу и давлению · Вентпром</title>
+<meta name="description" content="Рабочая точка Q и P, поле характеристик с логарифмическими осями, таблица подходящих серий с запасом по расходу и давлению и опросный лист, который заполняется из расчёта.">
+<link rel="stylesheet" href="assets/vp.css">
+<style>
+/* ── Композиция страницы подбора. Ни одного нового цвета: только токены. ── */
+
+.pgtop{padding:30px 0 4px}
+.dim h1{flex:0 0 auto;font-size:clamp(25px,3.3vw,40px);letter-spacing:.05em}
+
+/* Честная рамка — полоса во всю ширину, ничем не прикрытая */
+.frame{padding:15px 0}
+.frame h3{font-size:12.5px;letter-spacing:.14em;margin-bottom:7px;color:inherit}
+.frame p{margin:0 0 .55em;max-width:104ch;line-height:1.5}
+.frame p:last-child{margin:0}
+
+/* Форма рабочей точки */
+.pt-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px;align-items:start}
+.pt-foot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  margin-top:18px;padding-top:14px;border-top:1px solid var(--rule)}
+.pt-foot .note{font-size:12.5px;color:var(--ink-3);max-width:62ch}
+/* Подписи под полем несёт <em>, чтобы не попасть под .fld>span (это метка) */
+.fld .err,.fld .hint{font-style:normal;font-family:var(--f-ui);letter-spacing:0;text-transform:none}
+.fld .err:empty{display:none}
+.fld .hint:empty{display:none}
+
+/* Поле характеристик */
+.field-box{border:1px solid var(--rule-ink);background:var(--paper-hi)}
+.field-box canvas{display:block;width:100%;height:clamp(330px,34vw,460px)}
+.field-hd{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:10px 14px;border-bottom:1px solid var(--rule);background:var(--paper-2)}
+.lgnd{display:flex;gap:20px;flex-wrap:wrap;padding:10px 14px;
+  border-top:1px solid var(--rule);font-size:12.5px;color:var(--ink-2)}
+.lgnd span{display:inline-flex;align-items:center;gap:8px}
+.lgnd i{width:22px;height:12px;flex:0 0 auto;display:inline-block}
+.lgnd i.a{background:var(--blue-pale);border:1.5px solid var(--blue)}
+.lgnd i.b{border:1px dashed var(--rule-ink)}
+.lgnd i.c{position:relative;border:0}
+.lgnd i.c::before,.lgnd i.c::after{content:"";position:absolute;background:var(--ink)}
+.lgnd i.c::before{left:0;right:0;top:5px;height:1.5px}
+.lgnd i.c::after{top:0;bottom:0;left:10px;width:1.5px}
+.narrow-note{display:none;padding:14px;font-size:13px;color:var(--ink-2);
+  border-top:1px solid var(--rule)}
+
+/* .tbl-scroll задаёт overflow-x:auto, а это по спецификации делает блок
+   скролл-контейнером и по вертикали. Липкая шапка из vp.css с top:66px тогда
+   встаёт на 66 px ниже верха контейнера и накрывает первые строки. Внутри
+   своего контейнера ей место у его верхней кромки. */
+/* Заплатка снята: контейнер прокрутки теперь включается в vp.css только
+   ниже 1280 px, и там же шапка переводится на нулевое смещение. */
+
+/* Выдача */
+.res-hd{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+.res-hd .cnt{font-family:var(--f-num);font-size:13px;color:var(--ink-2)}
+table.data thead th button{
+  font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;
+  background:none;border:0;padding:0;margin:0;cursor:pointer;
+  display:inline-flex;align-items:center;
+}
+table.data thead th button:hover{color:var(--blue)}
+table.data td a{color:var(--blue);text-decoration:none}
+table.data tbody tr:hover td a{text-decoration:underline}
+.empty{border:1px solid var(--rule-ink);background:var(--paper-hi);padding:22px 24px}
+.empty h3{margin-bottom:8px}
+.empty p{max-width:86ch;color:var(--ink-2)}
+.empty .fixes{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+
+/* Подтверждение сохранения — нарисованная поверхность, а не alert */
+.ack{border:1px solid var(--ok);background:var(--ok-pale);padding:12px 16px;
+  display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.ack b{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.12em;
+  font-size:11.5px;color:var(--ok)}
+.ack span{font-size:13px;color:var(--ink-2)}
+.ack .num{font-size:12.5px;color:var(--ink-2)}
+.ack[hidden]{display:none}
+.ack--wait{border-color:var(--warn-line);background:var(--warn-pale)}
+.ack--wait b{color:var(--warn)}
+
+/* Опросный лист */
+fieldset{border:1px solid var(--rule);margin:0 0 var(--gut);padding:16px 18px 18px;min-width:0}
+fieldset legend{padding:0 8px;margin-left:-4px;
+  font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.14em;
+  font-size:11px;color:var(--blue)}
+.f3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.f2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.f4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.req{color:var(--stop)}
+.from-calc{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin-top:12px;padding:8px 12px;border:1px dashed var(--blue);background:var(--blue-wash);
+  font-size:12.5px;color:var(--ink-2)}
+.from-calc .num{color:var(--blue)}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 18px}
+.file-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.file-row input[type=file]{font-family:var(--f-ui);font-size:13px;max-width:100%}
+.file-row .got{font-family:var(--f-num);font-size:12.5px;color:var(--ink-2)}
+.sv-acts{display:flex;gap:12px;flex-wrap:wrap;align-items:center;
+  padding-top:16px;border-top:1px solid var(--rule)}
+.pick-empty{font-size:13px;color:var(--ink-3);padding:10px 0}
+td.qty input{width:82px;height:32px;padding:0 8px;text-align:right;
+  background:var(--paper-hi);border:1px solid var(--rule-ink);
+  font-family:var(--f-num);font-size:13px}
+
+@media (max-width:1180px){
+  .pt-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .f4{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:820px){
+  .f3,.f2,.f4,.opts{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:640px){
+  .pt-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  /* На узком экране поле уступает место таблице: те же числа, только текстом */
+  .field-box canvas,.field-box .lgnd{display:none}
+  .narrow-note{display:block}
+}
+@media (max-width:560px){
+  /* Размерная линия заголовка: на узком листе заголовок берёт свою строку,
+     иначе выноска с числом уезжает за обрез */
+  .dim{flex-wrap:wrap;gap:10px}
+  .dim h1,.dim h2{flex:1 1 100%}
+  .dim .line{flex:1 1 auto;min-width:30px}
+  .stamp{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stamp div:nth-child(2n){border-right:0}
+}
+@media (max-width:420px){
+  .pt-grid{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+</head>
+<body>
+<!--
+IMPECCABLE DIRECTION CONTRACT · мир «Чертёж»
+THESIS: страница подбора — это лист расчёта: рабочая точка, поле характеристик
+с оцифрованными осями, таблица запасов и опросный лист, который заполняется из
+уже сделанного расчёта, а не с чистого места.
+OWN-WORLD: миллиметровка грунтом, волосяная линовка вместо теней, приборный
+синий на осях и структуре, сигнальный оранжевый только на действии, узкий
+гротеск прописными, моноширинный на измерениях.
+STORY: инженер вводит Q и P → видит, куда точка попала на поле → читает запасы
+в таблице → уносит выбранное в опросный лист и файл.
+FIRST VIEWPORT: заголовок, честная рамка про непереданную методику, форма
+рабочей точки с живым пересчётом.
+FORM: мир закреплён распоряжением заказчика, раунд направления не проводился.
+-->
+
+<div id="vp-head"></div>
+
+<main>
+
+  <section class="pgtop">
+    <div class="wrap">
+      <div class="dim">
+        <h1>Подбор по Q и P</h1><i class="line"></i>
+        <span class="val" id="scaleTag"></span>
+      </div>
+      <p class="lead">Введите расход и полное давление — страница покажет, какие
+        серии накрывают эту точку и с каким запасом. Пересчёт идёт по мере ввода,
+        кнопки «Применить» нет. Адрес страницы хранит рабочую точку целиком:
+        скопируйте его из строки браузера, и коллега откроет тот же расчёт.</p>
+    </div>
+  </section>
+
+  <div class="warn frame">
+    <div class="wrap">
+      <h3>Чем это считается и почему по этому нельзя проектировать</h3>
+      <p><b>Методика подбора заводом не передана.</b> Таблиц «расход — полное
+        давление» по каждому типоразмеру у нас нет: с сайта завода сняты только
+        крайние значения диапазонов серии, а строки внутри диапазона получены
+        интерполяцией.</p>
+      <p>Поэтому здесь работает <b>прямоугольная рабочая область</b>: серия
+        считается подходящей, если точка попала в прямоугольник «расход от и до» ×
+        «давление от и до», а типоразмер — если он накрывает точку сразу по обеим
+        осям. Настоящая характеристика вентилятора — кривая, а не прямоугольник;
+        КПД в точке и мощность на валу эта модель не считает.</p>
+      <p>Числа на странице годятся, чтобы проверить работу интерфейса, и
+        <b>не годятся для проекта, сметы и заказа</b>. Рабочий подбор — по
+        каталогу завода и с расчётом сети.</p>
+    </div>
+  </div>
+
+  <!-- ═══ 1. Рабочая точка ═══════════════════════════════════════════ -->
+  <section class="sec--tight">
+    <div class="wrap">
+      <div class="dim">
+        <h2>Рабочая точка</h2><i class="line"></i><span class="val">Q · P · условия</span>
+      </div>
+
+      <form class="sheet sheet--pad" id="ptForm" novalidate>
+        <div class="pt-grid">
+          <label class="fld">
+            <span>Расход Q, м³/ч</span>
+            <input type="number" id="f-q" min="1" step="10" inputmode="numeric"
+                   autocomplete="off" aria-describedby="e-q">
+            <em class="err" id="e-q"></em>
+          </label>
+
+          <label class="fld">
+            <span>Полное давление Pv, Па</span>
+            <input type="number" id="f-p" min="1" step="10" inputmode="numeric"
+                   autocomplete="off" aria-describedby="e-p">
+            <em class="err" id="e-p"></em>
+          </label>
+
+          <label class="fld">
+            <span>Тип конструкции</span>
+            <select id="f-type"><option value="">любой</option></select>
+            <em class="hint">Радиальный, осевой, крышный, канальный.</em>
+          </label>
+
+          <label class="fld">
+            <span>Индекс исполнения</span>
+            <select id="f-ind"><option value="">любое</option></select>
+            <em class="hint">Перечень индексов — с сайта завода.</em>
+          </label>
+
+          <label class="fld">
+            <span>Температура среды, °C</span>
+            <input type="number" id="f-temp" min="-40" max="200" step="5"
+                   inputmode="numeric" autocomplete="off" aria-describedby="e-temp">
+            <em class="err" id="e-temp"></em>
+          </label>
+        </div>
+
+        <div class="pt-foot">
+          <button class="btn" type="button" id="saveBtn">Сохранить расчёт</button>
+          <a class="btn btn--ghost" href="calc.html#aero">Посчитать ΔP сети</a>
+          <p class="note mb0">Температура здесь только отсекает исполнения:
+            до +80&nbsp;°C — общепромышленное, до +200&nbsp;°C — теплостойкое Ж2.
+            Пределы взяты из перечня исполнений завода. Пересчёт плотности воздуха
+            и характеристик при нагреве не выполняется — методики нет.</p>
+        </div>
+
+        <div class="ack" id="ack" hidden role="status" aria-live="polite"></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- ═══ 2. Поле характеристик ══════════════════════════════════════ -->
+  <section class="sec--tight">
+    <div class="wrap">
+      <div class="dim">
+        <h2>Поле характеристик</h2><i class="line"></i>
+        <span class="val">оси логарифмические</span>
+      </div>
+
+      <figure class="field-box" style="margin:0">
+        <div class="field-hd">
+          <span class="cut">Рабочие области серий</span>
+          <span class="small" style="margin-left:auto">Ось X — расход Q, м³/ч ·
+            ось Y — полное давление Pv, Па</span>
+        </div>
+        <canvas id="field" role="img" aria-label="Поле характеристик: рабочие области серий в осях расход — полное давление. Те же числа приведены в таблице под полем."></canvas>
+        <div class="lgnd">
+          <span><i class="a"></i>рабочая область накрывает точку</span>
+          <span><i class="b"></i>область не накрывает точку или отсеяна условиями</span>
+          <span><i class="c"></i>рабочая точка</span>
+        </div>
+        <p class="narrow-note">Поле характеристик на узком экране уступает место
+          таблице: ниже те же самые числа — границы рабочих областей всех серий и
+          признак попадания рабочей точки.</p>
+        <figcaption class="small" style="padding:10px 14px;border-top:1px solid var(--rule)">
+          Прямоугольник — не характеристика вентилятора, а границы опубликованных
+          диапазонов серии. Настоящая характеристика — кривая полного давления при
+          заданной частоте вращения.
+        </figcaption>
+      </figure>
+
+      <h3 style="margin:26px 0 10px">Текстовый эквивалент поля</h3>
+      <div class="tbl-scroll">
+        <table class="data" id="fieldTbl">
+          <caption class="vh">Границы рабочих областей серий и попадание рабочей точки</caption>
+          <thead>
+            <tr>
+              <th class="l" scope="col">Серия</th>
+              <th class="l" scope="col">Тип</th>
+              <th scope="col">Q от, м³/ч</th>
+              <th scope="col">Q до, м³/ч</th>
+              <th scope="col">Pv от, Па</th>
+              <th scope="col">Pv до, Па</th>
+              <th class="l" scope="col">Точка в области</th>
+              <th class="l" scope="col">Итог</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 3. Выдача ══════════════════════════════════════════════════ -->
+  <section class="sec--tight">
+    <div class="wrap">
+      <div class="dim">
+        <h2>Подходящие позиции</h2><i class="line"></i>
+        <span class="val" id="resVal">—</span>
+      </div>
+
+      <div class="res-hd">
+        <p class="cnt mb0" id="resSum" role="status" aria-live="polite"></p>
+        <p class="small mb0" id="resSort"></p>
+      </div>
+
+      <div class="tbl-scroll" id="resWrap">
+        <table class="data" id="resTbl">
+          <caption class="vh">Позиции, накрывающие рабочую точку</caption>
+          <thead>
+            <tr>
+              <th class="l" scope="col">Серия</th>
+              <th class="l" scope="col">Типоразмер</th>
+              <th data-k="q"   scope="col">Q, м³/ч<i class="ar"></i></th>
+              <th data-k="p"   scope="col">Pv, Па<i class="ar"></i></th>
+              <th data-k="n"   scope="col">N уст., кВт<i class="ar"></i></th>
+              <th data-k="rpm" scope="col">n, об/мин<i class="ar"></i></th>
+              <th data-k="zq"  scope="col">Запас по Q, %<i class="ar"></i></th>
+              <th data-k="zp"  scope="col">Запас по P, %<i class="ar"></i></th>
+              <th class="l" scope="col">Данные</th>
+              <th class="acts" scope="col"><span class="vh">Действие</span></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="empty" id="empty" hidden></div>
+
+      <dl class="stamp" style="margin-top:var(--gut)" id="stamp">
+        <div><dt>Документ</dt><dd>Подбор по рабочей точке</dd></div>
+        <div><dt>Рабочая точка</dt><dd id="st-pt">—</dd></div>
+        <div><dt>Условия</dt><dd id="st-cond">—</dd></div>
+        <div><dt>Клиент · дата</dt><dd id="st-cli">—</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ═══ 4. Опросный лист ═══════════════════════════════════════════ -->
+  <section class="sec" id="survey">
+    <div class="wrap">
+      <div class="dim">
+        <h2>Опросный лист</h2><i class="line"></i>
+        <span class="val">черновик сохраняется</span>
+      </div>
+      <p class="lead" style="margin-bottom:20px">Рабочая точка и подобранные
+        позиции подставляются из расчёта выше — переписывать их руками не нужно.
+        Черновик сохраняется в браузере при каждом вводе: если закроете вкладку,
+        форма восстановится.</p>
+
+      <form class="sheet sheet--pad" id="svForm" novalidate>
+
+        <fieldset>
+          <legend>Объект</legend>
+          <div class="f4">
+            <label class="fld"><span>Название объекта</span>
+              <input type="text" id="s-obj" autocomplete="off"><em class="err"></em></label>
+            <label class="fld"><span>Адрес объекта</span>
+              <input type="text" id="s-addr" autocomplete="off"><em class="err"></em></label>
+            <label class="fld"><span>Стадия</span>
+              <select id="s-stage">
+                <option value="">не выбрана</option>
+                <option>Проект (П)</option>
+                <option>Рабочая документация (Р)</option>
+                <option>Строительство</option>
+                <option>Реконструкция</option>
+                <option>Эксплуатация, замена</option>
+              </select></label>
+            <label class="fld"><span>Требуемый срок поставки</span>
+              <input type="text" id="s-term" placeholder="например, IV квартал" autocomplete="off">
+              <em class="hint">Свободная строка: сроки завод на сайте не публикует.</em></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Заказчик</legend>
+          <div class="f3">
+            <label class="fld"><span>Организация <b class="req">*</b></span>
+              <input type="text" id="s-org" autocomplete="organization" required>
+              <em class="err"></em></label>
+            <label class="fld"><span>ИНН</span>
+              <input type="text" id="s-inn" inputmode="numeric" autocomplete="off">
+              <em class="err"></em></label>
+            <label class="fld"><span>Контактное лицо <b class="req">*</b></span>
+              <input type="text" id="s-fio" autocomplete="name" required><em class="err"></em></label>
+            <label class="fld"><span>Телефон <b class="req">*</b></span>
+              <input type="tel" id="s-tel" autocomplete="tel" required><em class="err"></em></label>
+            <label class="fld"><span>Электронная почта <b class="req">*</b></span>
+              <input type="email" id="s-mail" autocomplete="email" required><em class="err"></em></label>
+            <label class="fld"><span>Позиция по проекту</span>
+              <input type="text" id="s-pos" placeholder="например, П1, В3" autocomplete="off">
+              <em class="err"></em></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Система</legend>
+          <div class="f3">
+            <label class="fld"><span>Назначение системы</span>
+              <select id="s-purp">
+                <option value="">не выбрано</option>
+                <option>Приточная вентиляция</option>
+                <option>Вытяжная вентиляция</option>
+                <option>Аспирация, пневмотранспорт</option>
+                <option>Дымоудаление</option>
+                <option>Подпор воздуха</option>
+                <option>Технологическая, котельная</option>
+              </select></label>
+            <label class="fld"><span>Обслуживаемое помещение</span>
+              <input type="text" id="s-room" autocomplete="off"><em class="err"></em></label>
+            <label class="fld"><span>Режим работы</span>
+              <select id="s-mode">
+                <option value="">не выбран</option>
+                <option>Круглосуточно</option>
+                <option>По графику смены</option>
+                <option>Периодически</option>
+                <option>Аварийный, по сигналу</option>
+              </select></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Рабочая точка</legend>
+          <div class="f2">
+            <label class="fld"><span>Расход Q, м³/ч <b class="req">*</b></span>
+              <input type="number" id="s-q" min="1" step="10" inputmode="numeric" required>
+              <em class="err"></em></label>
+            <label class="fld"><span>Полное давление Pv, Па <b class="req">*</b></span>
+              <input type="number" id="s-p" min="1" step="10" inputmode="numeric" required>
+              <em class="err"></em></label>
+          </div>
+          <p class="from-calc" id="ptSrc"></p>
+        </fieldset>
+
+        <fieldset>
+          <legend>Перемещаемая среда</legend>
+          <div class="f4">
+            <label class="fld"><span>Температура, °C</span>
+              <input type="number" id="s-t" min="-40" max="200" step="5" inputmode="numeric">
+              <em class="err"></em></label>
+            <label class="fld"><span>Запылённость, г/м³</span>
+              <input type="number" id="s-dust" min="0" step="0.1" inputmode="decimal">
+              <em class="err"></em></label>
+            <label class="fld"><span>Агрессивность</span>
+              <select id="s-aggr">
+                <option value="">не указана</option>
+                <option>Нет, воздух без примесей</option>
+                <option>Умеренная</option>
+                <option>Сильная, требуется нержавеющая сталь</option>
+              </select></label>
+            <label class="fld"><span>Взрывоопасность</span>
+              <select id="s-ex">
+                <option value="">не указана</option>
+                <option>Нет</option>
+                <option>Да, требуется исполнение В</option>
+              </select>
+              <em class="hint">Категорию и группу смеси укажите в примечании.</em></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Исполнение</legend>
+          <div class="f4">
+            <label class="fld"><span>Индекс исполнения</span>
+              <select id="s-ind"><option value="">не выбран</option></select></label>
+            <label class="fld"><span>Схема привода</span>
+              <select id="s-sch">
+                <option value="">не выбрана</option>
+                <option>Схема 1 — колесо на валу двигателя</option>
+                <option>Схема 3 — на промвалу через муфту</option>
+                <option>Схема 5 — клиноремённая передача</option>
+              </select></label>
+            <label class="fld"><span>Климатическое исполнение</span>
+              <select id="s-clim">
+                <option value="">не выбрано</option>
+                <option>У1</option><option>У2</option><option>У3</option>
+                <option>УХЛ1</option><option>УХЛ2</option><option>УХЛ3</option>
+                <option>УХЛ4</option><option>Т3</option>
+              </select>
+              <em class="hint">Категории по ГОСТ 15150-69.</em></label>
+            <label class="fld"><span>Угол разворота корпуса</span>
+              <select id="s-ang">
+                <option value="">не выбран</option>
+                <option>0°</option><option>45°</option><option>90°</option>
+                <option>135°</option><option>180°</option><option>225°</option>
+                <option>270°</option><option>315°</option>
+              </select>
+              <em class="hint">Направление вращения укажите в примечании: правое или левое.</em></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Комплектация</legend>
+          <div class="opts">
+            <label class="opt"><input type="checkbox" id="s-k1">Виброизоляторы</label>
+            <label class="opt"><input type="checkbox" id="s-k2">Гибкие вставки</label>
+            <label class="opt"><input type="checkbox" id="s-k3">Частотный преобразователь</label>
+            <label class="opt"><input type="checkbox" id="s-k4">Шумоглушитель</label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Подобранные позиции</legend>
+          <div id="pickBox"></div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Примечания</legend>
+          <label class="fld"><span>Что важно знать для подбора</span>
+            <textarea id="s-note" rows="4" placeholder="Ограничения по габаритам, шуму, схема сети, ранее применённое оборудование."></textarea></label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Свой опросный лист</legend>
+          <div class="file-row">
+            <label class="fld" style="flex:1 1 320px"><span>Прикрепить файл</span>
+              <input type="file" id="s-file"></label>
+            <span class="got" id="fileGot"></span>
+          </div>
+          <p class="small mb0" style="margin-top:10px">Прототип принимает файл,
+            показывает имя и размер и на этом останавливается: разбор чужого
+            формата — работа боевого сайта. Файл никуда не отправляется и остаётся
+            в вашем браузере.</p>
+        </fieldset>
+
+        <div class="sv-acts">
+          <button class="btn" type="submit" id="svSend">Отправить лист</button>
+          <button class="btn btn--ghost" type="button" id="svFile">Скачать файлом</button>
+          <button class="btn btn--ghost" type="button" id="svCopy">Скопировать в буфер</button>
+          <button class="btn btn--ghost" type="button" id="svClear">Очистить черновик</button>
+        </div>
+
+        <div class="ack" id="svAck" hidden role="status" aria-live="polite" style="margin-top:16px"></div>
+      </form>
+
+      <p class="small" style="margin-top:18px;max-width:92ch">Дальше по маршруту:
+        <a href="catalog.html">каталог разделов</a>,
+        <a href="calc.html">инженерные калькуляторы</a>,
+        <a href="cabinet.html">сохранённые расчёты и подборы</a>,
+        <a href="about.html#docs">документы завода</a>.</p>
+    </div>
+  </section>
+
+</main>
+
+<div id="vp-foot"></div>
+
+<script src="assets/data.vp.js"></script>
+<script src="assets/vp.js"></script>
+<script>
+(() => {
+'use strict';
+const {$, $$, store, init} = VP;
+const D = VPDATA;
+
+init('podbor.html');
+
+/* ══════════════════════════════════════════════════════════════════
+   0. Мелочи общего пользования
+   ══════════════════════════════════════════════════════════════════ */
+const esc = s => String(s == null ? '' : s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const numOf = v => { const n = Number(String(v).replace(',', '.')); return Number.isFinite(n) ? n : NaN; };
+const stamp = () => new Date().toLocaleString('ru-RU', {day:'2-digit', month:'2-digit',
+  year:'numeric', hour:'2-digit', minute:'2-digit'});
+
+/** Помета ошибки на поле: и проблема, и способ исправить. */
+function mark(input, ok, msg) {
+  const f = input.closest('.fld');
+  if (!f) return ok;
+  f.dataset.err = ok ? '0' : '1';
+  input.setAttribute('aria-invalid', ok ? 'false' : 'true');
+  const e = $('.err', f);
+  if (e) e.textContent = ok ? '' : msg;
+  return ok;
+}
+
+/** Нарисованная поверхность вместо alert. */
+function ack(box, title, text, wait) {
+  box.className = 'ack' + (wait ? ' ack--wait' : '');
+  box.innerHTML = `<b>${esc(title)}</b><span>${text}</span>
+    <span class="num" style="margin-left:auto">${esc(stamp())}</span>`;
+  box.hidden = false;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   1. Рабочая точка: поля, query-строка, живой пересчёт
+   ══════════════════════════════════════════════════════════════════ */
+const fQ = $('#f-q'), fP = $('#f-p'), fT = $('#f-type'), fI = $('#f-ind'), fC = $('#f-temp');
+
+fT.insertAdjacentHTML('beforeend',
+  Object.keys(D.TYPE).map(k => `<option value="${esc(k)}">${esc(D.TYPE[k])}</option>`).join(''));
+fI.insertAdjacentHTML('beforeend',
+  Object.keys(D.IND).map(k => `<option value="${esc(k)}">${esc(D.IND[k])}</option>`).join(''));
+$('#s-ind').insertAdjacentHTML('beforeend',
+  Object.keys(D.IND).map(k => `<option value="${esc(k)}">${esc(D.IND[k])}</option>`).join(''));
+
+$('#scaleTag').textContent = D.SERIES.length + ' серий · ' + D.NUM.length + ' типоразмеров';
+
+/* Состояние страницы целиком живёт в адресе: ссылку можно отдать коллеге. */
+const qs = new URLSearchParams(location.search);
+const pick0 = (key, def) => { const v = numOf(qs.get(key)); return Number.isFinite(v) && qs.get(key) !== null ? v : def; };
+fQ.value = pick0('q', 8000);
+fP.value = pick0('p', 1200);
+fC.value = pick0('t', 20);
+if (D.TYPE[qs.get('type')]) fT.value = qs.get('type');
+if (D.IND[qs.get('ind')])   fI.value = qs.get('ind');
+
+const S = {q:0, p:0, type:'', ind:'', temp:20, key:'', dir:1};
+
+function pushURL() {
+  const u = new URLSearchParams();
+  u.set('q', String(S.q)); u.set('p', String(S.p)); u.set('t', String(S.temp));
+  if (S.type) u.set('type', S.type);
+  if (S.ind)  u.set('ind', S.ind);
+  try { history.replaceState(null, '', location.pathname + '?' + u.toString() + location.hash); }
+  catch (e) { /* file:// в некоторых браузерах запрещает replaceState — не беда */ }
+}
+
+/* Предел по температуре: 200 °C даёт только теплостойкий индекс Ж2.
+   Это наше допущение поверх перечня исполнений, а не таблица завода. */
+function tempLimit(s, ind) {
+  const hot = ind ? /Ж2/.test(ind) : s.ind.some(i => /Ж2/.test(i));
+  return hot ? 200 : s.t;
+}
+const tempOK = s => S.temp <= tempLimit(s, S.ind);
+
+let RES = [], CAND = [];
+
+function compute() {
+  S.q = numOf(fQ.value); S.p = numOf(fP.value); S.temp = numOf(fC.value);
+  S.type = fT.value; S.ind = fI.value;
+
+  const okQ = mark(fQ, S.q > 0,
+    'Расход должен быть числом больше нуля. Введите значение в м³/ч, например 8000.');
+  const okP = mark(fP, S.p > 0,
+    'Давление должно быть числом больше нуля. Введите значение в Па, например 1200.');
+  const okT = mark(fC, Number.isFinite(S.temp) && S.temp >= -40 && S.temp <= 200,
+    'Температура вне диапазона −40…+200 °C. Введите значение в этих пределах или оставьте 20.');
+
+  if (!(okQ && okP && okT)) { RES = []; CAND = []; return false; }
+
+  CAND = D.SERIES.filter(s => (!S.type || s.type === S.type)
+                           && (!S.ind  || s.ind.includes(S.ind))
+                           && tempOK(s));
+  RES = D.select(S.q, S.p, {type:S.type, ind:S.ind}).filter(r => tempOK(r.series));
+  return true;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   2. Поле характеристик. Логарифмические оси, оцифрованные деления.
+   ══════════════════════════════════════════════════════════════════ */
+const AX = {q0:300, q1:300000, p0:10, p1:5000};
+const TQ = [500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000];
+const TP = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
+const C = {paper:'#FBFCFA', gridF:'#E7EAE7', grid:'#DCE0DD', rule:'#C9CFCB',
+           ruleInk:'#8B948F', blue:'#1B4C86', bluePale:'#DCE7F3',
+           ink:'#131A1E', ink2:'#465257', ink3:'#6E7A80', ink4:'#95A0A5'};
+
+function drawField() {
+  const cv = $('#field');
+  if (!cv) return;
+  const W = cv.clientWidth, H = cv.clientHeight;
+  if (!W || !H) return;
+  const ctx = cv.getContext('2d');
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  ctx.fillStyle = C.paper; ctx.fillRect(0, 0, W, H);
+
+  const m = {l:74, r:16, t:16, b:52};
+  const pw = W - m.l - m.r, ph = H - m.t - m.b;
+  if (pw < 60 || ph < 60) return;
+
+  const lq0 = Math.log10(AX.q0), lq1 = Math.log10(AX.q1);
+  const lp0 = Math.log10(AX.p0), lp1 = Math.log10(AX.p1);
+  const X = q => m.l + (Math.log10(Math.min(Math.max(q, AX.q0), AX.q1)) - lq0) / (lq1 - lq0) * pw;
+  const Y = p => m.t + ph - (Math.log10(Math.min(Math.max(p, AX.p0), AX.p1)) - lp0) / (lp1 - lp0) * ph;
+
+  /* ── сетка ── */
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = C.gridF;
+  ctx.beginPath();
+  for (const q of TQ) { const x = Math.round(X(q)) + .5; ctx.moveTo(x, m.t); ctx.lineTo(x, m.t + ph); }
+  for (const p of TP) { const y = Math.round(Y(p)) + .5; ctx.moveTo(m.l, y); ctx.lineTo(m.l + pw, y); }
+  ctx.stroke();
+
+  ctx.strokeStyle = C.grid;
+  ctx.beginPath();
+  for (const q of [1000, 10000, 100000]) { const x = Math.round(X(q)) + .5; ctx.moveTo(x, m.t); ctx.lineTo(x, m.t + ph); }
+  for (const p of [10, 100, 1000]) { const y = Math.round(Y(p)) + .5; ctx.moveTo(m.l, y); ctx.lineTo(m.l + pw, y); }
+  ctx.stroke();
+
+  /* ── прямоугольники рабочих областей ── */
+  const hitIds = new Set(RES.map(r => r.series.mk));
+  /* Рисуем то же, что показывает таблица: серии, прошедшие условия. Если
+     условия не пропустили ни одной — показываем весь раздел бледным пунктиром,
+     чтобы было видно, куда точка попала бы без ограничений. */
+  const list = CAND.length ? CAND : D.SERIES;
+
+  ctx.font = '600 11px "PT Sans Narrow","Arial Narrow",sans-serif';
+  ctx.textBaseline = 'top';
+
+  const labels = [];
+  for (const s of list) {
+    const x0 = X(s.qr[0]), x1 = X(s.qr[1]), y0 = Y(s.pr[1]), y1 = Y(s.pr[0]);
+    const hit = hitIds.has(s.mk);
+    if (hit) {
+      ctx.fillStyle = C.bluePale; ctx.globalAlpha = .55;
+      ctx.fillRect(x0, y0, x1 - x0, y1 - y0); ctx.globalAlpha = 1;
+      ctx.strokeStyle = C.blue; ctx.lineWidth = 1.6; ctx.setLineDash([]);
+    } else {
+      ctx.strokeStyle = C.ruleInk; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+    }
+    ctx.strokeRect(x0 + .5, y0 + .5, x1 - x0, y1 - y0);
+    ctx.setLineDash([]);
+    if (x1 - x0 > 54 && y1 - y0 > 18)
+      labels.push({x:x0 + 6, y:y0 + 5, t:s.mk, c:hit ? C.blue : C.ink4, lo:y1 - 14});
+  }
+
+  /* Марки серий разводим по высоте: у совпадающих диапазонов углы совпадают,
+     и подписи легли бы одна на другую. */
+  labels.sort((a, b) => a.y - b.y || a.x - b.x);
+  const placed = [];
+  for (const L of labels) {
+    let g = 0;
+    while (g++ < 10 && L.y < L.lo
+           && placed.some(p => Math.abs(p.y - L.y) < 13 && Math.abs(p.x - L.x) < 78)) L.y += 13;
+    placed.push(L);
+    const w = ctx.measureText(L.t).width;
+    ctx.fillStyle = C.paper; ctx.globalAlpha = .82;
+    ctx.fillRect(L.x - 3, L.y - 1, w + 6, 13);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = L.c;
+    ctx.fillText(L.t, L.x, L.y);
+  }
+
+  /* ── рабочая точка крестом ── */
+  if (S.q > 0 && S.p > 0) {
+    const px = X(S.q), py = Y(S.p);
+    const out = S.q < AX.q0 || S.q > AX.q1 || S.p < AX.p0 || S.p > AX.p1;
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1.6;
+    ctx.setLineDash(out ? [3, 3] : []);
+    ctx.beginPath();
+    ctx.moveTo(px - 13, py); ctx.lineTo(px + 13, py);
+    ctx.moveTo(px, py - 13); ctx.lineTo(px, py + 13);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(px, py, 4.5, 0, Math.PI * 2); ctx.stroke();
+
+    /* выносные линии к осям — приём чертежа, а не украшение */
+    ctx.strokeStyle = C.rule; ctx.lineWidth = 1; ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    ctx.moveTo(m.l, py); ctx.lineTo(px, py);
+    ctx.moveTo(px, m.t + ph); ctx.lineTo(px, py);
+    ctx.stroke(); ctx.setLineDash([]);
+
+    ctx.font = '11px "PT Mono",Consolas,monospace';
+    ctx.fillStyle = C.ink;
+    ctx.textBaseline = 'bottom'; ctx.textAlign = 'left';
+    const lbl = D.fmt(Math.round(S.q)) + ' м³/ч · ' + D.fmt(Math.round(S.p)) + ' Па'
+      + (out ? ' (вне поля)' : '');
+    const tw = ctx.measureText(lbl).width;
+    ctx.fillStyle = C.paper;
+    ctx.fillRect(Math.min(px + 9, m.l + pw - tw - 4) - 3, py - 22, tw + 6, 15);
+    ctx.fillStyle = C.ink;
+    ctx.fillText(lbl, Math.min(px + 9, m.l + pw - tw - 4), py - 9);
+  }
+
+  /* ── рамка поля и оси ── */
+  ctx.strokeStyle = C.blue; ctx.lineWidth = 1.2;
+  ctx.strokeRect(m.l + .5, m.t + .5, pw, ph);
+
+  /* ── оцифровка делений ── */
+  ctx.fillStyle = C.ink2;
+  ctx.font = '11px "PT Mono",Consolas,monospace';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  const dense = pw > 620;
+  for (const q of TQ) {
+    if (!dense && [2000, 20000, 200000].indexOf(q) >= 0) continue;
+    const x = X(q);
+    ctx.strokeStyle = C.blue; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x, m.t + ph); ctx.lineTo(x, m.t + ph + 5); ctx.stroke();
+    ctx.fillText(D.fmt(q), x, m.t + ph + 8);
+  }
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for (const p of TP) {
+    const y = Y(p);
+    ctx.strokeStyle = C.blue; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(m.l - 5, y); ctx.lineTo(m.l, y); ctx.stroke();
+    ctx.fillText(D.fmt(p), m.l - 8, y);
+  }
+
+  /* ── подписи осей с единицами ── */
+  ctx.fillStyle = C.ink2;
+  ctx.font = '700 10.5px "PT Sans Narrow","Arial Narrow",sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+  ctx.fillText('РАСХОД Q, М³/Ч', m.l + pw / 2, H - 4);
+  ctx.save();
+  ctx.translate(13, m.t + ph / 2); ctx.rotate(-Math.PI / 2);
+  ctx.textBaseline = 'top';
+  ctx.fillText('ПОЛНОЕ ДАВЛЕНИЕ PV, ПА', 0, 0);
+  ctx.restore();
+}
+
+/* Текстовый эквивалент поля: те же самые числа, только словами и цифрами. */
+function paintFieldTable() {
+  const hit = new Set(RES.map(r => r.series.mk));
+  $('#fieldTbl tbody').innerHTML = D.SERIES.map(s => {
+    const inBox = S.q >= s.qr[0] && S.q <= s.qr[1] && S.p >= s.pr[0] && S.p <= s.pr[1];
+    const okCond = CAND.indexOf(s) >= 0;
+    let verdict, st;
+    if (hit.has(s.mk))      { verdict = 'подходит'; st = 'ok'; }
+    else if (!okCond)       { verdict = 'отсеяна условиями'; st = 'stop'; }
+    else if (inBox)         { verdict = 'точка внутри, накрывающего типоразмера нет'; st = 'wait'; }
+    else                    { verdict = 'точка вне рабочей области'; st = 'stop'; }
+    return `<tr>
+      <td class="l mk">${esc(s.mk)}</td>
+      <td class="l dim2">${esc(D.TYPE[s.type])}</td>
+      <td>${D.fmt(s.qr[0])}</td><td>${D.fmt(s.qr[1])}</td>
+      <td>${D.fmt(s.pr[0])}</td><td>${D.fmt(s.pr[1])}</td>
+      <td class="l">${inBox ? 'да' : 'нет'}</td>
+      <td class="l"><span class="st" data-s="${st}">${verdict}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   3. Выдача
+   ══════════════════════════════════════════════════════════════════ */
+const KEYS = {
+  q:  r => r.row.q,   p:   r => r.row.p,
+  n:  r => r.row.n,   rpm: r => r.row.rpm,
+  zq: r => r.zapasQ,  zp:  r => r.zapasP,
+};
+
+function sorted() {
+  const a = RES.slice();
+  if (!S.key) return a;                       /* как вернул VPDATA.select — по сумме запасов */
+  const f = KEYS[S.key];
+  return a.sort((x, y) => (f(x) - f(y)) * S.dir);
+}
+
+function paintRes() {
+  const tb = $('#resTbl tbody'), wrap = $('#resWrap'), emp = $('#empty');
+  const rows = sorted();
+
+  $('#resVal').textContent = rows.length ? rows.length + ' из ' + D.SERIES.length + ' серий' : 'ничего';
+  $('#resSort').textContent = S.key
+    ? ''
+    : 'Порядок: по суммарному запасу — меньший запас выше. Заголовки со стрелкой сортируются.';
+
+  if (!rows.length) {
+    wrap.hidden = true; emp.hidden = false;
+    $('#resSum').textContent = 'В рабочую точку не попадает ни одна позиция.';
+    paintEmpty();
+    return;
+  }
+  wrap.hidden = false; emp.hidden = true;
+  $('#resSum').textContent = 'Точку накрывает ' + rows.length
+    + (rows.length === 1 ? ' позиция' : rows.length < 5 ? ' позиции' : ' позиций')
+    + ' из ' + D.SERIES.length + ' серий раздела.';
+
+  tb.innerHTML = rows.map(r => {
+    const z = r.row, d = D.DATA[z.data] || D.DATA.ok;
+    const picked = store.pick.indexOf(z.id) >= 0;
+    return `<tr data-picked="${picked ? 1 : 0}" data-id="${esc(z.id)}" data-mk="${esc(z.mk)}">
+      <td class="l mk"><a href="series.html?s=${encodeURIComponent(z.mk)}">${esc(z.mk)}</a></td>
+      <td class="l">${esc(D.szl(z))}</td>
+      <td>${D.fmt(z.q)}</td>
+      <td>${D.fmt(z.p)}</td>
+      <td>${D.dec(z.n)}</td>
+      <td>${D.fmt(z.rpm)}</td>
+      <td>${r.zapasQ}</td>
+      <td>${r.zapasP}</td>
+      <td class="l"><span class="st" data-s="${d.s}" title="${esc(d.t)}">${esc(d.short)}</span></td>
+      <td class="acts"><span>
+        <button class="btn btn--ghost btn--sm" type="button" data-pick="${esc(z.id)}"
+                aria-pressed="${picked}">${picked ? 'В подборе' : 'В подбор'}</button>
+      </span></td>
+    </tr>`;
+  }).join('');
+}
+
+/* Пустое состояние объясняет, какое условие мешает, и предлагает его снять. */
+function paintEmpty() {
+  const emp = $('#empty');
+  if (!(S.q > 0 && S.p > 0)) {
+    emp.innerHTML = `<h3>Расчёта нет</h3>
+      <p>Заполните расход и давление положительными числами — подбор пойдёт сразу,
+         без отдельной кнопки.</p>`;
+    return;
+  }
+  const bare  = D.select(S.q, S.p, {});
+  const noTyp = D.select(S.q, S.p, {ind:S.ind}).filter(r => S.temp <= tempLimit(r.series, S.ind));
+  const noInd = D.select(S.q, S.p, {type:S.type}).filter(r => S.temp <= tempLimit(r.series, ''));
+  const noTmp = D.select(S.q, S.p, {type:S.type, ind:S.ind});
+
+  const fixes = [];
+  if (S.type && noTyp.length) fixes.push({b:'type', t:'Снять тип «' + D.TYPE[S.type] + '»', n:noTyp.length});
+  if (S.ind  && noInd.length) fixes.push({b:'ind',  t:'Снять индекс «' + D.IND[S.ind] + '»',  n:noInd.length});
+  if (noTmp.length && !RES.length) fixes.push({b:'temp', t:'Вернуть температуру к +20 °C', n:noTmp.length});
+
+  let why;
+  if (!bare.length) {
+    const anyQ = D.SERIES.some(s => S.q >= s.qr[0] && S.q <= s.qr[1]);
+    const anyP = D.SERIES.some(s => S.p >= s.pr[0] && S.p <= s.pr[1]);
+    if (!anyQ && !anyP)      why = 'Ни расход, ни давление не попадают в опубликованные диапазоны раздела: расход — от ' + D.fmt(Math.min.apply(null, D.SERIES.map(s => s.qr[0]))) + ' до ' + D.fmt(Math.max.apply(null, D.SERIES.map(s => s.qr[1]))) + ' м³/ч, давление — от ' + D.fmt(Math.min.apply(null, D.SERIES.map(s => s.pr[0]))) + ' до ' + D.fmt(Math.max.apply(null, D.SERIES.map(s => s.pr[1]))) + ' Па.';
+    else if (!anyQ)          why = 'Мешает расход: ' + D.fmt(S.q) + ' м³/ч не попадает ни в один диапазон раздела.';
+    else if (!anyP)          why = 'Мешает давление: ' + D.fmt(S.p) + ' Па не попадает ни в один диапазон раздела.';
+    else                     why = 'Точка попадает в диапазоны серий, но ни один типоразмер не накрывает её сразу по расходу и по давлению — либо накрывает с запасом больше двукратного, и такой подбор отброшен.';
+  } else if (fixes.length) {
+    why = 'Сама точка накрывается — мешают выбранные условия.';
+  } else {
+    why = 'Точка накрывается только позициями с запасом больше двукратного по обеим осям: это уже другой типоразмер, и он отброшен намеренно.';
+  }
+
+  emp.innerHTML = `<h3>В точку ничего не попадает</h3>
+    <p>${esc(why)}</p>
+    <p class="small mb0">Рабочая точка: ${D.fmt(S.q)} м³/ч · ${D.fmt(S.p)} Па · ${D.dec(S.temp)} °C.
+       Проверьте единицы: расход в м³/ч, давление в паскалях.</p>
+    ${fixes.length ? `<div class="fixes">${fixes.map(f =>
+      `<button class="btn btn--ghost btn--sm" type="button" data-drop="${f.b}">${esc(f.t)} → ${f.n}</button>`
+    ).join('')}</div>` : ''}`;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   4. Основной прогон
+   ══════════════════════════════════════════════════════════════════ */
+function run(push) {
+  const ok = compute();
+  paintFieldTable();
+  drawField();
+  paintRes();
+  paintStamp();
+  syncSurveyPoint();
+  if (push !== false && ok) pushURL();
+}
+
+function paintStamp() {
+  $('#st-pt').textContent = (S.q > 0 && S.p > 0)
+    ? D.fmt(S.q) + ' м³/ч · ' + D.fmt(S.p) + ' Па' : '—';
+  const c = [];
+  c.push(S.type ? D.TYPE[S.type] : 'тип любой');
+  c.push(S.ind ? S.ind : 'исполнение любое');
+  c.push(D.dec(Number.isFinite(S.temp) ? S.temp : 20) + ' °C');
+  $('#st-cond').textContent = c.join(' · ');
+  $('#st-cli').textContent = store.clientId + ' · ' + stamp();
+}
+
+[fQ, fP, fC].forEach(el => el.addEventListener('input', () => run()));
+[fT, fI].forEach(el => el.addEventListener('change', () => run()));
+
+/* Сортировка: заголовок — кнопка, значит доступна с клавиатуры без ухищрений. */
+$$('#resTbl thead th[data-k]').forEach(th => {
+  const k = th.dataset.k;
+  th.innerHTML = '<button type="button">' + th.innerHTML + '</button>';
+  $('button', th).addEventListener('click', () => {
+    if (S.key === k) S.dir = -S.dir; else { S.key = k; S.dir = /^z/.test(k) ? 1 : -1; }
+    $$('#resTbl thead th[data-k]').forEach(t => t.removeAttribute('aria-sort'));
+    th.setAttribute('aria-sort', S.dir > 0 ? 'ascending' : 'descending');
+    paintRes();
+  });
+});
+
+/* «В подбор» и переход по строке */
+$('#resTbl').addEventListener('click', e => {
+  const b = e.target.closest('[data-pick]');
+  if (b) { store.togglePick(b.dataset.pick); paintRes(); paintPick(); return; }
+  if (e.target.closest('a')) return;
+  const tr = e.target.closest('tbody tr');
+  if (tr && tr.dataset.mk) location.href = 'series.html?s=' + encodeURIComponent(tr.dataset.mk);
+});
+
+$('#empty').addEventListener('click', e => {
+  const b = e.target.closest('[data-drop]');
+  if (!b) return;
+  if (b.dataset.drop === 'type') fT.value = '';
+  if (b.dataset.drop === 'ind')  fI.value = '';
+  if (b.dataset.drop === 'temp') fC.value = 20;
+  run();
+});
+
+/* Сохранение расчёта — подтверждается поверхностью, не окном браузера */
+$('#saveBtn').addEventListener('click', () => {
+  if (!compute()) {
+    ack($('#ack'), 'не сохранено',
+      'Сначала поправьте отмеченные поля: расчёта пока нет.', true);
+    fQ.focus();
+    return;
+  }
+  store.addCalc({t:'select', q:S.q, p:S.p, type:S.type, ind:S.ind, temp:S.temp,
+                 cnt:RES.length, top:RES.length ? RES[0].row.mk + ' ' + D.szl(RES[0].row) : '—',
+                 ts:Date.now()});
+  ack($('#ack'), 'расчёт сохранён',
+    'Рабочая точка ' + D.fmt(S.q) + ' м³/ч · ' + D.fmt(S.p) + ' Па, подходящих позиций — '
+    + RES.length + '. Запись легла в историю: <a href="cabinet.html">открыть кабинет</a>. '
+    + 'Хранится в этом браузере, всего записей — ' + store.calcs.length + '.');
+});
+
+/* ══════════════════════════════════════════════════════════════════
+   5. Опросный лист
+   ══════════════════════════════════════════════════════════════════ */
+const SV_KEY = 'vp.survey.draft.v1';
+const SV_FIELDS = ['s-obj','s-addr','s-stage','s-term','s-org','s-inn','s-fio','s-tel',
+  's-mail','s-pos','s-purp','s-room','s-mode','s-q','s-p','s-t','s-dust','s-aggr','s-ex',
+  's-ind','s-sch','s-clim','s-ang','s-note'];
+const SV_CHECKS = ['s-k1','s-k2','s-k3','s-k4'];
+const SV_TITLES = {
+  's-obj':'Объект', 's-addr':'Адрес', 's-stage':'Стадия', 's-term':'Срок поставки',
+  's-org':'Организация', 's-inn':'ИНН', 's-fio':'Контактное лицо', 's-tel':'Телефон',
+  's-mail':'Почта', 's-pos':'Позиция по проекту', 's-purp':'Назначение системы',
+  's-room':'Помещение', 's-mode':'Режим работы', 's-q':'Расход Q, м³/ч',
+  's-p':'Полное давление Pv, Па', 's-t':'Температура среды, °C',
+  's-dust':'Запылённость, г/м³', 's-aggr':'Агрессивность', 's-ex':'Взрывоопасность',
+  's-ind':'Индекс исполнения', 's-sch':'Схема привода', 's-clim':'Климатическое исполнение',
+  's-ang':'Угол разворота корпуса', 's-note':'Примечания',
+};
+const SV_CHECK_TITLES = {'s-k1':'Виброизоляторы', 's-k2':'Гибкие вставки',
+  's-k3':'Частотный преобразователь', 's-k4':'Шумоглушитель'};
+
+let draft = {qty:{}, ptManual:false};
+try { const raw = localStorage.getItem(SV_KEY); if (raw) draft = Object.assign(draft, JSON.parse(raw)); }
+catch (e) { /* приватный режим — работаем в памяти */ }
+if (!draft.qty) draft.qty = {};
+
+function saveDraft() {
+  SV_FIELDS.forEach(id => { const el = $('#' + id); if (el) draft[id] = el.value; });
+  SV_CHECKS.forEach(id => { const el = $('#' + id); if (el) draft[id] = el.checked; });
+  try { localStorage.setItem(SV_KEY, JSON.stringify(draft)); } catch (e) { /* квота */ }
+}
+
+function loadDraft() {
+  SV_FIELDS.forEach(id => { const el = $('#' + id); if (el && typeof draft[id] === 'string') el.value = draft[id]; });
+  SV_CHECKS.forEach(id => { const el = $('#' + id); if (el && typeof draft[id] === 'boolean') el.checked = draft[id]; });
+}
+loadDraft();
+
+/* Рабочая точка едет из расчёта выше, пока инженер не тронул её руками. */
+function syncSurveyPoint() {
+  const sq = $('#s-q'), sp = $('#s-p'), st = $('#s-t');
+  if (!draft.ptManual) {
+    if (S.q > 0) sq.value = S.q;
+    if (S.p > 0) sp.value = S.p;
+    if (Number.isFinite(S.temp) && !st.value) st.value = S.temp;
+  }
+  $('#ptSrc').innerHTML = draft.ptManual
+    ? `Значения введены вручную и больше не следуют за расчётом.
+       <button class="btn btn--ghost btn--sm" type="button" id="ptBack">Вернуть из расчёта</button>`
+    : `Подставлено из расчёта выше: <span class="num">${D.fmt(S.q > 0 ? S.q : 0)} м³/ч ·
+       ${D.fmt(S.p > 0 ? S.p : 0)} Па</span>. Правьте — и связь отключится.`;
+  const back = $('#ptBack');
+  if (back) back.addEventListener('click', () => { draft.ptManual = false; saveDraft(); syncSurveyPoint(); });
+}
+
+['s-q', 's-p'].forEach(id => $('#' + id).addEventListener('input', () => {
+  draft.ptManual = true; saveDraft(); syncSurveyPoint();
+}));
+
+/* Подобранные позиции с редактируемым количеством */
+function paintPick() {
+  const box = $('#pickBox');
+  const rows = store.pick.map(id => D.NUM.find(r => r.id === id)).filter(Boolean);
+  if (!rows.length) {
+    box.innerHTML = `<p class="pick-empty mb0">Пока пусто. Нажмите «В подбор» в таблице
+      выше — позиции появятся здесь с количеством, а счётчик в шапке их посчитает.</p>`;
+    return;
+  }
+  box.innerHTML = `<div class="tbl-scroll"><table class="data">
+    <thead><tr>
+      <th class="l" scope="col">Серия</th><th class="l" scope="col">Типоразмер</th>
+      <th scope="col">Q, м³/ч</th><th scope="col">Pv, Па</th><th scope="col">N уст., кВт</th>
+      <th scope="col">Кол-во, шт</th><th class="acts" scope="col"><span class="vh">Убрать</span></th>
+    </tr></thead><tbody>${rows.map(r => `
+      <tr><td class="l mk">${esc(r.mk)}</td><td class="l">${esc(D.szl(r))}</td>
+        <td>${D.fmt(r.q)}</td><td>${D.fmt(r.p)}</td><td>${D.dec(r.n)}</td>
+        <td class="qty"><label><span class="vh">Количество ${esc(r.mk)} ${esc(D.szl(r))}</span>
+          <input type="number" min="1" step="1" value="${Number(draft.qty[r.id]) > 0 ? Number(draft.qty[r.id]) : 1}"
+                 data-qty="${esc(r.id)}"></label></td>
+        <td class="acts"><span><button class="btn btn--ghost btn--sm" type="button"
+          data-off="${esc(r.id)}">Убрать</button></span></td></tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+$('#pickBox').addEventListener('input', e => {
+  const i = e.target.closest('[data-qty]');
+  if (!i) return;
+  draft.qty[i.dataset.qty] = Math.max(1, Math.round(Number(i.value) || 1));
+  saveDraft();
+});
+$('#pickBox').addEventListener('click', e => {
+  const b = e.target.closest('[data-off]');
+  if (!b) return;
+  store.togglePick(b.dataset.off);
+  paintPick(); paintRes();
+});
+
+/* Проверка полей: текст ошибки называет и проблему, и способ исправить */
+function validateSurvey() {
+  const bad = [];
+  const req = (id, msg, extra) => {
+    const el = $('#' + id);
+    const ok = el.value.trim() !== '' && (extra ? extra(el.value.trim()) : true);
+    mark(el, ok, msg);
+    if (!ok) bad.push(el);
+  };
+  req('s-org', 'Без названия организации лист не примут. Впишите её как в договоре.');
+  req('s-fio', 'Укажите, к кому обращаться: фамилия и имя достаточно.');
+  req('s-tel', 'Телефон нужен для уточнения подбора. Формат любой, но не меньше 10 цифр.',
+      v => v.replace(/\D/g, '').length >= 10);
+  req('s-mail', 'Почта нужна, чтобы прислать подбор. Проверьте: должна быть собака и точка в домене.',
+      v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v));
+  req('s-q', 'Расход обязателен: без него подбирать нечего. Введите число в м³/ч.',
+      v => numOf(v) > 0);
+  req('s-p', 'Давление обязательно. Введите число в паскалях, например 1200.',
+      v => numOf(v) > 0);
+
+  const inn = $('#s-inn');
+  const innOk = inn.value.trim() === '' || /^\d{10}(\d{2})?$/.test(inn.value.trim());
+  mark(inn, innOk, 'ИНН — 10 цифр у организации или 12 у предпринимателя. Уберите пробелы и знаки.');
+  if (!innOk) bad.push(inn);
+
+  return bad;
+}
+
+/* Читаемый текст листа: он же уходит в файл и в буфер */
+function surveyText() {
+  const L = [];
+  L.push('ОПРОСНЫЙ ЛИСТ НА ПОДБОР ВЕНТИЛЯЦИОННОГО ОБОРУДОВАНИЯ');
+  L.push('Вентпром · прототип сайта · ' + stamp());
+  L.push('Клиент: ' + store.clientId);
+  L.push('');
+  const grp = (title, ids) => {
+    L.push('— ' + title + ' —');
+    ids.forEach(id => {
+      const el = $('#' + id);
+      const v = el ? String(el.value).trim() : '';
+      L.push((SV_TITLES[id] || id) + ': ' + (v || '—'));
+    });
+    L.push('');
+  };
+  grp('Объект',        ['s-obj', 's-addr', 's-stage', 's-term']);
+  grp('Заказчик',      ['s-org', 's-inn', 's-fio', 's-tel', 's-mail', 's-pos']);
+  grp('Система',       ['s-purp', 's-room', 's-mode']);
+  grp('Рабочая точка', ['s-q', 's-p']);
+  grp('Среда',         ['s-t', 's-dust', 's-aggr', 's-ex']);
+  grp('Исполнение',    ['s-ind', 's-sch', 's-clim', 's-ang']);
+
+  L.push('— Комплектация —');
+  const kk = SV_CHECKS.filter(id => $('#' + id).checked).map(id => SV_CHECK_TITLES[id]);
+  L.push(kk.length ? kk.join(', ') : '—');
+  L.push('');
+
+  L.push('— Подобранные позиции —');
+  const rows = store.pick.map(id => D.NUM.find(r => r.id === id)).filter(Boolean);
+  if (!rows.length) L.push('—');
+  else rows.forEach((r, i) => {
+    const n = Number(draft.qty[r.id]) > 0 ? Number(draft.qty[r.id]) : 1;
+    L.push((i + 1) + '. ' + r.mk + ' ' + D.szl(r)
+      + ' · Q ' + D.fmt(r.q) + ' м³/ч · Pv ' + D.fmt(r.p) + ' Па · N уст. '
+      + D.dec(r.n) + ' кВт · ' + n + ' шт');
+  });
+  L.push('');
+
+  L.push('— Примечания —');
+  L.push($('#s-note').value.trim() || '—');
+  L.push('');
+  L.push('Числа получены демонстрационным подбором по прямоугольной рабочей области.');
+  L.push('Методика подбора заводом не передана; по этим значениям проектировать нельзя.');
+  return L.join('\r\n');
+}
+
+/* Запасной путь копирования: старый execCommand, если clipboard недоступен */
+function copyText(text) {
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed'; ta.style.top = '-1000px';
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text).then(() => true, () => fallback());
+  }
+  return Promise.resolve(fallback());
+}
+
+$('#svCopy').addEventListener('click', () => {
+  copyText(surveyText()).then(ok => ok
+    ? ack($('#svAck'), 'скопировано',
+        'Лист лежит в буфере обмена текстом — вставляйте в письмо или в свой шаблон.')
+    : ack($('#svAck'), 'не скопировалось',
+        'Браузер не отдал буфер обмена. Нажмите «Скачать файлом» — лист сохранится текстом.', true));
+});
+
+$('#svFile').addEventListener('click', () => {
+  const blob = new Blob(['﻿' + surveyText()], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const org = $('#s-org').value.trim().replace(/[\\/:*?"<>|]+/g, '-').slice(0, 40);
+  a.href = url;
+  a.download = 'Опросный лист' + (org ? ' · ' + org : '') + '.txt';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  ack($('#svAck'), 'файл собран',
+    'Лист сохранён текстовым файлом в папку загрузок. Тот же текст доступен кнопкой «Скопировать в буфер».');
+});
+
+$('#svForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const bad = validateSurvey();
+  if (bad.length) {
+    bad[0].focus();
+    ack($('#svAck'), 'лист не отправлен',
+      'Не заполнено обязательных полей: ' + bad.length + '. Первое из них уже в фокусе — '
+      + 'под каждым написано, что не так и как поправить.', true);
+    return;
+  }
+  saveDraft();
+  store.addCalc({t:'survey', q:numOf($('#s-q').value), p:numOf($('#s-p').value),
+                 org:$('#s-org').value.trim(), obj:$('#s-obj').value.trim(),
+                 pick:store.pick.length, ts:Date.now()});
+  ack($('#svAck'), 'лист принят прототипом',
+    'Здесь письмо никуда не уходит: почтового отправителя у прототипа нет. '
+    + 'На боевом сайте этот лист уйдёт менеджеру и появится в кабинете со статусом обработки. '
+    + 'Сейчас он записан в вашу историю — <a href="cabinet.html">открыть кабинет</a> — '
+    + 'и его можно унести кнопкой «Скачать файлом».');
+});
+
+$('#svClear').addEventListener('click', () => {
+  SV_FIELDS.forEach(id => { const el = $('#' + id); if (el) el.value = ''; });
+  SV_CHECKS.forEach(id => { const el = $('#' + id); if (el) el.checked = false; });
+  $$('#svForm .fld').forEach(f => { f.dataset.err = '0'; const e2 = $('.err', f); if (e2) e2.textContent = ''; });
+  draft = {qty:{}, ptManual:false};
+  try { localStorage.removeItem(SV_KEY); } catch (e) { /* приватный режим */ }
+  syncSurveyPoint();
+  ack($('#svAck'), 'черновик очищен',
+    'Поля пусты, сохранённая копия удалена. Подобранные позиции остались — они живут отдельно.');
+});
+
+$('#s-file').addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0];
+  $('#fileGot').textContent = f
+    ? f.name + ' · ' + (f.size < 1024 ? f.size + ' Б'
+      : f.size < 1048576 ? (f.size / 1024).toFixed(1).replace('.', ',') + ' КБ'
+      : (f.size / 1048576).toFixed(1).replace('.', ',') + ' МБ')
+    : '';
+});
+
+$('#svForm').addEventListener('input', () => saveDraft());
+$('#svForm').addEventListener('change', () => saveDraft());
+window.addEventListener('vp:store', paintPick);
+
+/* ══════════════════════════════════════════════════════════════════
+   6. Пуск
+   ══════════════════════════════════════════════════════════════════ */
+let rz = 0;
+window.addEventListener('resize', () => {
+  clearTimeout(rz);
+  rz = setTimeout(drawField, 140);
+}, {passive:true});
+
+paintPick();
+run(false);
+pushURL();
+})();
+</script>
+</body>
+</html>

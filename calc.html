@@ -1,0 +1,1189 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Инженерные калькуляторы · Вентпром</title>
+<meta name="description" content="Аэродинамика участка воздуховода с показом каждого шага — скорость, динамическое давление, число Рейнольдса, коэффициент трения по Альтшулю, потери на трение и местные. И площадь воздуховодов по спецификации участков.">
+<link rel="stylesheet" href="assets/vp.css">
+<style>
+/* ── Композиция страницы калькуляторов. Ни одного нового цвета. ── */
+
+.pgtop{padding:30px 0 4px}
+.dim h1{flex:0 0 auto;font-size:clamp(25px,3.3vw,40px);letter-spacing:.05em}
+
+/* Подписи под полем несёт <em>, чтобы не попасть под .fld>span (это метка) */
+.fld .err,.fld .hint{font-style:normal;font-family:var(--f-ui);letter-spacing:0;text-transform:none}
+.fld .err:empty{display:none}
+.fld .hint:empty{display:none}
+/* .fld{display:block} перебивает браузерное [hidden] — возвращаем скрытие */
+.fld[hidden]{display:none}
+
+/* Рейка перехода между расчётами */
+.jump{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  border-top:1px solid var(--rule-ink);border-left:1px solid var(--rule-ink);margin-top:22px}
+.jump a{display:block;padding:16px 18px;background:var(--paper-hi);text-decoration:none;color:inherit;
+  border-right:1px solid var(--rule-ink);border-bottom:1px solid var(--rule-ink);
+  transition:background .18s var(--ease)}
+.jump a:hover{background:var(--blue-wash)}
+.jump b{display:block;font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.1em;
+  font-size:14px;margin-bottom:5px}
+.jump span{display:block;font-size:13px;color:var(--ink-3);line-height:1.45}
+
+/* Входные поля расчёта */
+.in-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;align-items:start}
+
+/* Справочник местных сопротивлений: набирается нажатием, правится руками */
+.zref{margin-top:18px;border-top:1px solid var(--rule)}
+.zref>summary{display:flex;align-items:center;gap:9px;padding:12px 0;cursor:pointer;
+  list-style:none;font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.13em;
+  font-size:11.5px;color:var(--ink-2)}
+.zref>summary::-webkit-details-marker{display:none}
+.zref>summary::after{content:"+";margin-left:auto;font-family:var(--f-num);font-size:15px;color:var(--ink-3)}
+.zref[open]>summary::after{content:"\2013"}
+.zref>summary:hover{color:var(--blue)}
+.zwrap{padding:0 0 6px}
+.zlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(228px,100%),1fr));
+  border-top:1px solid var(--rule-ink);border-left:1px solid var(--rule-ink)}
+.zgrp{grid-column:1/-1;padding:7px 12px;background:var(--paper-2);
+  border-right:1px solid var(--rule-ink);border-bottom:1px solid var(--rule-ink);
+  font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.13em;
+  font-size:10.5px;color:var(--ink-3)}
+.zb{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:9px 12px;cursor:pointer;
+  text-align:left;background:var(--paper-hi);border:0;border-right:1px solid var(--rule-ink);
+  border-bottom:1px solid var(--rule-ink);font-family:var(--f-ui);font-size:13px;color:var(--ink-2)}
+.zb:hover{background:var(--blue-wash);color:var(--blue)}
+.zb b{margin-left:auto;font-family:var(--f-num);font-size:13px;color:var(--ink)}
+.zb em{font-style:normal;font-size:10.5px;color:var(--ink-4);flex:1 0 100%}
+.zfoot{display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:12px 0 4px}
+.in-grid .wide{grid-column:span 2}
+.acts{display:flex;gap:12px;flex-wrap:wrap;align-items:center;
+  margin-top:18px;padding-top:14px;border-top:1px solid var(--rule)}
+.acts .note{font-size:12.5px;color:var(--ink-3);max-width:56ch;margin:0}
+
+/* .tbl-scroll задаёт overflow-x:auto, а это по спецификации делает блок
+   скролл-контейнером и по вертикали. Липкая шапка из vp.css с top:66px тогда
+   встаёт на 66 px ниже верха контейнера и накрывает первые строки. Внутри
+   своего контейнера ей место у его верхней кромки. */
+/* Заплатка снята: контейнер прокрутки теперь включается в vp.css только
+   ниже 1280 px, и там же шапка переводится на нулевое смещение. */
+
+/* Греческие буквы обязаны остаться строчными: text-transform превратит ζ в Ζ */
+.lc{text-transform:none}
+
+/* Ход расчёта */
+table.steps td.fx{font-family:var(--f-num);font-size:12.5px;color:var(--ink-2);white-space:nowrap}
+table.steps td.nm{font-family:var(--f-ui);letter-spacing:0;text-align:left;white-space:normal}
+table.steps td.un{font-family:var(--f-num);font-size:12px;color:var(--ink-3);text-align:left}
+table.steps tbody tr[data-tot="1"] td{background:var(--paper-2);font-weight:700;
+  border-top:1px solid var(--rule-ink);border-bottom:1px solid var(--rule-ink)}
+table.steps tbody tr[data-tot="1"]:hover td{background:var(--paper-2)}
+
+/* Итог и светофор скорости */
+.sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;
+  border-top:1px solid var(--rule-ink);border-left:1px solid var(--rule-ink);margin-top:var(--gut)}
+.sum div{padding:14px 16px;background:var(--paper-hi);
+  border-right:1px solid var(--rule-ink);border-bottom:1px solid var(--rule-ink)}
+.sum dt{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.13em;
+  font-size:10.5px;color:var(--ink-3);margin:0 0 5px}
+.sum dd{margin:0;font-family:var(--f-num);font-size:24px;color:var(--ink);
+  font-variant-numeric:tabular-nums}
+.sum dd small{font-family:var(--f-num);font-size:13px;color:var(--ink-3);margin-left:6px}
+.sum .st{margin-top:7px}
+
+/* Спецификация участков */
+.spec select[data-f="shape"]{min-width:152px}
+.spec input,.spec select{width:100%;min-width:74px;height:32px;padding:0 7px;
+  background:var(--paper-hi);border:1px solid var(--rule-ink);color:var(--ink);
+  font-family:var(--f-num);font-size:13px}
+.spec input:disabled,.spec select:disabled{background:var(--paper-3);color:var(--ink-4)}
+.spec td{padding:5px 7px}
+.spec td.s{font-weight:700}
+.split{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;
+  border-top:1px solid var(--rule-ink);border-left:1px solid var(--rule-ink);margin-top:var(--gut)}
+.split div{padding:12px 15px;background:var(--paper-hi);
+  border-right:1px solid var(--rule-ink);border-bottom:1px solid var(--rule-ink)}
+.split dt{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.13em;
+  font-size:10.5px;color:var(--ink-3);margin:0 0 4px}
+.split dd{margin:0;font-family:var(--f-num);font-size:18px}
+.split dd small{font-size:12px;color:var(--ink-3);margin-left:5px}
+
+/* Подтверждение — нарисованная поверхность, не окно браузера */
+.ack{border:1px solid var(--ok);background:var(--ok-pale);padding:12px 16px;
+  display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;margin-top:16px}
+.ack b{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.12em;
+  font-size:11.5px;color:var(--ok)}
+.ack span{font-size:13px;color:var(--ink-2)}
+.ack .num{font-size:12.5px;color:var(--ink-2)}
+.ack[hidden]{display:none}
+.ack--wait{border-color:var(--warn-line);background:var(--warn-pale)}
+.ack--wait b{color:var(--warn)}
+
+/* Лента расчётов */
+.tape{border:1px solid var(--rule-ink);background:var(--paper-hi)}
+.tape ol{margin:0;padding:0;list-style:none}
+.tape li{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;
+  padding:11px 16px;border-bottom:1px solid var(--rule-fine)}
+.tape li:last-child{border-bottom:0}
+.tape .k{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.12em;
+  font-size:10.5px;color:var(--blue);flex:0 0 92px}
+.tape .v{font-family:var(--f-num);font-size:13px;color:var(--ink);min-width:0}
+.tape .d{font-family:var(--f-num);font-size:11.5px;color:var(--ink-4);margin-left:auto}
+.tape .go{flex:0 0 auto}
+.tape .none{padding:16px;color:var(--ink-3);font-size:13px}
+
+.warn.frame{padding:15px 0}
+.warn.frame h3{font-size:12.5px;letter-spacing:.14em;margin-bottom:7px;color:inherit}
+.warn.frame p{margin:0 0 .55em;max-width:104ch;line-height:1.5}
+.warn.frame p:last-child{margin:0}
+
+@media (max-width:1100px){
+  .in-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .sum,.split{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:760px){
+  .in-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .in-grid .wide{grid-column:span 2}
+  .jump{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:560px){
+  /* Размерная линия заголовка: на узком листе заголовок берёт свою строку,
+     иначе выноска с формулой уезжает за обрез */
+  .dim{flex-wrap:wrap;gap:10px}
+  .dim h1,.dim h2{flex:1 1 100%}
+  .dim .line{flex:1 1 auto;min-width:30px}
+}
+@media (max-width:430px){
+  .in-grid,.sum,.split{grid-template-columns:minmax(0,1fr)}
+  .in-grid .wide{grid-column:span 1}
+  .tape .k{flex:0 0 100%}
+  .tape .d{margin-left:0}
+}
+</style>
+</head>
+<body>
+<!--
+IMPECCABLE DIRECTION CONTRACT · мир «Чертёж»
+THESIS: калькулятор, который показывает ход расчёта построчно, а не выдаёт
+одно число: инженер обязан видеть формулу, подстановку и результат каждого шага.
+OWN-WORLD: миллиметровка грунтом, волосяная линовка вместо теней, приборный
+синий на структуре, сигнальный оранжевый только на действии, моноширинный
+на измерениях, скруглений в данных нет.
+STORY: считаю участок → вижу скорость и светофор → уношу ΔP в подбор.
+FIRST VIEWPORT: заголовок, рейка из двух расчётов, форма участка.
+FORM: мир закреплён распоряжением заказчика, раунд направления не проводился.
+-->
+
+<div id="vp-head"></div>
+
+<main>
+
+  <section class="pgtop">
+    <div class="wrap">
+      <div class="dim">
+        <h1>Инженерные калькуляторы</h1><i class="line"></i>
+        <span class="val">2 расчёта</span>
+      </div>
+      <p class="lead">Два расчёта, которые чаще всего делают до подбора
+        вентилятора: сопротивление участка воздуховода и площадь воздуховодов по
+        спецификации. Каждый шаг показан формулой и подстановкой — результат можно
+        проверить на бумаге. Расчёты ложатся в вашу историю и подставляются
+        обратно в форму.</p>
+
+      <nav class="jump" aria-label="Расчёты страницы">
+        <a href="#aero"><b>Аэродинамика участка</b>
+          <span>Скорость, число Рейнольдса, коэффициент трения по Альтшулю,
+                потери на трение и местные сопротивления.</span></a>
+        <a href="#noise"><b>Шум и глушитель</b>
+          <span>Уровень звуковой мощности узла, затухание по трассе и требуемая
+            вносимая потеря глушителя.</span></a>
+        <a href="#area"><b>Площадь воздуховодов</b>
+          <span>Развёртка по спецификации участков, итог и раскладка по типам
+                сечения, выгрузка текстом.</span></a>
+      </nav>
+    </div>
+  </section>
+
+  <div class="warn frame">
+    <div class="wrap">
+      <h3>Что здесь считается и на чём это стоит</h3>
+      <p>Расчёты ведутся по общепринятым формулам гидравлики: плотность воздуха
+        принята <b>ρ = 1,2 кг/м³</b>, кинематическая вязкость
+        <b>ν = 15,06·10⁻⁶ м²/с</b> — это воздух при +20 °C. Коэффициент трения —
+        по формуле Альтшуля; эквивалентная шероховатость: 0,15 мм у оцинкованной
+        стали, 0,05 мм у нержавеющей, 3,0 мм у гибкого гофрированного,
+        4,0 мм у кирпичного канала. Любое значение можно задать своё.</p>
+      <p>Пересчёта на другую температуру и высоту над уровнем моря здесь нет.
+        Коэффициенты местных сопротивлений ζ набираются из справочника под полем
+        ввода или вводятся руками. Значения там типовые: узел, посчитанный по
+        своей геометрии, всегда точнее.</p>
+    </div>
+  </div>
+
+  <!-- ═══ АЭРОДИНАМИКА УЧАСТКА ══════════════════════════════════════ -->
+  <section class="sec--tight" id="aero">
+    <div class="wrap">
+      <div class="dim">
+        <h2>Аэродинамика участка воздуховода</h2><i class="line"></i>
+        <span class="val">ΔP = Pтр + Pм</span>
+      </div>
+      <p class="lead" style="margin-bottom:20px">Прямой участок постоянного
+        сечения плюс сумма коэффициентов местных сопротивлений на нём. Пересчёт
+        идёт по мере ввода.</p>
+
+      <form class="sheet sheet--pad" id="aeroForm" novalidate>
+        <div class="in-grid">
+          <label class="fld"><span>Расход Q, м³/ч</span>
+            <input type="number" id="a-q" min="1" step="50" value="3600" inputmode="numeric">
+            <em class="err"></em></label>
+
+          <label class="fld"><span>Сечение</span>
+            <select id="a-shape">
+              <option value="round">Круглое</option>
+              <option value="rect">Прямоугольное</option>
+            </select></label>
+
+          <label class="fld" id="w-d"><span>Диаметр Ø D, мм</span>
+            <input type="number" id="a-d" min="50" max="3000" step="5" value="315" inputmode="numeric">
+            <em class="err"></em></label>
+
+          <label class="fld" id="w-a" hidden><span>Сторона A, мм</span>
+            <input type="number" id="a-a" min="50" max="4000" step="10" value="500" inputmode="numeric">
+            <em class="err"></em></label>
+
+          <label class="fld" id="w-b" hidden><span>Сторона B, мм</span>
+            <input type="number" id="a-b" min="50" max="4000" step="10" value="250" inputmode="numeric">
+            <em class="err"></em></label>
+
+          <label class="fld"><span>Длина участка L, м</span>
+            <input type="number" id="a-l" min="0.1" max="500" step="0.5" value="20" inputmode="decimal">
+            <em class="err"></em></label>
+
+          <label class="fld"><span>Материал</span>
+            <select id="a-mat">
+              <option value="gi">Оцинкованная сталь</option>
+              <option value="ss">Нержавеющая сталь</option>
+              <option value="fl">Гибкий гофрированный</option>
+              <option value="br">Кирпичный канал</option>
+              <option value="own">Своё значение kэ</option>
+            </select>
+            <em class="hint" id="a-mat-hint"></em></label>
+
+          <label class="fld" id="w-ke" hidden><span>Своя kэ, мм</span>
+            <input type="number" id="a-ke" min="0.001" max="20" step="0.01" value="0.15"
+                   inputmode="decimal">
+            <em class="hint">Значение из вашего справочника. Применяется как есть.</em>
+            <em class="err"></em></label>
+
+          <label class="fld"><span>Сумма <span class="lc">ζ</span> на участке</span>
+            <input type="number" id="a-z" min="0" max="200" step="0.1" value="1.5" inputmode="decimal">
+            <em class="hint">Складываются и вводятся одним числом. Ниже — справочник:
+              нажатие прибавляет коэффициент к сумме.</em>
+            <em class="err"></em></label>
+        </div>
+
+        <details class="zref" id="zref">
+          <summary>Справочник <span class="lc">ζ</span> — нажмите, чтобы набрать сумму</summary>
+          <div class="zwrap">
+            <div class="zlist" id="zlist"></div>
+            <div class="zfoot">
+              <button class="btn btn--ghost btn--sm" type="button" id="zclear">Обнулить сумму</button>
+              <p class="note" id="zpicked">Набрано: ничего</p>
+            </div>
+            <p class="note">Значения — типовые, из практики проектирования, и приведены,
+              чтобы не считать в уме. Точный коэффициент зависит от геометрии узла и
+              соотношения расходов: там, где стоит пометка «ориентировочно», разброс по
+              справочникам заметный, и в ответственном расчёте берите таблицу Идельчика
+              под свой узел. Любое значение можно просто перебить руками в поле выше.</p>
+          </div>
+        </details>
+
+        <div class="acts">
+          <button class="btn" type="button" id="aeroSave">Сохранить расчёт</button>
+          <a class="btn btn--ghost" href="podbor.html" id="aeroToPick">Взять эту ΔP в подбор</a>
+          <p class="note">Ссылка «в подбор» переносит расход и полученное ΔP в
+            рабочую точку страницы подбора.</p>
+        </div>
+
+        <div class="ack" id="aeroAck" hidden role="status" aria-live="polite"></div>
+      </form>
+
+      <h3 style="margin:26px 0 10px">Ход расчёта</h3>
+      <div class="tbl-scroll">
+        <table class="data steps" id="aeroSteps">
+          <caption class="vh">Пошаговый расчёт сопротивления участка</caption>
+          <thead><tr>
+            <th class="l" scope="col">Величина</th>
+            <th class="l" scope="col">Формула</th>
+            <th class="l" scope="col">Подстановка</th>
+            <th scope="col">Значение</th>
+            <th class="l" scope="col">Ед.</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <dl class="sum" id="aeroSum" role="status" aria-live="polite"></dl>
+
+      <p class="small" style="margin-top:14px;max-width:96ch">Пороги скорости —
+        <b>рекомендательные, а не нормативные</b>: до 6 м/с считают спокойным
+        режимом для магистралей, 6…11 м/с обычно даёт заметный шум и требует
+        глушителя, свыше 11 м/с в гражданских системах применяют редко.
+        Требований норм эти цифры не заменяют: допустимые скорости и уровни шума
+        задаются проектом и действующими сводами правил.</p>
+    </div>
+  </section>
+
+  <!-- ШУМ И ГЛУШИТЕЛЬ -->
+  <section class="sec--tight" id="noise">
+    <div class="wrap">
+      <div class="dim">
+        <h2>Шум узла и требуемый глушитель</h2><i class="line"></i>
+        <span class="val">Lw = 10&middot;lg(&zeta;&sup3;&middot;v&#8310;&middot;F) + 10</span>
+      </div>
+      <p class="lead" style="margin-bottom:20px">Оценка звуковой мощности, которую
+        рождает местное сопротивление, затухание по трассе до помещения и вывод:
+        нужен глушитель или нет. Скорость, сечение и &zeta; подставляются из расчёта
+        участка &mdash; их можно переопределить.</p>
+
+      <form class="sheet sheet--pad" id="noiseForm" novalidate>
+        <div class="in-grid">
+          <label class="fld"><span>Скорость v, м/с</span>
+            <input type="number" id="n-v" min="0.5" max="40" step="0.1" value="6"
+                   inputmode="decimal"><em class="err"></em></label>
+
+          <label class="fld"><span>Живое сечение F, м&sup2;</span>
+            <input type="number" id="n-f" min="0.001" max="20" step="0.001" value="0.078"
+                   inputmode="decimal"><em class="err"></em></label>
+
+          <label class="fld"><span>&zeta; шумящего узла</span>
+            <input type="number" id="n-z" min="0.01" max="200" step="0.05" value="0.4"
+                   inputmode="decimal">
+            <em class="hint">Один узел, а не сумма по участку: шумит каждый сам за себя.</em>
+            <em class="err"></em></label>
+
+          <label class="fld"><span>Длина трассы после узла, м</span>
+            <input type="number" id="n-l" min="0" max="300" step="0.5" value="10"
+                   inputmode="decimal"><em class="err"></em></label>
+
+          <label class="fld"><span>Погонное затухание, дБ/м</span>
+            <input type="number" id="n-dl" min="0" max="5" step="0.01" value="0.15"
+                   inputmode="decimal">
+            <em class="hint">Неизолированный металлический воздуховод. У крупных
+              сечений меньше, у облицованных заметно больше.</em></label>
+
+          <label class="fld"><span>Отводов на трассе</span>
+            <input type="number" id="n-n" min="0" max="20" step="1" value="2"
+                   inputmode="numeric"></label>
+
+          <label class="fld"><span>Затухание в отводе, дБ</span>
+            <input type="number" id="n-db" min="0" max="15" step="0.5" value="2"
+                   inputmode="decimal"></label>
+
+          <label class="fld"><span>Допустимый уровень, дБА</span>
+            <input type="number" id="n-lim" min="15" max="110" step="1"
+                   placeholder="задаёт проект" inputmode="numeric">
+            <em class="hint">Нормируемое значение берётся из проекта и действующих
+              сводов правил. Своей цифры прототип не подставляет.</em></label>
+        </div>
+
+        <div class="acts">
+          <button class="btn" type="button" id="noiseSave">Сохранить расчёт</button>
+          <button class="btn btn--ghost" type="button" id="noiseFromAero">Взять из расчёта участка</button>
+          <p class="note">Оценка порядка величины, а не паспортная шумовая
+            характеристика: она снимается на стенде и приводится в октавных полосах.</p>
+        </div>
+
+        <div class="ack" id="noiseAck" hidden role="status" aria-live="polite"></div>
+      </form>
+
+      <h3 style="margin:26px 0 10px">Ход расчёта</h3>
+      <div class="tbl-scroll">
+        <table class="data steps" id="noiseSteps">
+          <caption class="vh">Пошаговый расчёт уровня шума</caption>
+          <thead><tr>
+            <th class="l" scope="col">Величина</th>
+            <th class="l" scope="col">Формула</th>
+            <th class="l" scope="col">Подстановка</th>
+            <th scope="col">Значение</th>
+            <th class="l" scope="col">Ед.</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <dl class="sum" id="noiseSum" role="status" aria-live="polite"></dl>
+
+      <p class="small" style="margin-top:14px;max-width:96ch">Формула &mdash; инженерная
+        запись закона Гордона: звуковая мощность растёт как куб перепада давления,
+        то есть как шестая степень скорости. Отсюда практический вывод, который
+        стоит всех таблиц: <b>снизив скорость вдвое, шум узла уменьшают примерно
+        на 18 дБ</b> &mdash; это дешевле любого глушителя. Затухание в прямом
+        воздуховоде и в отводах задаётся числами, а не берётся из таблицы: оно сильно
+        зависит от сечения, облицовки и частоты, и одно значение на все случаи было бы
+        обманом. Расчёт широкополосный, без разбивки по октавным полосам.</p>
+    </div>
+  </section>
+
+  <!-- ═══ ПЛОЩАДЬ ВОЗДУХОВОДОВ ══════════════════════════════════════ -->
+  <section class="sec--tight" id="area">
+    <div class="wrap">
+      <div class="dim">
+        <h2>Площадь воздуховодов по спецификации</h2><i class="line"></i>
+        <span class="val">S = Σ Sᵢ</span>
+      </div>
+      <p class="lead" style="margin-bottom:20px">Развёртка по участкам:
+        для круглого сечения <span class="num">S = π · D · L · n</span>,
+        для прямоугольного <span class="num">S = 2 · (A + B) · L · n</span>.
+        Строки добавляются и удаляются, итог считается сразу.</p>
+
+      <div class="sheet">
+        <div class="tbl-scroll">
+          <table class="data spec" id="specTbl">
+            <caption class="vh">Участки воздуховодов</caption>
+            <thead><tr>
+              <th class="l" scope="col">Участок</th>
+              <th class="l" scope="col">Сечение</th>
+              <th scope="col">Ø D, мм</th>
+              <th scope="col">A, мм</th>
+              <th scope="col">B, мм</th>
+              <th scope="col">L, м</th>
+              <th scope="col">Кол-во, шт</th>
+              <th scope="col">S, м²</th>
+              <th class="acts" scope="col"><span class="vh">Убрать строку</span></th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="acts" style="margin:0;padding:14px 16px;border-top:1px solid var(--rule)">
+          <button class="btn btn--ghost btn--sm" type="button" id="rowAdd">Добавить участок</button>
+          <button class="btn btn--ghost btn--sm" type="button" id="rowDemo">Заполнить примером</button>
+          <p class="note mb0">Длина — по оси воздуховода, без вычета фасонных
+            частей. Изоляция и нахлёст фальцев не учитываются.</p>
+        </div>
+      </div>
+
+      <dl class="split" id="areaSum" role="status" aria-live="polite"></dl>
+
+      <div class="acts">
+        <button class="btn" type="button" id="areaCopy">Скопировать спецификацию</button>
+        <button class="btn btn--ghost" type="button" id="areaSave">Сохранить расчёт</button>
+        <p class="note">Копия уходит в буфер обмена текстовой таблицей: вставляется
+          в письмо, в смету и в любой редактор.</p>
+      </div>
+
+      <div class="ack" id="areaAck" hidden role="status" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- ═══ ЛЕНТА РАСЧЁТОВ ════════════════════════════════════════════ -->
+  <section class="sec--tight">
+    <div class="wrap">
+      <div class="dim">
+        <h2>Последние расчёты</h2><i class="line"></i>
+        <span class="val" id="tapeVal">—</span>
+      </div>
+      <p class="lead" style="margin-bottom:16px">Хранится в этом браузере, без
+        регистрации. Кнопка возвращает числа обратно в форму — не придётся
+        набирать заново.</p>
+      <div class="tape" id="tape"></div>
+      <p class="small" style="margin-top:14px">
+        Полная история и подобранные позиции — в <a href="cabinet.html">кабинете</a>.
+        Подбор по рабочей точке — на странице <a href="podbor.html">подбора</a>.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<div id="vp-foot"></div>
+
+<script src="assets/data.vp.js"></script>
+<script src="assets/vp.js"></script>
+<script>
+(() => {
+'use strict';
+const {$, $$, store, init} = VP;
+const D = VPDATA;
+
+init('calc.html');
+
+/* ══════════════════════════════════════════════════════════════════
+   0. Общие мелочи
+   ══════════════════════════════════════════════════════════════════ */
+const esc = s => String(s == null ? '' : s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const numOf = v => { const n = Number(String(v).replace(',', '.').replace(/\s/g, '')); return Number.isFinite(n) ? n : NaN; };
+const f = (v, d) => Number.isFinite(v)
+  ? v.toLocaleString('ru-RU', {minimumFractionDigits:d, maximumFractionDigits:d}) : '—';
+const stamp = () => new Date().toLocaleString('ru-RU', {day:'2-digit', month:'2-digit',
+  year:'numeric', hour:'2-digit', minute:'2-digit'});
+/** Склонение при числе: 1 строка, 2 строки, 5 строк. */
+const plural = (n, one, few, many) => {
+  const m = Math.abs(Math.round(n)) % 100, d = m % 10;
+  if (m > 10 && m < 20) return many;
+  if (d > 1 && d < 5) return few;
+  return d === 1 ? one : many;
+};
+
+function mark(input, ok, msg) {
+  const fl = input.closest('.fld');
+  if (!fl) return ok;
+  fl.dataset.err = ok ? '0' : '1';
+  input.setAttribute('aria-invalid', ok ? 'false' : 'true');
+  const e = $('.err', fl);
+  if (e) e.textContent = ok ? '' : msg;
+  return ok;
+}
+
+function ack(box, title, text, wait) {
+  box.className = 'ack' + (wait ? ' ack--wait' : '');
+  box.innerHTML = `<b>${esc(title)}</b><span>${text}</span>
+    <span class="num" style="margin-left:auto">${esc(stamp())}</span>`;
+  box.hidden = false;
+}
+
+/** Копирование с запасным путём: clipboard, иначе скрытое поле и execCommand. */
+function copyText(text) {
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed'; ta.style.top = '-1000px';
+    document.body.appendChild(ta); ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text).then(() => true, () => fallback());
+  }
+  return Promise.resolve(fallback());
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   1. Аэродинамика участка
+   Физические постоянные расчёта — воздух при +20 °C.
+   ══════════════════════════════════════════════════════════════════ */
+const RHO = 1.2;              /* кг/м³ */
+const NU  = 15.06e-6;         /* м²/с  */
+const KE  = {gi:0.00015, ss:0.00005};  /* м, эквивалентная шероховатость.
+   0,15 мм у оцинкованной стали — значение задано заказчиком 15.08.2026.
+   В методике «Воздуховоды VENT» листовая сталь идёт как 0,1 мм, поэтому
+   расхождение зафиксировано здесь явно, а не растворено в коде. */
+const KE_EXT  = {gi:0.00015, ss:0.00005, fl:0.003, br:0.004};
+const KE_NUM  = {gi:'0,00015', ss:'0,00005', fl:'0,003', br:'0,004'};
+const KE_NAME = {
+  gi:'оцинкованная сталь, kэ 0,15 мм',
+  ss:'нержавеющая сталь, kэ 0,05 мм',
+  fl:'гибкий гофрированный, kэ 3,0 мм',
+  br:'кирпичный канал, kэ 4,0 мм',
+  own:'своё значение'
+};
+/* Подсказка под выбором материала. Про гибкий сказано прямо: в отечественных
+   таблицах шероховатости его нет, значение взято из зарубежной практики. */
+const KE_HINT = {
+  gi:'kэ = 0,15 мм. Значение согласовано заказчиком; в части справочников листовая сталь идёт как 0,1 мм.',
+  ss:'kэ = 0,05 мм.',
+  fl:'kэ = 3,0 мм — зарубежная практика: в отечественных таблицах гибкий гофрированный воздуховод не нормирован. Потери на нём в разы выше, чем на жёстком той же длины.',
+  br:'kэ = 4,0 мм. Кирпичная кладка в справочниках даётся разбросом 4…10 мм — берите по факту кладки.',
+  own:'Значение задаётся полем рядом и применяется как есть.'
+};
+
+const A = {};
+['q', 'shape', 'd', 'a', 'b', 'l', 'mat', 'z', 'ke'].forEach(k => A[k] = $('#a-' + k));
+
+let AERO = null;
+
+function aeroShape() {
+  const rect = A.shape.value === 'rect';
+  $('#w-d').hidden = rect;
+  $('#w-a').hidden = !rect;
+  $('#w-b').hidden = !rect;
+  return rect;
+}
+
+function aeroRun() {
+  const rect = aeroShape();
+  const q  = numOf(A.q.value);
+  const L  = numOf(A.l.value);
+  const z  = numOf(A.z.value);
+  const dm = numOf(A.d.value) / 1000;
+  const am = numOf(A.a.value) / 1000;
+  const bm = numOf(A.b.value) / 1000;
+  const own = A.mat.value === 'own';
+  $('#w-ke').hidden = !own;
+  $('#a-mat-hint').textContent = KE_HINT[A.mat.value] || '';
+  const keOwn = numOf(A.ke.value) / 1000;
+  const ke = own ? keOwn : (KE_EXT[A.mat.value] || KE_EXT.gi);
+
+  let ok = mark(A.q, q > 0, 'Расход должен быть числом больше нуля. Введите значение в м³/ч, например 3600.');
+  ok = mark(A.l, L > 0, 'Длина участка должна быть больше нуля. Введите значение в метрах.') && ok;
+  ok = mark(A.z, Number.isFinite(z) && z >= 0, 'Сумма ζ не может быть отрицательной. Если местных сопротивлений нет — поставьте 0.') && ok;
+  if (own) ok = mark(A.ke, keOwn > 0, 'Шероховатость должна быть больше нуля. Введите значение в миллиметрах, например 0,15.') && ok;
+  if (rect) {
+    ok = mark(A.a, am > 0, 'Сторона A должна быть больше нуля. Введите размер в миллиметрах, например 500.') && ok;
+    ok = mark(A.b, bm > 0, 'Сторона B должна быть больше нуля. Введите размер в миллиметрах, например 250.') && ok;
+  } else {
+    ok = mark(A.d, dm > 0, 'Диаметр должен быть больше нуля. Введите размер в миллиметрах, например 315.') && ok;
+  }
+
+  if (!ok) {
+    AERO = null;
+    $('#aeroSteps tbody').innerHTML =
+      `<tr><td class="l nm" colspan="5">Расчёт не идёт: поправьте отмеченные поля выше.</td></tr>`;
+    $('#aeroSum').innerHTML = '';
+    $('#aeroToPick').href = 'podbor.html';
+    return;
+  }
+
+  /* ── сам расчёт ── */
+  const F  = rect ? am * bm : Math.PI * dm * dm / 4;      /* м²  */
+  const de = rect ? 2 * am * bm / (am + bm) : dm;         /* м   */
+  const v  = q / (3600 * F);                              /* м/с */
+  const Pd = RHO * v * v / 2;                             /* Па  */
+  const Re = v * de / NU;
+  const lam = 0.11 * Math.pow(ke / de + 68 / Re, 0.25);
+  const Ptr = lam * (L / de) * Pd;                        /* Па  */
+  const Pm  = z * Pd;                                     /* Па  */
+  const dP  = Ptr + Pm;                                   /* Па  */
+
+  AERO = {q, rect, d:numOf(A.d.value), a:numOf(A.a.value), b:numOf(A.b.value),
+          L, z, mat:A.mat.value, F, de, v, Pd, Re, lam, Ptr, Pm, dP};
+
+  /* ── ход расчёта построчно ── */
+  const rows = [];
+  const row = (name, formula, subst, val, unit, tot) =>
+    rows.push(`<tr${tot ? ' data-tot="1"' : ''}>
+      <td class="l nm">${name}</td>
+      <td class="fx">${formula}</td>
+      <td class="fx">${subst}</td>
+      <td>${val}</td>
+      <td class="un">${unit}</td></tr>`);
+
+  if (rect) {
+    row('Площадь живого сечения F', 'F = A · B',
+        `${f(am, 3)} · ${f(bm, 3)}`, f(F, 4), 'м²');
+    row('Эквивалентный диаметр по скорости dэ', 'dэ = 2AB / (A + B)',
+        `2 · ${f(am, 3)} · ${f(bm, 3)} / (${f(am, 3)} + ${f(bm, 3)})`, f(de, 4), 'м');
+  } else {
+    row('Площадь живого сечения F', 'F = π · D² / 4',
+        `π · ${f(dm, 3)}² / 4`, f(F, 4), 'м²');
+    row('Эквивалентный диаметр dэ', 'dэ = D',
+        `${f(dm, 3)}`, f(de, 4), 'м');
+  }
+  row('Скорость в сечении v', 'v = Q / (3600 · F)',
+      `${f(q, 0)} / (3600 · ${f(F, 4)})`, f(v, 2), 'м/с');
+  row('Динамическое давление Pд', 'Pд = ρ · v² / 2',
+      `1,2 · ${f(v, 2)}² / 2`, f(Pd, 1), 'Па');
+  row('Число Рейнольдса Re', 'Re = v · dэ / ν',
+      `${f(v, 2)} · ${f(de, 4)} / 15,06·10⁻⁶`, f(Re, 0), '—');
+  const keTxt = own ? f(ke, 5) : KE_NUM[A.mat.value];
+  row('Эквивалентная шероховатость kэ', 'по материалу',
+      own ? ('своё значение, ' + f(keOwn * 1000, 3) + ' мм') : KE_NAME[A.mat.value],
+      keTxt, 'м');
+  row('Коэффициент трения λ (Альтшуль)', 'λ = 0,11 · (kэ/dэ + 68/Re)^0,25',
+      `0,11 · (${keTxt} / ${f(de, 4)} + 68 / ${f(Re, 0)})^0,25`, f(lam, 4), '—');
+  row('Потери на трение Pтр', 'Pтр = λ · (L / dэ) · Pд',
+      `${f(lam, 4)} · (${f(L, 1)} / ${f(de, 4)}) · ${f(Pd, 1)}`, f(Ptr, 1), 'Па');
+  row('Местные потери Pм', 'Pм = Σζ · Pд',
+      `${f(z, 2)} · ${f(Pd, 1)}`, f(Pm, 1), 'Па');
+  row('Потери на участке ΔP', 'ΔP = Pтр + Pм',
+      `${f(Ptr, 1)} + ${f(Pm, 1)}`, f(dP, 1), 'Па', true);
+  $('#aeroSteps tbody').innerHTML = rows.join('');
+
+  /* ── итог и светофор скорости ── */
+  const s = v <= 6 ? {k:'ok',   t:'до 6 м/с — спокойный режим для магистралей'}
+          : v <= 11 ? {k:'wait', t:'6…11 м/с — повышенный шум, обычно нужен глушитель'}
+          : {k:'stop', t:'свыше 11 м/с — применяют редко, проверьте сечение'};
+  $('#aeroSum').innerHTML = `
+    <div><dt>Скорость v</dt><dd>${f(v, 2)}<small>м/с</small></dd>
+      <span class="st" data-s="${s.k}">${s.t}</span></div>
+    <div><dt>Динамическое давление Pд</dt><dd>${f(Pd, 1)}<small>Па</small></dd>
+      <p class="small mb0" style="margin-top:7px">Скоростной напор потока при ρ = 1,2 кг/м³.</p></div>
+    <div><dt>Потери на участке ΔP</dt><dd>${f(dP, 1)}<small>Па</small></dd>
+      <p class="small mb0" style="margin-top:7px">Трение ${f(Ptr, 1)} Па + местные ${f(Pm, 1)} Па.</p></div>`;
+
+  $('#aeroToPick').href = 'podbor.html?q=' + Math.round(q) + '&p=' + Math.max(1, Math.round(dP));
+}
+
+$$('#aeroForm input, #aeroForm select').forEach(el => {
+  el.addEventListener('input', aeroRun);
+  el.addEventListener('change', aeroRun);
+});
+
+$('#aeroSave').addEventListener('click', () => {
+  aeroRun();
+  if (!AERO) {
+    ack($('#aeroAck'), 'не сохранено', 'Сначала поправьте отмеченные поля — расчёта пока нет.', true);
+    A.q.focus();
+    return;
+  }
+  store.addCalc({t:'aero', q:AERO.q, rect:AERO.rect, d:AERO.d, a:AERO.a, b:AERO.b,
+                 L:AERO.L, z:AERO.z, mat:AERO.mat, v:+AERO.v.toFixed(2),
+                 dp:+AERO.dP.toFixed(1), ts:Date.now()});
+  ack($('#aeroAck'), 'расчёт сохранён',
+    'Участок ' + (AERO.rect ? f(AERO.a, 0) + '×' + f(AERO.b, 0) + ' мм' : 'Ø ' + f(AERO.d, 0) + ' мм')
+    + ', ΔP = ' + f(AERO.dP, 1) + ' Па. Запись легла в ленту внизу страницы и в '
+    + '<a href="cabinet.html">кабинет</a>. Всего записей — ' + store.calcs.length + '.');
+  paintTape();
+});
+
+
+/* ══════════════════════════════════════════════════════════════════
+   1a. Справочник местных сопротивлений
+   Значения типовые, из практики проектирования. Помеченные словом
+   «ориентировочно» сильно зависят от геометрии узла и соотношения
+   расходов — в ответственном расчёте берётся таблица под свой узел.
+   Справочник ничего не навязывает: он только складывает числа в поле,
+   которое всегда можно перебить руками.
+   ══════════════════════════════════════════════════════════════════ */
+const ZREF = [
+  ['Отводы', [
+    ['Отвод 90°, R/D = 1,5',        0.21, ''],
+    ['Отвод 90°, R/D = 1,0',        0.33, ''],
+    ['Отвод 90° сварной сегментный', 0.45, 'ориентировочно, зависит от числа звеньев'],
+    ['Отвод 45°',                    0.12, ''],
+    ['Колено 90° без скругления',    1.10, 'ориентировочно']
+  ]],
+  ['Тройники', [
+    ['Тройник на проход',        0.40, 'ориентировочно: при равных скоростях в стволе и ответвлении'],
+    ['Тройник на ответвление',   0.67, 'ориентировочно: при равных скоростях; растёт с долей расхода в отвод'],
+    ['Крестовина на проход',     0.55, 'ориентировочно']
+  ]],
+  ['Переходы и концы', [
+    ['Конфузор (сужение)',           0.15, 'к скорости за сужением'],
+    ['Диффузор до 30°',              0.25, 'ориентировочно, зависит от угла'],
+    ['Внезапное расширение',         0.50, 'ориентировочно: точное значение (1 − F1/F2)²'],
+    ['Вход с острой кромкой',        0.50, ''],
+    ['Вход с раструбом',             0.15, ''],
+    ['Выход в помещение',            1.00, 'скоростное давление теряется целиком']
+  ]],
+  ['Арматура и оборудование', [
+    ['Дроссель-клапан, открыт',      0.20, ''],
+    ['Обратный клапан',              1.30, 'ориентировочно'],
+    ['Решётка приточная',            1.50, 'ориентировочно: зависит от живого сечения'],
+    ['Шумоглушитель трубчатый',      0.30, 'ориентировочно'],
+    ['Фильтр карманный, чистый',     0.60, 'ориентировочно: по паспорту, растёт по мере запыления']
+  ]]
+];
+
+let zPicked = [];
+
+(function buildZref() {
+  const host = $('#zlist');
+  if (!host) return;
+  host.innerHTML = ZREF.map(g =>
+    `<div class="zgrp">${esc(g[0])}</div>` + g[1].map(r =>
+      `<button class="zb" type="button" data-z="${r[1]}" data-t="${esc(r[0])}">
+         <span>${esc(r[0])}</span><b>${String(r[1]).replace('.', ',')}</b>
+         ${r[2] ? `<em>${esc(r[2])}</em>` : ''}</button>`).join('')
+  ).join('');
+
+  host.addEventListener('click', e => {
+    const b = e.target.closest('.zb');
+    if (!b) return;
+    zPicked.push({t:b.dataset.t, z:numOf(b.dataset.z)});
+    A.z.value = (zPicked.reduce((a, x) => a + x.z, 0)).toFixed(2).replace(/\.?0+$/, '');
+    paintZ();
+    aeroRun();
+  });
+
+  $('#zclear').addEventListener('click', () => {
+    zPicked = []; A.z.value = '0'; paintZ(); aeroRun();
+  });
+
+  /* Ручная правка поля рвёт связь со списком: набранное больше не описывает
+     то, что в поле, и делать вид, что описывает, нельзя. */
+  A.z.addEventListener('input', () => { if (zPicked.length) { zPicked = []; paintZ(); } });
+  paintZ();
+})();
+
+function paintZ() {
+  const box = $('#zpicked');
+  if (!box) return;
+  box.textContent = zPicked.length
+    ? 'Набрано: ' + zPicked.map(x => x.t + ' ' + String(x.z).replace('.', ',')).join(' + ')
+    : 'Набрано: ничего — в поле стоит своё значение';
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   2. Шум узла и требуемый глушитель
+   Lw = 10·lg(ζ³ · v⁶ · F) + 10 — инженерная запись закона Гордона
+   (звуковая мощность растёт как куб перепада давления, то есть как
+   шестая степень скорости). Затухание по трассе задаётся числами:
+   табличное значение на все сечения и частоты было бы обманом.
+   ══════════════════════════════════════════════════════════════════ */
+const N = {};
+['v', 'f', 'z', 'l', 'dl', 'n', 'db', 'lim'].forEach(k => N[k] = $('#n-' + k));
+
+let NOISE = null;
+
+function noiseRun() {
+  const v   = numOf(N.v.value);
+  const F   = numOf(N.f.value);
+  const z   = numOf(N.z.value);
+  const L   = numOf(N.l.value);
+  const dl  = numOf(N.dl.value);
+  const nb  = numOf(N.n.value);
+  const db  = numOf(N.db.value);
+  const lim = N.lim.value.trim() === '' ? null : numOf(N.lim.value);
+
+  let ok = mark(N.v, v > 0, 'Скорость должна быть больше нуля. Введите значение в м/с, например 6.');
+  ok = mark(N.f, F > 0, 'Сечение должно быть больше нуля. Введите площадь в квадратных метрах.') && ok;
+  ok = mark(N.z, z > 0, 'Коэффициент ζ должен быть больше нуля: узел без сопротивления не шумит.') && ok;
+  ok = mark(N.l, Number.isFinite(L) && L >= 0, 'Длина трассы не может быть отрицательной.') && ok;
+
+  if (!ok) {
+    NOISE = null;
+    $('#noiseSteps tbody').innerHTML =
+      `<tr><td class="l nm" colspan="5">Расчёт не идёт: поправьте отмеченные поля выше.</td></tr>`;
+    $('#noiseSum').innerHTML = '';
+    return;
+  }
+
+  const arg  = Math.pow(z, 3) * Math.pow(v, 6) * F;
+  const Lw   = 10 * Math.log10(arg) + 10;
+  const att  = L * dl + nb * db;
+  const Lout = Lw - att;
+  const over = lim == null ? null : Lout - lim;
+
+  NOISE = {v, F, z, L, dl, nb, db, lim, Lw, att, Lout, over};
+
+  const rows = [];
+  const row = (name, formula, subst, val, unit, tot) =>
+    rows.push(`<tr${tot ? ' data-tot="1"' : ''}>
+      <td class="l nm">${name}</td><td class="fx">${formula}</td>
+      <td class="fx">${subst}</td><td>${val}</td><td class="un">${unit}</td></tr>`);
+
+  row('Подкоренное произведение', 'ζ³ · v⁶ · F',
+      `${f(z, 2)}³ · ${f(v, 2)}⁶ · ${f(F, 4)}`, f(arg, 1), '—');
+  row('Уровень звуковой мощности Lw', 'Lw = 10·lg(ζ³·v⁶·F) + 10',
+      `10 · lg(${f(arg, 1)}) + 10`, f(Lw, 1), 'дБ');
+  row('Затухание по прямой трассе', 'Δ₁ = L · Δпог',
+      `${f(L, 1)} · ${f(dl, 2)}`, f(L * dl, 1), 'дБ');
+  row('Затухание в отводах', 'Δ₂ = n · Δотв',
+      `${f(nb, 0)} · ${f(db, 1)}`, f(nb * db, 1), 'дБ');
+  row('Уровень на выходе трассы', 'Lвых = Lw − Δ₁ − Δ₂',
+      `${f(Lw, 1)} − ${f(L * dl, 1)} − ${f(nb * db, 1)}`, f(Lout, 1), 'дБ', true);
+  if (lim != null)
+    row('Превышение над допустимым', 'ΔL = Lвых − Lдоп',
+        `${f(Lout, 1)} − ${f(lim, 0)}`, f(over, 1), 'дБ');
+  $('#noiseSteps tbody').innerHTML = rows.join('');
+
+  const verdict = lim == null
+    ? {k:'', t:'Допустимый уровень не задан — сравнивать не с чем. Впишите значение из проекта.'}
+    : over > 0
+      ? {k:'wait', t:'Нужен глушитель с вносимой потерей не менее ' + f(Math.ceil(over), 0) +
+                     ' дБ. Прежде чем его покупать, посмотрите на скорость: снижение ' +
+                     'с ' + f(v, 1) + ' до ' + f(v / 1.26, 1) + ' м/с даёт около 4,5 дБ бесплатно.'}
+      : {k:'ok',  t:'Запас ' + f(-over, 1) + ' дБ. Глушитель по этому узлу не требуется.'};
+
+  $('#noiseSum').innerHTML = `
+    <div><dt>Звуковая мощность узла Lw</dt><dd>${f(Lw, 1)}<small>дБ</small></dd>
+      <p class="small mb0" style="margin-top:7px">Рождается на самом сопротивлении.</p></div>
+    <div><dt>На выходе трассы</dt><dd>${f(Lout, 1)}<small>дБ</small></dd>
+      <p class="small mb0" style="margin-top:7px">Затухание по трассе ${f(att, 1)} дБ.</p></div>
+    <div><dt>Вывод</dt><dd>${lim == null ? '—' : (over > 0 ? f(Math.ceil(over), 0) : '0')}<small>дБ глушителя</small></dd>
+      <p class="small mb0" style="margin-top:7px">
+        ${verdict.k ? `<span class="st" data-s="${verdict.k}"></span> ` : ''}${verdict.t}</p></div>`;
+}
+
+$$('#noiseForm input').forEach(el => {
+  el.addEventListener('input', noiseRun);
+  el.addEventListener('change', noiseRun);
+});
+
+/* Перенос из расчёта участка: скорость, сечение и сумма ζ уже посчитаны —
+   заставлять вводить их второй раз значит приглашать к опечатке. */
+$('#noiseFromAero').addEventListener('click', () => {
+  aeroRun();
+  if (!AERO) {
+    ack($('#noiseAck'), 'нечего переносить',
+        'Сначала поправьте поля в расчёте участка выше.', true);
+    return;
+  }
+  N.v.value = AERO.v.toFixed(2);
+  N.f.value = AERO.F.toFixed(4);
+  if (AERO.z > 0) N.z.value = AERO.z;
+  noiseRun();
+  ack($('#noiseAck'), 'подставлено',
+      'Скорость ' + f(AERO.v, 2) + ' м/с, сечение ' + f(AERO.F, 4) + ' м²' +
+      (AERO.z > 0 ? ', ζ ' + f(AERO.z, 2) : '') + '. Проверьте ζ: здесь нужен один узел, а не сумма по участку.');
+});
+
+$('#noiseSave').addEventListener('click', () => {
+  noiseRun();
+  if (!NOISE) {
+    ack($('#noiseAck'), 'не сохранено', 'Сначала поправьте отмеченные поля — расчёта пока нет.', true);
+    N.v.focus();
+    return;
+  }
+  store.addCalc({t:'noise', v:+NOISE.v.toFixed(2), F:+NOISE.F.toFixed(4), z:NOISE.z,
+                 lw:+NOISE.Lw.toFixed(1), lout:+NOISE.Lout.toFixed(1),
+                 lim:NOISE.lim, need:NOISE.over == null ? null : Math.max(0, Math.ceil(NOISE.over)),
+                 ts:Date.now()});
+  ack($('#noiseAck'), 'расчёт сохранён',
+    'Lw = ' + f(NOISE.Lw, 1) + ' дБ, на выходе ' + f(NOISE.Lout, 1) + ' дБ. Запись легла в ленту '
+    + 'внизу страницы и в <a href="cabinet.html">кабинет</a>. Всего записей — ' + store.calcs.length + '.');
+  paintTape();
+});
+
+/* ══════════════════════════════════════════════════════════════════
+   3. Площадь воздуховодов по спецификации
+   ══════════════════════════════════════════════════════════════════ */
+let SPEC = [
+  {shape:'round', d:315, a:500, b:250, L:20, n:1},
+  {shape:'rect',  d:315, a:500, b:250, L:12, n:2},
+];
+
+const rowArea = r => {
+  const L = numOf(r.L), n = numOf(r.n);
+  if (!(L > 0) || !(n > 0)) return 0;
+  if (r.shape === 'round') {
+    const d = numOf(r.d) / 1000;
+    return d > 0 ? Math.PI * d * L * n : 0;
+  }
+  const a = numOf(r.a) / 1000, b = numOf(r.b) / 1000;
+  return (a > 0 && b > 0) ? 2 * (a + b) * L * n : 0;
+};
+
+function paintSpec() {
+  $('#specTbl tbody').innerHTML = SPEC.map((r, i) => {
+    const rect = r.shape === 'rect';
+    const num = i + 1;
+    return `<tr data-i="${i}">
+      <td class="l mk">Уч. ${num}</td>
+      <td class="l"><label><span class="vh">Сечение участка ${num}</span>
+        <select data-f="shape">
+          <option value="round"${rect ? '' : ' selected'}>Круглое</option>
+          <option value="rect"${rect ? ' selected' : ''}>Прямоугольное</option>
+        </select></label></td>
+      <td><label><span class="vh">Диаметр участка ${num}, мм</span>
+        <input type="number" data-f="d" min="50" step="5" value="${esc(r.d)}"${rect ? ' disabled' : ''}></label></td>
+      <td><label><span class="vh">Сторона A участка ${num}, мм</span>
+        <input type="number" data-f="a" min="50" step="10" value="${esc(r.a)}"${rect ? '' : ' disabled'}></label></td>
+      <td><label><span class="vh">Сторона B участка ${num}, мм</span>
+        <input type="number" data-f="b" min="50" step="10" value="${esc(r.b)}"${rect ? '' : ' disabled'}></label></td>
+      <td><label><span class="vh">Длина участка ${num}, м</span>
+        <input type="number" data-f="L" min="0.1" step="0.5" value="${esc(r.L)}"></label></td>
+      <td><label><span class="vh">Количество участка ${num}, шт</span>
+        <input type="number" data-f="n" min="1" step="1" value="${esc(r.n)}"></label></td>
+      <td class="s" data-s="${i}">${f(rowArea(r), 2)}</td>
+      <td class="acts"><span><button class="btn btn--ghost btn--sm" type="button"
+        data-del="${i}"${SPEC.length < 2 ? ' disabled' : ''}>Убрать</button></span></td>
+    </tr>`;
+  }).join('');
+  paintAreaSum();
+}
+
+function paintAreaSum() {
+  let tot = 0, rnd = 0, rct = 0, nr = 0, nc = 0, len = 0;
+  SPEC.forEach(r => {
+    const s = rowArea(r);
+    tot += s;
+    const n = numOf(r.n) > 0 ? numOf(r.n) : 0;
+    const L = numOf(r.L) > 0 ? numOf(r.L) : 0;
+    len += L * n;
+    if (r.shape === 'round') { rnd += s; nr++; } else { rct += s; nc++; }
+  });
+  $('#areaSum').innerHTML = `
+    <div><dt>Итого площадь</dt><dd>${f(tot, 2)}<small>м²</small></dd></div>
+    <div><dt>Круглые · ${nr} стр.</dt><dd>${f(rnd, 2)}<small>м²</small></dd></div>
+    <div><dt>Прямоугольные · ${nc} стр.</dt><dd>${f(rct, 2)}<small>м²</small></dd></div>
+    <div><dt>Развёрнутая длина</dt><dd>${f(len, 1)}<small>м</small></dd></div>
+    <div><dt>Строк в спецификации</dt><dd>${SPEC.length}<small>шт</small></dd></div>
+    <div><dt>Доля прямоугольных</dt><dd>${tot > 0 ? f(rct / tot * 100, 0) : '0'}<small>%</small></dd></div>`;
+  return {tot, rnd, rct, len};
+}
+
+$('#specTbl').addEventListener('input', e => {
+  const el = e.target.closest('[data-f]');
+  if (!el) return;
+  const tr = el.closest('tr');
+  const i = Number(tr.dataset.i);
+  SPEC[i][el.dataset.f] = el.value;
+  const cell = $('td.s', tr);
+  if (cell) cell.textContent = f(rowArea(SPEC[i]), 2);
+  paintAreaSum();
+});
+$('#specTbl').addEventListener('change', e => {
+  const el = e.target.closest('[data-f="shape"]');
+  if (!el) return;
+  const i = Number(el.closest('tr').dataset.i);
+  SPEC[i].shape = el.value;
+  paintSpec();
+});
+$('#specTbl').addEventListener('click', e => {
+  const b = e.target.closest('[data-del]');
+  if (!b || SPEC.length < 2) return;
+  SPEC.splice(Number(b.dataset.del), 1);
+  paintSpec();
+});
+$('#rowAdd').addEventListener('click', () => {
+  const last = SPEC[SPEC.length - 1] || {shape:'round', d:315, a:500, b:250, L:10, n:1};
+  SPEC.push({shape:last.shape, d:last.d, a:last.a, b:last.b, L:last.L, n:1});
+  paintSpec();
+  const rows = $$('#specTbl tbody tr');
+  const inp = rows.length ? $('[data-f="L"]', rows[rows.length - 1]) : null;
+  if (inp) inp.focus();
+});
+$('#rowDemo').addEventListener('click', () => {
+  SPEC = [
+    {shape:'round', d:200, a:500, b:250, L:14, n:1},
+    {shape:'round', d:315, a:500, b:250, L:20, n:1},
+    {shape:'rect',  d:315, a:500, b:250, L:12, n:2},
+    {shape:'rect',  d:315, a:800, b:400, L:9,  n:1},
+  ];
+  paintSpec();
+});
+
+function specText() {
+  const t = paintAreaSum();
+  const L = [];
+  L.push('СПЕЦИФИКАЦИЯ ВОЗДУХОВОДОВ · площадь развёртки');
+  L.push('Вентпром · прототип сайта · ' + stamp());
+  L.push('');
+  L.push('№\tСечение\tРазмер, мм\tДлина, м\tКол-во, шт\tS, м²');
+  SPEC.forEach((r, i) => {
+    const size = r.shape === 'round' ? 'Ø ' + r.d : r.a + '×' + r.b;
+    L.push((i + 1) + '\t' + (r.shape === 'round' ? 'круглое' : 'прямоугольное')
+      + '\t' + size + '\t' + String(r.L).replace('.', ',')
+      + '\t' + r.n + '\t' + f(rowArea(r), 2));
+  });
+  L.push('');
+  L.push('Итого площадь: ' + f(t.tot, 2) + ' м²');
+  L.push('  круглые: ' + f(t.rnd, 2) + ' м²');
+  L.push('  прямоугольные: ' + f(t.rct, 2) + ' м²');
+  L.push('Развёрнутая длина: ' + f(t.len, 1) + ' м');
+  L.push('');
+  L.push('Формулы: круглое S = π·D·L·n; прямоугольное S = 2·(A+B)·L·n.');
+  L.push('Изоляция, нахлёст фальцев и фасонные части не учтены.');
+  return L.join('\r\n');
+}
+
+$('#areaCopy').addEventListener('click', () => {
+  copyText(specText()).then(ok => ok
+    ? ack($('#areaAck'), 'спецификация скопирована',
+        'Текстовая таблица лежит в буфере обмена: колонки разделены табуляцией, '
+        + 'вставляется в письмо и в таблицу без правки.')
+    : ack($('#areaAck'), 'не скопировалось',
+        'Браузер не отдал буфер обмена — так бывает при открытии файла с диска без сервера. '
+        + 'Выделите таблицу мышью и скопируйте вручную.', true));
+});
+
+$('#areaSave').addEventListener('click', () => {
+  const t = paintAreaSum();
+  if (!(t.tot > 0)) {
+    ack($('#areaAck'), 'не сохранено',
+      'Площадь вышла нулевой: проверьте размеры, длину и количество — они должны быть больше нуля.', true);
+    return;
+  }
+  store.addCalc({t:'area', rows:SPEC.map(r => ({shape:r.shape, d:r.d, a:r.a, b:r.b, L:r.L, n:r.n})),
+                 total:+t.tot.toFixed(2), cnt:SPEC.length, ts:Date.now()});
+  ack($('#areaAck'), 'расчёт сохранён',
+    'Спецификация из ' + SPEC.length + ' ' + plural(SPEC.length, 'строки', 'строк', 'строк')
+    + ', итого ' + f(t.tot, 2) + ' м². '
+    + 'Запись легла в ленту внизу и в <a href="cabinet.html">кабинет</a>.');
+  paintTape();
+});
+
+/* ══════════════════════════════════════════════════════════════════
+   3. Лента расчётов: возвращает числа обратно в форму
+   ══════════════════════════════════════════════════════════════════ */
+function tapeLine(c) {
+  if (c.t === 'aero') return {
+    k:'Участок',
+    v:(c.rect ? f(numOf(c.a), 0) + '×' + f(numOf(c.b), 0) + ' мм' : 'Ø ' + f(numOf(c.d), 0) + ' мм')
+      + ' · L ' + String(c.L).replace('.', ',') + ' м · Q ' + f(numOf(c.q), 0) + ' м³/ч · v '
+      + String(c.v).replace('.', ',') + ' м/с · ΔP ' + String(c.dp).replace('.', ',') + ' Па',
+    go:'aero'};
+  if (c.t === 'area') {
+    const n = c.cnt || (c.rows || []).length;
+    return {k:'Площадь',
+      v:n + ' ' + plural(n, 'строка', 'строки', 'строк')
+        + ' · итого ' + String(c.total).replace('.', ',') + ' м²',
+      go:'area'};
+  }
+  if (c.t === 'select') return {
+    k:'Подбор',
+    v:f(numOf(c.q), 0) + ' м³/ч · ' + f(numOf(c.p), 0) + ' Па · подходит ' + (c.cnt != null ? c.cnt : '—')
+      + (c.top ? ' · верх: ' + c.top : ''),
+    go:'pick'};
+  if (c.t === 'point') return {
+    k:'Точка',
+    v:f(numOf(c.q), 0) + ' м³/ч · ' + f(numOf(c.p), 0) + ' Па' + (c.top ? ' · ' + c.top : ''),
+    go:'pick'};
+  if (c.t === 'survey') return {
+    k:'Опросный лист',
+    v:(c.org || 'без организации') + ' · ' + f(numOf(c.q), 0) + ' м³/ч · ' + f(numOf(c.p), 0) + ' Па',
+    go:'pick'};
+  if (c.t === 'noise') return {
+    k:'Шум',
+    v:'Lw ' + String(c.lw).replace('.', ',') + ' дБ · на выходе '
+      + String(c.lout).replace('.', ',') + ' дБ'
+      + (c.need == null ? ' · норма не задана'
+         : (c.need > 0 ? ' · глушитель от ' + c.need + ' дБ' : ' · глушитель не нужен')),
+    go:null};
+  return {k:'Расчёт', v:'запись без разбора', go:null};
+}
+
+function paintTape() {
+  const list = (store.calcs || []).slice(0, 10);
+  $('#tapeVal').textContent = (store.calcs || []).length
+    ? (store.calcs.length + ' в истории') : 'пока пусто';
+  if (!list.length) {
+    $('#tape').innerHTML = `<p class="none mb0">Пока ничего не сохранено.
+      Посчитайте участок или спецификацию и нажмите «Сохранить расчёт» —
+      записи появятся здесь и в кабинете.</p>`;
+    return;
+  }
+  $('#tape').innerHTML = '<ol>' + list.map((c, i) => {
+    const L = tapeLine(c);
+    const when = c.ts ? new Date(c.ts).toLocaleString('ru-RU',
+      {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}) : '';
+    let btn = '';
+    if (L.go === 'aero' || L.go === 'area')
+      btn = `<button class="btn btn--ghost btn--sm go" type="button" data-back="${i}">Подставить в форму</button>`;
+    else if (L.go === 'pick')
+      btn = `<a class="btn btn--ghost btn--sm go" href="podbor.html?q=${encodeURIComponent(c.q)}&p=${encodeURIComponent(c.p)}">Открыть подбор</a>`;
+    return `<li><span class="k">${esc(L.k)}</span><span class="v">${esc(L.v)}</span>
+      <span class="d">${esc(when)}</span>${btn}</li>`;
+  }).join('') + '</ol>';
+}
+
+$('#tape').addEventListener('click', e => {
+  const b = e.target.closest('[data-back]');
+  if (!b) return;
+  const c = store.calcs[Number(b.dataset.back)];
+  if (!c) return;
+  if (c.t === 'aero') {
+    A.q.value = c.q; A.l.value = c.L; A.z.value = c.z;
+    A.shape.value = c.rect ? 'rect' : 'round';
+    A.d.value = c.d; A.a.value = c.a; A.b.value = c.b;
+    A.mat.value = c.mat || 'gi';
+    aeroRun();
+    location.hash = '#aero';
+    A.q.focus();
+  } else if (c.t === 'area' && Array.isArray(c.rows) && c.rows.length) {
+    SPEC = c.rows.map(r => ({shape:r.shape, d:r.d, a:r.a, b:r.b, L:r.L, n:r.n}));
+    paintSpec();
+    location.hash = '#area';
+  }
+});
+
+window.addEventListener('vp:store', paintTape);
+
+/* ══════════════════════════════════════════════════════════════════
+   4. Пуск
+   ══════════════════════════════════════════════════════════════════ */
+aeroShape();
+aeroRun();
+noiseRun();
+paintSpec();
+paintTape();
+})();
+</script>
+</body>
+</html>

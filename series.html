@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Серия · Каталог · Вентпром</title>
+<meta name="description" content="Лист серии общеобменных вентиляторов: паспортные диапазоны, индексы исполнений, таблица типоразмеров с раскрытием карты позиции.">
+<link rel="stylesheet" href="assets/vp.css">
+<style>
+/* Локальный слой листа серии: только то, чего нет в vp.css. */
+
+/* Отступы листа задаются отдельными свойствами: сокращённое padding из
+   .sec--tight снесло бы боковые поля .wrap — они объявлены в системе раньше. */
+#page{padding-top:30px;padding-bottom:30px}
+
+.crumbs{display:flex;flex-wrap:wrap;align-items:baseline;gap:9px;margin-bottom:13px;font-size:13px}
+.crumbs a{color:var(--ink-2);text-decoration:none}
+.crumbs a:hover{color:var(--blue);text-decoration:underline}
+.crumbs b{font-weight:600;color:var(--ink)}
+.crumbs i{font-style:normal;color:var(--ink-4)}
+
+/* ── Шапка серии ──────────────────────────────────────────────────── */
+.shead{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px 22px}
+.shead h1{font-size:clamp(30px,4vw,52px);flex:0 0 auto}
+.shead .meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding-bottom:6px}
+.shead .kind{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.13em;
+  font-size:11px;color:var(--blue);border:1px solid var(--blue-pale);padding:3px 9px}
+.badge{font-family:var(--f-draw);font-size:10px;letter-spacing:.15em;text-transform:uppercase;
+  padding:3px 8px;border:1px solid currentColor}
+.badge[data-d="ok"]{color:var(--ok)}
+.badge[data-d="wait"]{color:var(--warn)}
+.badge[data-d="stop"]{color:var(--stop)}
+.shead .sub{width:100%;max-width:74ch;margin:0;color:var(--ink-2);font-size:15px}
+.snote{margin:12px 0 0;padding:9px 13px;border-left:2px solid var(--blue);
+  background:var(--blue-wash);font-size:13.5px;color:var(--ink-2);max-width:86ch}
+
+/* ── Силуэт ───────────────────────────────────────────────────────── */
+.fig{display:flex;align-items:center;justify-content:center;padding:24px 22px;min-height:270px}
+.fig svg{display:block;width:100%;max-width:430px;height:auto;color:var(--blue)}
+.figcap{border-top:1px solid var(--rule);padding:8px 14px;font-size:12px;color:var(--ink-2)}
+
+/* ── Диапазоны и характеристики ───────────────────────────────────── */
+table.data.spec td{border-bottom:1px solid var(--rule-fine)}
+table.data.spec tr:last-child td{border-bottom:0}
+table.data.spec td.l{width:52%;color:var(--ink-2);white-space:normal}
+table.data.spec tbody tr:hover td{background:var(--paper-hi)}
+
+/* ── Исполнения ───────────────────────────────────────────────────── */
+.inds{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(268px,100%),1fr));
+  gap:0;border-top:1px solid var(--rule-ink);border-left:1px solid var(--rule-ink)}
+.inds div{display:flex;align-items:baseline;gap:11px;padding:10px 14px;background:var(--paper-hi);
+  border-right:1px solid var(--rule-ink);border-bottom:1px solid var(--rule-ink);font-size:13.5px;color:var(--ink-2)}
+.inds b{flex:0 0 auto;min-width:44px;font-family:var(--f-num);font-size:13px;color:var(--ink)}
+
+/* ── Таблица типоразмеров ─────────────────────────────────────────── */
+.szb{display:inline-flex;align-items:center;gap:8px;padding:0;background:none;border:0;
+  font:inherit;color:var(--blue);cursor:pointer}
+.szb .mrk{width:9px;height:9px;flex:0 0 auto;position:relative}
+.szb .mrk::before,.szb .mrk::after{content:"";position:absolute;background:currentColor}
+.szb .mrk::before{left:0;top:4px;width:9px;height:1.5px}
+.szb .mrk::after{left:3.75px;top:0;width:1.5px;height:9px;transition:opacity .16s var(--ease)}
+.szb[aria-expanded="true"] .mrk::after{opacity:0}
+.szb u{text-decoration:underline;text-underline-offset:3px}
+table.data tbody tr[data-open="1"] td:first-child{box-shadow:inset 3px 0 0 var(--blue)}
+/* Ячейка карты позиции: у системы td нерушимо nowrap — здесь текст обязан
+   переноситься, поэтому правило берётся с той же силой, что и системное. */
+table.data td.cardcell{padding:0;text-align:left;white-space:normal;font-family:var(--f-ui);
+  background:var(--paper-2);border-bottom:1px solid var(--rule-ink)}
+table.data td.cardcell *{white-space:normal}
+tr.exp[hidden]{display:none}
+.pcard{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:0}
+.pcard>div{padding:16px 18px;border-right:1px solid var(--rule)}
+.pcard>div:last-child{border-right:0}
+.pcard h3{font-size:11.5px;letter-spacing:.15em;color:var(--ink-2);margin-bottom:10px}
+.spec{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;margin:0}
+.spec dt{font-size:13px;color:var(--ink-2)}
+.spec dd{margin:0;text-align:right;font-family:var(--f-num);font-size:13px;
+  font-variant-numeric:tabular-nums;color:var(--ink)}
+.icl{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;padding:0;list-style:none}
+.icl li{border:1px solid var(--rule);background:var(--paper-hi);padding:3px 9px;
+  font-family:var(--f-num);font-size:12px;color:var(--ink)}
+.docs{margin:0;font-size:13px;line-height:1.5;color:var(--ink-2)}
+.docs b{color:var(--ink)}
+.pcard .acts{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+td.acts .btn{white-space:nowrap}
+
+/* ── Лента серий раздела ──────────────────────────────────────────── */
+.ribbon{display:flex;gap:0;overflow-x:auto;border-top:1px solid var(--rule-ink);
+  border-left:1px solid var(--rule-ink);background:var(--paper-hi)}
+.ribbon a{flex:1 0 auto;min-width:158px;padding:11px 15px;text-decoration:none;color:var(--ink-2);
+  border-right:1px solid var(--rule-ink);border-bottom:1px solid var(--rule-ink);
+  transition:background .18s var(--ease)}
+.ribbon a:hover{background:var(--blue-wash);color:var(--blue)}
+.ribbon a[aria-current="page"]{background:var(--paper-2);color:var(--ink)}
+.ribbon .mk{display:block;font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.08em;
+  font-size:15px;color:var(--ink)}
+.ribbon .n{display:block;margin-top:3px;font-family:var(--f-num);font-size:11px;color:var(--ink-2)}
+
+.gone{max-width:78ch}
+.gone ul{margin:10px 0 16px;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
+.gone li a{display:block;border:1px solid var(--rule-ink);padding:5px 11px;text-decoration:none;
+  font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.07em;font-size:13px;color:var(--ink)}
+.gone li a:hover{border-color:var(--blue);color:var(--blue)}
+
+@media (max-width:900px){
+  .pcard{grid-template-columns:minmax(0,1fr)}
+  .pcard>div{border-right:0;border-bottom:1px solid var(--rule)}
+  .pcard>div:last-child{border-bottom:0}
+  .shead{align-items:flex-start}
+}
+@media (max-width:520px){
+  /* Размерная линия системы не переносится: на узком листе разрешаем перенос,
+     иначе длинный заголовок распирает страницу. Токены не трогаем. */
+  .dim{flex-wrap:wrap;gap:8px 12px}
+  .dim h1,.dim h2{flex:0 1 auto;min-width:0}
+  /* Стрелка размерной линии — повёрнутый квадрат: в развёрнутом виде она
+     выходит за правый край строки примерно на 1,5px. Оставляем ей место. */
+  .dim .line{min-width:40px;margin-right:2px}
+  .shead h1{flex:0 1 auto;min-width:0}
+  .stamp{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stamp div:nth-child(-n+2){border-bottom:1px solid var(--rule)}
+  .stamp div:nth-child(2n){border-right:0}
+}
+</style>
+</head>
+<body>
+<!--
+IMPECCABLE DIRECTION CONTRACT · мир «Чертёж»
+THESIS: Лист серии — рабочий документ: диапазоны, исполнения и таблица
+типоразмеров, где строка раскрывается в карту позиции, не уводя со страницы.
+OWN-WORLD: бумага с миллиметровкой, волосяная линовка, приборный синий на
+структуре, сигнальный оранжевый только на действии, основная надпись по
+ГОСТ 2.104 внизу листа.
+FORM: «Чертёж» закреплён распоряжением заказчика; раунд направления не проводился.
+-->
+
+<div id="vp-head"></div>
+
+<main>
+  <div class="wrap" id="page"></div>
+</main>
+
+<div id="vp-foot"></div>
+
+<script src="assets/data.vp.js"></script>
+<script src="assets/vp.js"></script>
+<script>
+(() => {
+'use strict';
+const {$, $$, ICON, BIG, store} = VP;
+const D = VPDATA;
+
+VP.init('catalog.html');
+
+const plural = (n, a, b, c) => {
+  const m = n % 100, k = n % 10;
+  return n + ' ' + (m >= 11 && m <= 14 ? c : k === 1 ? a : k >= 2 && k <= 4 ? b : c);
+};
+const indLabel = v => D.IND[v] || v;
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+
+/* ═══ Кого открыли ═══════════════════════════════════════════════════
+   Штатно приходит марка серии: series.html?s=ВР%2080-75.
+   Терпим и к id типоразмера в том же параметре — из ленты просмотренного
+   в шапке приходит именно он; тогда открываем серию этой позиции. */
+const P = new URLSearchParams(location.search);
+const raw = P.get('s') || '';
+let openId = P.get('open') || '';
+
+function resolve(q) {
+  if (!q) return null;
+  let s = D.SERIES.find(x => x.mk === q);
+  if (s) return s;
+  const n = D.norm(q);
+  s = D.SERIES.find(x => D.norm(x.mk) === n);
+  if (s) return s;
+  const r = D.NUM.find(x => x.id === q);
+  if (r) { openId = openId || r.id; return D.SERIES.find(x => x.mk === r.mk); }
+  return null;
+}
+const S = resolve(raw.trim());
+
+if (!S) { renderGone(); } else { renderSeries(); }
+
+/* ═══ Пустое состояние ═══════════════════════════════════════════════ */
+function renderGone() {
+  document.title = 'Серия не найдена · Вентпром';
+  $('#page').innerHTML = `
+    <nav class="crumbs" aria-label="Хлебные крошки">
+      <a href="index.html">Каталог</a><i>·</i>
+      <a href="catalog.html">Общеобменные вентиляторы</a><i>·</i>
+      <b aria-current="page">серия не найдена</b>
+    </nav>
+    <div class="sheet sheet--pad gone">
+      <h2 style="margin-bottom:10px">Такой серии в разделе нет</h2>
+      <p style="color:var(--ink-2)">${raw
+        ? `Адрес открыт с параметром <span class="num">s=${esc(raw)}</span>, но под этим
+           обозначением в разделе «Общеобменные вентиляторы» ничего не лежит.`
+        : `Лист серии открывается с обозначением в адресе, например
+           <span class="num">series.html?s=ВР 80-75</span>. Параметра нет — показывать нечего.`}
+      </p>
+      <p style="color:var(--ink-2);margin-bottom:4px">Серии раздела:</p>
+      <ul>${D.SERIES.map(s => `<li><a href="series.html?s=${encodeURIComponent(s.mk)}">${s.mk}</a></li>`).join('')}</ul>
+      <a class="btn" href="catalog.html">Вернуться в каталог</a>
+    </div>`;
+}
+
+/* ═══ Лист серии ═════════════════════════════════════════════════════ */
+function renderSeries() {
+  document.title = `${S.mk} · Общеобменные вентиляторы · Вентпром`;
+  const ROWS = D.NUM.filter(r => r.mk === S.mk);
+  const IDX = new Map(ROWS.map((r, i) => [r.id, i]));
+  const d = D.DATA[S.data];
+  const pos = D.SERIES.indexOf(S) + 1;
+
+  $('#page').innerHTML = `
+    <nav class="crumbs" aria-label="Хлебные крошки">
+      <a href="index.html">Каталог</a><i>·</i>
+      <a href="catalog.html">Общеобменные вентиляторы</a><i>·</i>
+      <b aria-current="page">${S.mk}</b>
+    </nav>
+
+    <header class="shead">
+      <h1>${S.mk}</h1>
+      <div class="meta">
+        <span class="kind">${D.TYPE[S.type]}</span>
+        <span class="badge" data-d="${d.s}" title="${d.t}">${d.short}</span>
+        <span class="small">${plural(ROWS.length, 'типоразмер', 'типоразмера', 'типоразмеров')}</span>
+      </div>
+      <p class="sub">${S.sub}</p>
+    </header>
+    ${S.note ? `<p class="snote">${S.note}</p>` : ''}
+
+    <section class="sec--tight">
+      <div class="dim"><h2>Общий вид и диапазоны</h2><i class="line"></i>
+        <span class="val">по данным сайта завода</span></div>
+      <div class="grid2" style="margin-top:14px;align-items:start">
+        <figure class="sheet" style="margin:0">
+          <div class="fig">${BIG[S.art] || ''}</div>
+          <figcaption class="figcap">Схема агрегата целиком: улитка, всасывающий конфузор,
+            нагнетательный патрубок с фланцем, колесо, вал, двигатель, станина.
+            Габаритный чертёж заводом не передан.</figcaption>
+        </figure>
+        <table class="data spec">
+          <caption class="vh">Паспортные диапазоны серии ${S.mk}</caption>
+          <tbody>
+            <tr><td class="l">Расход Q, м³/ч</td><td>${D.fmt(S.qr[0])} … ${D.fmt(S.qr[1])}</td></tr>
+            <tr><td class="l">Полное давление Pv, Па</td><td>${D.fmt(S.pr[0])} … ${D.fmt(S.pr[1])}</td></tr>
+            <tr><td class="l">Мощность, кВт</td><td>${D.dec(S.nr[0])} … ${D.dec(S.nr[1])}</td></tr>
+            <tr><td class="l">Частота вращения, об/мин</td><td>${D.fmt(S.rpmr[0])} … ${D.fmt(S.rpmr[1])}</td></tr>
+            <tr><td class="l">Температура среды, °C</td><td>до ${S.t}</td></tr>
+            <tr><td class="l">Схемы привода</td><td>${S.sch.join(' · ')}</td></tr>
+            <tr><td class="l">Типоразмеров в серии</td><td>${ROWS.length}</td></tr>
+            <tr><td class="l">Состояние первоисточника</td>
+                <td class="l"><span class="st" data-s="${d.s}">${d.t}</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="sec--tight">
+      <div class="dim"><h2>Исполнения</h2><i class="line"></i>
+        <span class="val">${S.ind.length} ${S.ind.length === 1 ? 'индекс' : 'индексов'}</span></div>
+      <div class="inds" style="margin-top:14px">
+        ${S.ind.map(v => `<div><b>${v === '-' ? '—' : v}</b><span>${indLabel(v)}</span></div>`).join('')}
+      </div>
+      <p class="small" style="margin-top:10px;max-width:84ch">Перечень индексов снят с сайта
+        завода. Условия применения каждого исполнения — температура, среда, категория
+        взрывозащиты — заводом не переданы и здесь не выдуманы.</p>
+    </section>
+
+    <section class="sec--tight">
+      <div class="dim"><h2>Типоразмеры</h2><i class="line"></i>
+        <span class="val">${ROWS.length} строк</span></div>
+      <p class="small" style="margin:10px 0 12px;max-width:88ch">Крайние строки серии сняты с
+        сайта завода. Промежуточные интерполированы между краями и показаны приглушённо —
+        подбирать по ним нельзя. Номер типоразмера раскрывает карту позиции прямо в таблице.</p>
+      <div class="tbl-scroll">
+        <table class="data" id="tbl">
+          <caption class="vh">Типоразмеры серии ${S.mk}</caption>
+          <thead><tr>
+            <th class="l" scope="col">№</th>
+            <th scope="col">Q, м³/ч</th>
+            <th scope="col">Pv, Па</th>
+            <th scope="col">N уст., кВт</th>
+            <th scope="col">n, об/мин</th>
+            <th scope="col">Масса, кг</th>
+            <th class="acts l" scope="col">В подбор</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="sec--tight">
+      <div class="dim"><h2>Другие серии раздела</h2><i class="line"></i>
+        <span class="val">${D.SERIES.length} серий</span></div>
+      <nav class="ribbon" style="margin-top:14px" aria-label="Серии раздела">
+        ${D.SERIES.map(s => `
+          <a href="series.html?s=${encodeURIComponent(s.mk)}"${s === S ? ' aria-current="page"' : ''}>
+            <span class="mk">${s.mk}</span>
+            <span class="n">${D.TYPE[s.type]} · ${D.NUM.reduce((a, r) => a + (r.mk === s.mk ? 1 : 0), 0)}</span>
+          </a>`).join('')}
+      </nav>
+    </section>
+
+    <dl class="stamp" style="margin-bottom:8px">
+      <div><dt>Раздел</dt><dd>Общеобменные вентиляторы</dd></div>
+      <div><dt>Серия</dt><dd>${S.mk}</dd></div>
+      <div><dt>Типоразмеров</dt><dd>${ROWS.length}</dd></div>
+      <div><dt>Лист</dt><dd>${pos} из ${D.SERIES.length}</dd></div>
+    </dl>`;
+
+  /* ── Строки ──────────────────────────────────────────────────────── */
+  const picked = () => new Set(store.pick);
+  function rowHTML(r) {
+    const dm = r.edge ? '' : ' dim2';
+    const t = r.edge
+      ? 'Крайний типоразмер серии: значения сняты с сайта завода.'
+      : 'Промежуточный типоразмер: значения интерполированы между опубликованными краями серии — для проверки интерфейса, не для подбора.';
+    const on = store.pick.includes(r.id);
+    return `<tr data-id="${r.id}" title="${t}"${on ? ' data-picked="1"' : ''}>
+      <td class="l${dm}"><button class="szb" type="button" data-act="open" data-id="${r.id}"
+          aria-expanded="false" aria-controls="exp-${r.id}">
+          <i class="mrk" aria-hidden="true"></i><u>${D.szl(r)}</u></button></td>
+      <td class="${dm}">${D.fmt(r.q)}</td>
+      <td class="${dm}">${D.fmt(r.p)}</td>
+      <td class="${dm}">${D.dec(r.n)}</td>
+      <td class="${dm}">${D.fmt(r.rpm)}</td>
+      <td class="${dm}">${D.fmt(r.mass)}</td>
+      <td class="acts${dm}"><span>
+        <button class="btn btn--ghost btn--sm" type="button" data-act="pick" data-id="${r.id}"
+          aria-pressed="${on}">${on ? 'Убрать' : 'В подбор'}</button>
+      </span></td>
+    </tr>
+    <tr class="exp" id="exp-${r.id}" hidden>
+      <td class="cardcell" colspan="7"></td>
+    </tr>`;
+  }
+  $('#tbody').innerHTML = ROWS.map(rowHTML).join('');
+
+  /* ── Карта позиции: строится один раз и живёт в кэше ─────────────── */
+  const cache = new Map();
+  function build(r) {
+    const dd = D.DATA[r.data];
+    return `<div class="pcard">
+      <div>
+        <h3>Характеристики</h3>
+        <dl class="spec">
+          <dt>Расход Q, м³/ч</dt><dd>${D.fmt(r.q)}</dd>
+          <dt>Полное давление Pv, Па</dt><dd>${D.fmt(r.p)}</dd>
+          <dt>Установленная мощность, кВт</dt><dd>${D.dec(r.n)}</dd>
+          <dt>Частота вращения, об/мин</dt><dd>${D.fmt(r.rpm)}</dd>
+          <dt>Масса, кг</dt><dd>${D.fmt(r.mass)}</dd>
+          <dt>Температура среды, °C</dt><dd>до ${r.t}</dd>
+          <dt>Схемы привода</dt><dd>${r.sch.join(' · ')}</dd>
+          <dt>Тип конструкции</dt><dd>${D.TYPE[r.type]}</dd>
+        </dl>
+        <p class="small" style="margin:10px 0 0">${r.edge
+          ? 'Строка сверена с сайтом завода.'
+          : 'Строка интерполирована между краями диапазона серии.'}
+          Состояние первоисточника серии — <span class="st" data-s="${dd.s}">${dd.t.toLowerCase()}</span>.</p>
+      </div>
+      <div>
+        <h3>Исполнения</h3>
+        <ul class="icl">${r.ind.map(v => `<li title="${indLabel(v)}">${v === '-' ? '—' : v}</li>`).join('')}</ul>
+        <p class="small" style="margin:0 0 14px">Перечень серии целиком, расшифровка — в разделе
+          «Исполнения» выше. Отдельного перечня по типоразмеру завод не публикует.</p>
+        <h3>Документы</h3>
+        <p class="docs"><b>Габаритный чертёж и аэродинамическая характеристика не приложены.</b>
+          На действующем сайте графика этой серии грузится с постороннего домена
+          <span class="num">zavodventilator.ru</span>; права на эти файлы не выяснены,
+          поэтому кнопок скачивания здесь нет. Файлы появятся, когда завод передаст
+          оригиналы или подтвердит право на публикацию.</p>
+        <div class="acts">
+          <button class="btn btn--sm" type="button" data-act="pick" data-id="${r.id}"
+            aria-pressed="false">В подбор</button>
+          <a class="btn btn--ghost btn--sm" href="podbor.html#survey">В опросный лист</a>
+        </div>
+      </div>
+    </div>`;
+  }
+  /* Настоящая предзагрузка: при наведении на строку готовим карты соседей,
+     при раскрытии карта берётся из кэша. data-src показывает, откуда пришло. */
+  function warm(id) {
+    const i = IDX.get(id);
+    for (const j of [i - 1, i, i + 1]) {
+      const r = ROWS[j];
+      if (r && !cache.has(r.id)) cache.set(r.id, build(r));
+    }
+  }
+  function card(id) {
+    const hit = cache.has(id);
+    if (!hit) cache.set(id, build(ROWS[IDX.get(id)]));
+    return {html:cache.get(id), src:hit ? 'cache' : 'cold'};
+  }
+
+  const tb = $('#tbody');
+  tb.addEventListener('pointerover', e => {
+    const tr = e.target.closest('tr[data-id]');
+    if (tr) warm(tr.dataset.id);
+  });
+  tb.addEventListener('focusin', e => {
+    const tr = e.target.closest('tr[data-id]');
+    if (tr) warm(tr.dataset.id);
+  });
+
+  function toggle(id, force) {
+    const btn = $(`[data-act="open"][data-id="${id}"]`);
+    const exp = $('#exp-' + id);
+    const open = force != null ? force : exp.hidden;
+    exp.hidden = !open;
+    btn.setAttribute('aria-expanded', String(open));
+    const tr = btn.closest('tr');
+    if (open) tr.dataset.open = '1'; else delete tr.dataset.open;
+    if (!open) return;
+    const cell = $('td', exp);
+    const c = card(id);
+    cell.innerHTML = c.html;
+    cell.dataset.src = c.src;
+    syncPick();
+    store.see(id);
+  }
+
+  tb.addEventListener('click', e => {
+    const op = e.target.closest('[data-act="open"]');
+    if (op) { toggle(op.dataset.id); return; }
+    const pk = e.target.closest('[data-act="pick"]');
+    if (pk) store.togglePick(pk.dataset.id);
+  });
+
+  function syncPick() {
+    const set = picked();
+    for (const tr of $$('#tbody tr[data-id]')) {
+      const on = set.has(tr.dataset.id);
+      if (on) tr.dataset.picked = '1'; else delete tr.dataset.picked;
+    }
+    for (const b of $$('[data-act="pick"]')) {
+      const on = set.has(b.dataset.id);
+      b.setAttribute('aria-pressed', String(on));
+      b.textContent = on ? 'Убрать' : 'В подбор';
+    }
+  }
+  addEventListener('vp:store', syncPick);
+  syncPick();
+
+  /* Пришли из каталога с указанием строки — раскрываем её сразу */
+  if (openId && IDX.has(openId)) {
+    warm(openId);
+    toggle(openId, true);
+    const tr = $(`tr[data-id="${openId}"]`);
+    if (tr) scrollTo({top: tr.getBoundingClientRect().top + scrollY - 120,
+                      behavior: VP.reduced.matches ? 'auto' : 'smooth'});
+  }
+}
+})();
+</script>
+</body>
+</html>
