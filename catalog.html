@@ -2,352 +2,174 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Общеобменные вентиляторы · Каталог · Вентпром</title>
-<meta name="description" content="Раздел каталога: восемь серий общеобменных вентиляторов, фасетный отбор по расходу, давлению, типу конструкции и исполнению, сводная таблица типоразмеров.">
+<title>Каталог · Вентпром</title>
+<meta name="description" content="Каталог завода: тринадцать разделов, сорок пять серий, триста тридцать шесть типоразмеров. Плотная сетка разделов, дерево каталога и мгновенный поиск по марке или типоразмеру.">
 <link rel="stylesheet" href="assets/vp.css">
+<link rel="stylesheet" href="assets/cat.css">
 <style>
-/* Локальный слой страницы: только то, чего нет в системе vp.css.
-   Ни одного нового цвета — все значения берутся токенами. */
+/* Локальный слой ВЕРХНЕГО УРОВНЯ каталога.
+   Здесь живёт только то, чего нет в системе: поле мгновенного поиска с
+   подсказками, вложенный уровень дерева и полоса «чем пользуются чаще».
+   Плитки, крошки, рейка и дерево берутся из cat.css без переопределений,
+   кроме числа колонок и высоты плитки: экран обязан уместиться в 1366×768. */
 
-/* ── Шапка раздела ────────────────────────────────────────────────── */
-.crumbs{display:flex;flex-wrap:wrap;align-items:baseline;gap:9px;margin-bottom:13px;font-size:13px}
-.crumbs a{color:var(--ink-2);text-decoration:none}
-.crumbs a:hover{color:var(--blue);text-decoration:underline}
-.crumbs b{font-weight:600;color:var(--ink)}
-.crumbs i{font-style:normal;color:var(--ink-4)}
-.crumbs .cn{font-family:var(--f-num);font-size:12px;color:var(--ink-2)}
-.pagehead h1{flex:0 1 auto;min-width:0;font-size:clamp(24px,3vw,37px)}
-.pagehead .dim{margin-bottom:0}
+/* Экран каталога сжат по вертикали намеренно: contract §3 требует один
+   экран без прокрутки, поэтому поля листа тут меньше системных .sec--tight */
+.cat{padding-block:12px 18px}
 
-/* ── Стадии подбора ───────────────────────────────────────────────── */
-.stages{display:flex;align-items:stretch;border:1px solid var(--rule-ink);background:var(--paper-hi)}
-.stage{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:3px;align-items:flex-start;
-  padding:9px 15px;background:none;border:0;text-align:left;cursor:pointer}
-.stage .k{display:block;font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.13em;
-  font-size:10.5px;color:var(--ink-2)}
-.stage em{display:block;max-width:100%;font-style:normal;font-size:13.5px;color:var(--ink-2);
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.stage[data-on="1"]{background:var(--blue-wash)}
-.stage[data-on="1"] .k{color:var(--blue)}
-.stage[data-on="1"] em{color:var(--ink);font-weight:600}
-.stage[aria-current="step"]{box-shadow:inset 0 -3px 0 var(--blue)}
-.stage:hover:not(:disabled){background:var(--blue-wash)}
-.stage:disabled{cursor:not-allowed;background:var(--paper-2)}
-.stage:disabled .k,.stage:disabled em{color:var(--ink-4)}
-.stages .sep{display:flex;align-items:center;padding:0 4px;color:var(--ink-4);flex:0 0 auto}
-.stages .sep svg{width:20px;height:auto}
+/* Сетка разделов: ровно пять в ряд (13 = 5+5+3), как в схеме контракта */
+.tiles--cat{grid-template-columns:repeat(5,minmax(0,1fr))}
+.tiles--cat .tile{min-height:124px;padding:10px 13px 9px}
+.tiles--cat .tile .silh{height:46px;margin:0 0 8px}
+.tiles--cat .tile .nm{font-size:12.5px}
+.tiles--cat .tile .cn{padding-top:6px;line-height:1.3}
+/* Хвост последнего ряда: пустая клетка сетки — это подложка линовки,
+   а не лист. Добиваем ряд чистой бумагой, чтобы блок не рвался. */
+.tiles .fill{background:var(--paper-hi)}
 
-/* ── Полоса выбора исполнения (стадия 4) ──────────────────────────── */
-.pickbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;
-  padding:11px 15px;border:1px solid var(--rule-ink);border-top:0;background:var(--blue-wash)}
-.pickbar[hidden]{display:none}
-.pickbar .who{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.12em;
-  font-size:11px;color:var(--blue)}
-.pickbar .who b{font-size:14px;letter-spacing:.07em;color:var(--ink)}
-.pickbar .opts{display:flex;flex-wrap:wrap;gap:4px 18px}
-.pickbar .opt{padding:2px 0}
-.pickbar .acts{display:flex;gap:9px;margin-left:auto}
+/* Второй уровень дерева: подразделы разделов, где заводские таблицы есть */
+.tree .sub{margin:0 0 5px;padding:0 0 0 11px;list-style:none;border-left:1px solid var(--rule-fine)}
+.tree .sub li{border-bottom:0}
+.tree .sub a{padding:4px 0;font-size:12.5px;color:var(--ink-3)}
+.tree .sub a:hover{color:var(--blue)}
+.rail .leg{display:block;margin:9px 0 0;font-size:11px;line-height:1.4;color:var(--ink-4)}
 
-/* ── Каркас: стойка фасетов + контент ─────────────────────────────── */
-.lay{display:grid;grid-template-columns:268px minmax(0,1fr);gap:32px;align-items:start}
-.rail{position:sticky;top:80px;max-height:calc(100vh - 100px);overflow:auto;padding-right:6px}
-.rail>summary{display:none}
-.rail .top{display:flex;align-items:baseline;gap:10px;padding-bottom:9px;border-bottom:1px solid var(--rule-ink)}
-.rail .top h2{font-size:12px;letter-spacing:.15em}
-.rail .top .n{margin-left:auto;font-family:var(--f-num);font-size:11.5px;color:var(--ink-2)}
-.rail .rng{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
-.rail .fld input{height:38px;font-size:13.5px}
-.rail .hint{display:block;font-size:11.5px;line-height:1.4;color:var(--ink-2)}
-.rail .reset{margin-top:14px;width:100%}
-.rail .opt .lb{min-width:0}
-
-/* ── Карточки серий ───────────────────────────────────────────────── */
-.card{position:relative}
-.card .go{text-decoration:none;color:inherit}
-.card .go::after{content:"";position:absolute;inset:0;z-index:1}
-.card:hover .go{color:var(--blue)}
-.card:has(.go:focus-visible){outline:2px solid var(--focus);outline-offset:2px}
-.card .bottom .only{position:relative;z-index:2}
-.card[data-on="1"]{border-color:var(--blue);box-shadow:3px 3px 0 -1px var(--blue-pale)}
-.card[data-empty="1"]{opacity:.5}
-.card .cnt{font-family:var(--f-num);font-size:12px;color:var(--ink-2)}
-
-/* ── Таблица ──────────────────────────────────────────────────────── */
-.tbar{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;margin:0 0 10px}
-.tbar .n{font-family:var(--f-num);font-size:12.5px;color:var(--ink-2)}
-.tbar .tip{font-size:12.5px;color:var(--ink-2)}
-.sortb{display:inline-flex;align-items:center;justify-content:flex-end;width:100%;
-  padding:0;background:none;border:0;font:inherit;color:inherit;cursor:pointer;text-transform:inherit;
-  letter-spacing:inherit}
-th.l .sortb{justify-content:flex-start}
-.sortb:hover{color:var(--blue)}
-.szb{padding:0;background:none;border:0;font:inherit;color:var(--blue);cursor:pointer;
-  text-decoration:underline;text-underline-offset:3px}
-.szb[aria-pressed="true"]{color:var(--ink);text-decoration:none;font-weight:700}
-table.data tbody tr[data-cur="1"] td:first-child{box-shadow:inset 3px 0 0 var(--blue)}
-td.acts .ib{padding:0 9px;height:30px}
-td.acts .ib svg{width:17px;height:15px}
-th.acts,td.acts{background:var(--paper-hi)}
-table.data thead th.acts{background:var(--paper-2)}
-.empty{margin-top:0}
-.empty[hidden]{display:none}
-.empty h3{margin-bottom:8px}
-.empty p{max-width:74ch;color:var(--ink-2)}
-
-/* ── Поддон подбора ───────────────────────────────────────────────── */
-.tray{position:sticky;bottom:0;z-index:40;margin-top:26px;
-  border:1px solid var(--rule-ink);background:var(--paper-hi)}
-.tray[hidden]{display:none}
-.tray .hd{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:9px 14px;
-  border-bottom:1px solid var(--rule);background:var(--paper-2)}
-.tray .hd h2{font-size:12px;letter-spacing:.14em}
-.tray .hd .n{font-family:var(--f-num);font-size:12px;color:var(--ink-2)}
-.tray .hd .acts{display:flex;gap:8px;margin-left:auto}
-.chips{display:flex;flex-wrap:wrap;gap:8px;padding:12px 14px;max-height:132px;overflow:auto}
-.chipx{display:inline-flex;align-items:center;gap:9px;padding:3px 4px 3px 11px;
-  border:1px solid var(--rule-ink);background:var(--paper-hi);font-size:12.5px;color:var(--ink-2)}
-.chipx b{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.07em;font-size:13.5px;color:var(--ink)}
-.chipx .x{display:grid;place-items:center;padding:3px;background:none;border:0;color:var(--ink-2);cursor:pointer}
-.chipx .x:hover{color:var(--stop)}
-.chipx .x svg{width:14px;height:12px}
-.tray .sum{padding:12px 14px;border-top:1px solid var(--rule)}
-.tray .sum[hidden]{display:none}
-.sumlist{margin:0 0 10px;padding:0;list-style:none}
-.sumlist li{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;padding:6px 0;
-  border-bottom:1px solid var(--rule-fine)}
-.sumlist li:last-child{border-bottom:0}
-.sumlist .mk{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.07em;font-size:14px}
-.sumlist .v{font-family:var(--f-num);font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums}
-.sumlist .ex{margin-left:auto;font-size:12.5px;color:var(--ink-2)}
-
-/* ── 900 и уже ────────────────────────────────────────────────────── */
-@media (max-width:900px){
-  .lay{grid-template-columns:minmax(0,1fr);gap:20px}
-  .rail{position:static;max-height:none;overflow:visible;padding-right:0;
-    border:1px solid var(--rule-ink);background:var(--paper-hi)}
-  .rail>summary{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;
-    list-style:none;font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.13em;
-    font-size:11.5px;color:var(--ink-2)}
-  .rail>summary::-webkit-details-marker{display:none}
-  .rail>summary::after{content:"";width:8px;height:8px;margin-left:auto;
-    border-right:1.4px solid var(--ink-4);border-bottom:1.4px solid var(--ink-4);
-    transform:rotate(45deg) translate(-2px,-2px)}
-  .rail[open]>summary::after{transform:rotate(-135deg) translate(-2px,-2px)}
-  .rail>summary .n{margin-left:0;font-family:var(--f-num);letter-spacing:0;color:var(--blue)}
-  .rail .in{padding:0 14px 14px}
-  .rail .top{display:none}
-  .stages{flex-wrap:wrap}
-  .stage{flex:1 1 46%}
-  .stages .sep{display:none}
-  .stage[aria-current="step"]{box-shadow:inset 0 -3px 0 var(--blue)}
-  .pickbar .acts{margin-left:0;width:100%}
-  .tray .hd .acts{margin-left:0;width:100%}
+/* ── Мгновенный поиск ───────────────────────────────────────────────
+   Половина заходов идёт по известной марке, поэтому поле стоит НАД
+   сеткой и отвечает по мере ввода, а не по нажатию кнопки. */
+.find{position:relative;margin:0 0 13px}
+.find .fld input{height:44px;font-size:14.5px;padding-right:104px}
+.find .fx{
+  position:absolute;right:9px;bottom:7px;height:30px;padding:0 11px;
+  background:none;border:1px solid var(--rule);color:var(--ink-3);cursor:pointer;
+  font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.12em;font-size:10.5px;
+  transition:color .12s var(--ease),border-color .12s var(--ease);
 }
-@media (max-width:520px){
-  .stage{flex:1 1 100%;border-bottom:1px solid var(--rule)}
-  .stage:last-child{border-bottom:0}
-  /* Размерная линия системы не переносится: на узком листе разрешаем перенос,
-     иначе длинный заголовок распирает страницу. Токены не трогаем. */
-  .dim{flex-wrap:wrap;gap:8px 12px}
-  .dim h1,.dim h2{flex:0 1 auto;min-width:0}
-  /* Стрелка размерной линии — повёрнутый квадрат: в развёрнутом виде она
-     выходит за правый край строки примерно на 1,5px. Оставляем ей место. */
-  .dim .line{min-width:40px;margin-right:2px}
-  /* Полоса-предупреждение: на узком листе строка читается связным текстом,
-     а не двумя колонками по 15 символов. */
-  .warn>summary{display:block}
-  .warn>summary::after{display:inline-block;margin:4px 0 0;vertical-align:middle}
+.find .fx:hover{border-color:var(--stop);color:var(--stop)}
+.find .fx[hidden]{display:none}
+.findlist{
+  position:absolute;z-index:60;left:0;right:0;top:calc(100% + 3px);
+  margin:0;padding:0;list-style:none;max-height:322px;overflow:auto;
+  background:var(--paper-hi);border:1px solid var(--rule-ink);
+}
+.findlist[hidden]{display:none}
+.findlist li{border-bottom:1px solid var(--rule-fine)}
+.findlist li:last-child{border-bottom:0}
+.findlist a{
+  display:flex;align-items:baseline;gap:10px;padding:7px 12px;
+  text-decoration:none;color:var(--ink-2);
+}
+.findlist .kd{
+  flex:0 0 74px;font-family:var(--f-draw);text-transform:uppercase;
+  letter-spacing:.12em;font-size:10px;color:var(--ink-4);
+}
+.findlist .mk{
+  font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.07em;
+  font-size:14px;color:var(--ink);
+}
+.findlist .sz{font-family:var(--f-num);font-size:12.5px;color:var(--ink-2)}
+.findlist .gr{margin-left:auto;font-family:var(--f-num);font-size:11.5px;color:var(--ink-3);white-space:nowrap}
+.findlist a:hover,.findlist a[aria-selected="true"]{background:var(--blue-wash)}
+.findlist a[aria-selected="true"] .kd{color:var(--blue)}
+.findlist .none{padding:10px 12px;font-size:13px;line-height:1.45;color:var(--ink-2)}
+.findlist .none b{color:var(--ink)}
+
+/* ── Пояснение по разделу без номенклатуры ─────────────────────────── */
+.stubnote{
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px;
+  margin:0;padding:9px 13px;border:1px solid var(--rule-ink);border-top:0;
+  background:var(--warn-pale);font-size:12.5px;line-height:1.45;color:var(--warn-ink);
+}
+.stubnote[hidden]{display:none}
+.stubnote b{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.07em;font-size:13.5px}
+.stubnote .go{margin-left:auto;display:flex;gap:8px;flex:0 0 auto}
+
+/* ── Полоса «чем пользуются чаще» ──────────────────────────────────── */
+.often{
+  display:flex;flex-wrap:wrap;align-items:center;gap:9px 14px;
+  margin-top:16px;padding-top:12px;border-top:1px solid var(--rule);
+}
+.often h2{flex:0 0 auto;font-size:11.5px;letter-spacing:.15em;color:var(--ink-2)}
+.often .why{flex:1 1 200px;min-width:0;font-size:12px;color:var(--ink-3)}
+
+@media (max-width:1180px) and (min-width:961px){
+  .tiles--cat{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media (max-width:960px){
+  .tiles--cat{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .cat{padding-block:14px 24px}
+}
+@media (max-width:620px){
+  .tiles--cat{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .find .fld input{padding-right:14px}
+  .find .fx{position:static;margin-top:7px;width:100%}
+  .stubnote .go{margin-left:0;width:100%}
 }
 </style>
 </head>
 <body>
 <!--
 IMPECCABLE DIRECTION CONTRACT · мир «Чертёж»
-THESIS: Раздел каталога — рабочий лист, а не витрина: стадии подбора, фасеты
-со счётчиками и таблица типоразмеров, где строка и есть позиция.
+THESIS: Каталог — навигатор по номенклатуре: вся ширина ассортимента за один
+экран, ни одного маркетингового блока, вход сбоку через мгновенный поиск.
 OWN-WORLD: бумага с миллиметровкой, волосяная линовка вместо теней, приборный
-синий на структуре, сигнальный оранжевый только на действии; узкий гротеск
-прописными, моноширинный на измерениях.
-STORY: инженер сужает выборку от группы к исполнению, не теряя из виду, какие
-строки сняты с сайта завода, а какие интерполированы.
+синий на структуре, сигнальный оранжевый только на действии.
+STORY: инженер видит тринадцать разделов разом, узнаёт форму агрегата по
+силуэту и уходит вглубь одним кликом — либо сразу вводит известную марку.
 FORM: «Чертёж» закреплён распоряжением заказчика; раунд направления не проводился.
 -->
 
 <div id="vp-head"></div>
 
 <main>
-  <section class="sec--tight">
-    <div class="wrap pagehead">
-      <nav class="crumbs" aria-label="Хлебные крошки">
-        <a href="index.html">Каталог</a>
-        <i>·</i>
-        <b aria-current="page">Общеобменные вентиляторы</b>
-        <i>·</i>
-        <span class="cn" id="crumbCnt"></span>
-      </nav>
-      <div class="dim">
-        <h1>Общеобменные вентиляторы</h1>
-        <i class="line"></i>
-        <span class="val">раздел 01</span>
-      </div>
-    </div>
+  <div class="wrap cat">
+    <nav class="crumbs" aria-label="Хлебные крошки">
+      <b aria-current="page">Каталог</b>
+      <i>·</i>
+      <span class="cn" id="crumbCnt"></span>
+    </nav>
 
-    <div class="wrap" style="margin-top:18px">
-      <nav class="stages" id="stages" aria-label="Стадии подбора">
-        <button class="stage" type="button" data-st="g">
-          <span class="k">1 · Группа</span><em>Общеобменные вентиляторы</em>
-        </button>
-        <span class="sep" aria-hidden="true"></span>
-        <button class="stage" type="button" data-st="s">
-          <span class="k">2 · Серия</span><em>не выбрана</em>
-        </button>
-        <span class="sep" aria-hidden="true"></span>
-        <button class="stage" type="button" data-st="t">
-          <span class="k">3 · Типоразмер</span><em>не выбран</em>
-        </button>
-        <span class="sep" aria-hidden="true"></span>
-        <button class="stage" type="button" data-st="i">
-          <span class="k">4 · Исполнение</span><em>не выбрано</em>
-        </button>
-      </nav>
-
-      <div class="pickbar" id="pickbar" hidden>
-        <span class="who">Исполнение для <b id="pbWho"></b></span>
-        <div class="opts" id="pbOpts" role="group" aria-label="Индекс исполнения выбранного типоразмера"></div>
-        <div class="acts">
-          <button class="btn btn--sm" type="button" id="pbAdd">В подбор</button>
-          <a class="btn btn--ghost btn--sm" id="pbSheet" href="series.html">Лист серии</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="wrap" style="margin-top:16px">
-      <details class="warn">
-        <summary>
-          <b>Данные демонстрационные.</b>
-          <span>Крайние типоразмеры серий сняты с сайта завода, промежуточные строки
-            интерполированы и показаны приглушённо: подбирать по ним нельзя.</span>
-        </summary>
-        <div class="full">
-          <p style="margin:0 0 8px">Столбец «Данные» относится не к конкретной строке,
-            а к первоисточнику всей серии: <b>сверено</b> — таблица серии опубликована
-            и уникальна; <b>частично</b> — опубликована не полностью; <b>дубль</b> —
-            под этой маркой на действующем сайте лежит таблица другой серии.</p>
-          <p style="margin:0">Дубли оставлены видимыми намеренно. Серия ВР 86-77
-            показана отдельной позицией, хотя её таблица на сайте повторяет
-            ВР 80-75, — так расхождение остаётся на виду до выгрузки от завода,
-            а не растворяется в общем списке. Мощность, обороты и масса рассчитаны
-            от опубликованных краёв диапазона и подлежат замене заводскими значениями.</p>
-        </div>
-      </details>
-    </div>
-  </section>
-
-  <div class="wrap lay">
-    <aside>
-      <details class="rail" id="rail" open>
-        <summary>Отбор<span class="n" id="railN"></span></summary>
-        <div class="in">
+    <div class="lay">
+      <aside>
+        <details class="rail" id="rail" open>
+          <summary>Дерево каталога<span class="n" id="railSum"></span></summary>
           <div class="top">
-            <h2>Отбор</h2>
-            <span class="n" id="railN2"></span>
+            <h2>Разделы</h2>
+            <span class="n">серии · типоразмеры</span>
           </div>
+          <ul class="tree" id="tree"></ul>
+          <span class="leg">Прочерк вместо счётчика — заводских таблиц по разделу
+            ещё нет; рядом стоит число позиций действующего сайта.</span>
+        </details>
+      </aside>
 
-          <details class="facet" open>
-            <summary>Рабочая точка</summary>
-            <div class="body">
-              <div class="rng">
-                <label class="fld"><span>Q от</span>
-                  <input type="number" id="q0" inputmode="numeric" min="0"></label>
-                <label class="fld"><span>Q до</span>
-                  <input type="number" id="q1" inputmode="numeric" min="0"></label>
-              </div>
-              <div class="rng">
-                <label class="fld"><span>P от</span>
-                  <input type="number" id="p0" inputmode="numeric" min="0"></label>
-                <label class="fld"><span>P до</span>
-                  <input type="number" id="p1" inputmode="numeric" min="0"></label>
-              </div>
-              <span class="hint">Отбор идёт по паспортным Q, м³/ч и Pv, Па самой позиции.
-                Это не подбор по сети: запас и рабочую точку считает
-                <a href="podbor.html">страница подбора</a>.</span>
-            </div>
-          </details>
+      <div>
+        <form class="find" id="find" role="search" autocomplete="off">
+          <label class="fld" for="q">
+            <span class="vh">Поиск по каталогу</span>
+            <input id="q" type="search" name="q" role="combobox" aria-expanded="false"
+                   aria-controls="findList" aria-autocomplete="list" aria-describedby="findHint"
+                   placeholder="Марка, типоразмер или расход: вр80-75 · ВЦ 4-75 6,3 · 8000">
+          </label>
+          <button class="fx" type="button" id="findClear" hidden>Очистить</button>
+          <span class="vh" id="findHint">Подсказки появляются по мере ввода. Стрелки вверх
+            и вниз выбирают строку, Enter открывает, Esc закрывает список.</span>
+          <ul class="findlist" id="findList" role="listbox" aria-label="Подсказки поиска" hidden></ul>
+        </form>
 
-          <details class="facet" open>
-            <summary>Тип конструкции</summary>
-            <div class="body" data-facet="type"></div>
-          </details>
+        <div class="tiles tiles--cat" id="tiles"></div>
 
-          <details class="facet" open>
-            <summary>Индекс исполнения</summary>
-            <div class="body" data-facet="ind"></div>
-          </details>
+        <p class="stubnote" id="stubnote" hidden role="status"></p>
 
-          <details class="facet" open>
-            <summary>Схема привода</summary>
-            <div class="body" data-facet="sch"></div>
-          </details>
-
-          <details class="facet" open>
-            <summary>Состояние данных</summary>
-            <div class="body" data-facet="data"></div>
-          </details>
-
-          <button class="btn btn--ghost btn--sm reset" type="button" id="reset" disabled>
-            Сбросить фильтры
-          </button>
+        <div class="often">
+          <h2>Чем пользуются чаще</h2>
+          <a class="btn btn--ghost btn--sm" href="podbor.html">Подбор по Q и P</a>
+          <a class="btn btn--ghost btn--sm" href="calc.html">Инженерные калькуляторы</a>
+          <a class="btn btn--ghost btn--sm" href="podbor.html#survey">Опросный лист</a>
+          <span class="why">Путь сверху вниз обязателен только для новичка:
+            марка, рабочая точка и опросный лист входят в каталог сбоку.</span>
         </div>
-      </details>
-    </aside>
-
-    <div>
-      <section id="secSeries" tabindex="-1" style="padding-bottom:34px">
-        <div class="dim">
-          <h2>Серии</h2><i class="line"></i><span class="val" id="serVal"></span>
-        </div>
-        <div class="grid3" id="cards" style="margin-top:14px"></div>
-      </section>
-
-      <section id="secTable" tabindex="-1">
-        <div class="dim">
-          <h2>Типоразмеры</h2><i class="line"></i><span class="val" id="tabVal"></span>
-        </div>
-        <div class="tbar" style="margin-top:12px">
-          <span class="n" id="shown" role="status" aria-live="polite"></span>
-          <span class="tip">Строка — позиция. Номер типоразмера выбирает позицию,
-            заголовки столбцов сортируют.</span>
-        </div>
-
-        <div class="tbl-scroll">
-          <table class="data" id="tbl">
-            <caption class="vh">Типоразмеры серий раздела «Общеобменные вентиляторы»</caption>
-            <thead id="thead"></thead>
-            <tbody id="tbody"></tbody>
-          </table>
-        </div>
-
-        <div class="sheet sheet--pad empty" id="empty" hidden>
-          <h3>Под условия не проходит ни одна позиция</h3>
-          <p id="emptyWhy"></p>
-          <button class="btn btn--ghost" type="button" id="emptyReset">Сбросить фильтры</button>
-        </div>
-      </section>
-
-      <div class="tray" id="tray" hidden>
-        <div class="hd">
-          <h2>Поддон подбора</h2>
-          <span class="n" id="trayN"></span>
-          <div class="acts">
-            <button class="btn btn--ghost btn--sm" type="button" id="traySum"
-                    aria-expanded="false" aria-controls="traySumBox">Сводка составом</button>
-            <button class="btn btn--ghost btn--sm" type="button" id="trayClear">Очистить</button>
-          </div>
-        </div>
-        <div class="chips" id="trayChips"></div>
-        <div class="sum" id="traySumBox" hidden></div>
       </div>
     </div>
   </div>
@@ -356,462 +178,244 @@ FORM: «Чертёж» закреплён распоряжением заказ�
 <div id="vp-foot"></div>
 
 <script src="assets/data.vp.js"></script>
+<script src="assets/catalog.vp.js"></script>
+<script src="assets/silh.js"></script>
 <script src="assets/vp.js"></script>
 <script>
 (() => {
 'use strict';
-const {$, $$, ICON, BIG, store} = VP;
-const D = VPDATA;
+const {$, $$} = VP;
+const C = VPCAT;
 
 VP.init('catalog.html');
 
-/* ═══ Состояние страницы ══════════════════════════════════════════════
-   F — отбор, UI — стадии и сортировка, CHOSEN — выбранное исполнение
-   по позиции (живёт в памяти вкладки: система хранит в подборе только id). */
-const ALL = D.NUM;
-const IDX = new Map(ALL.map((r, i) => [r.id, i]));
-const F = {series:null, q0:null, q1:null, p0:null, p1:null,
-           type:new Set(), ind:new Set(), sch:new Set(), data:new Set()};
-const UI = {cur:null, ind:null, sortK:null, sortD:1};
-const CHOSEN = Object.create(null);
-
+/* ═══ Мелочи ═════════════════════════════════════════════════════════ */
 const plural = (n, a, b, c) => {
   const m = n % 100, k = n % 10;
   return n + ' ' + (m >= 11 && m <= 14 ? c : k === 1 ? a : k >= 2 && k <= 4 ? b : c);
 };
-const indLabel = v => D.IND[v] || v;
-const indShort = v => v === '-' ? 'общепром.' : v;
-const rowOf = id => ALL.find(r => r.id === id);
-const seriesOf = mk => D.SERIES.find(s => s.mk === mk);
-const sheetHref = (mk, id) =>
-  'series.html?s=' + encodeURIComponent(mk) + (id ? '&open=' + encodeURIComponent(id) : '');
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+const nser = n => plural(n, 'серия', 'серии', 'серий');
+const nsku = n => plural(n, 'типоразмер', 'типоразмера', 'типоразмеров');
 
-/* ═══ Фасеты ═════════════════════════════════════════════════════════ */
-const FACETS = [
-  {k:'type', t:'Тип конструкции',
-   opts:Object.keys(D.TYPE).map(v => ({v, l:D.TYPE[v]})),
-   test:(r, v) => r.type === v},
-  {k:'ind', t:'Индекс исполнения',
-   opts:Object.keys(D.IND).map(v => ({v, l:D.IND[v]})),
-   test:(r, v) => r.ind.includes(v)},
-  {k:'sch', t:'Схема привода',
-   opts:[{v:'1', l:'Схема 1'}, {v:'5', l:'Схема 5'}],
-   test:(r, v) => r.sch.includes(v)},
-  {k:'data', t:'Состояние данных',
-   opts:Object.keys(D.DATA).map(v => ({v, l:D.DATA[v].t})),
-   test:(r, v) => r.data === v},
-];
-
-/* Пропускает ли строка отбор. skip — ключ фасета, который не учитываем:
-   именно так считается счётчик у собственных опций фасета. */
-function pass(r, skip) {
-  if (skip !== 'series' && F.series && r.mk !== F.series) return false;
-  if (skip !== 'q') {
-    if (F.q0 != null && r.q < F.q0) return false;
-    if (F.q1 != null && r.q > F.q1) return false;
+/* Силуэт берётся защитно: файл силуэтов может появиться позже страницы,
+   и без него каталог обязан открыться, а не упасть. Порядок поиска —
+   сначала весь список ключей в VPSILH, затем в крупных силуэтах vp.js,
+   и лишь в крайнем случае иконка, увеличенная до размера плитки. */
+function silh(keys) {
+  for (const k of keys) if (window.VPSILH && window.VPSILH[k]) return window.VPSILH[k];
+  for (const k of keys) if (VP.BIG[k]) return VP.BIG[k];
+  for (const k of keys) if (VP.ICON[k]) {
+    return VP.ICON[k].replace(/width="[\d.]+" height="[\d.]+"/, 'width="84" height="72"');
   }
-  if (skip !== 'p') {
-    if (F.p0 != null && r.p < F.p0) return false;
-    if (F.p1 != null && r.p > F.p1) return false;
+  return '';
+}
+/* Какой формой показан раздел. Форма отличает изделие: улитка, короб,
+   зонт, решётка — контур читается за долю секунды. */
+const SILH = {
+  obshch:['radial', 'scroll1'], vent:['heavy', 'scroll5'], pvu:['ahu'],
+  kkr   :['ductk', 'ductround'], kpr:['ductext', 'ductk'], ppv:['fire', 'damper'],
+  avt   :['panel'], tep:['heat'], det:['draft'], vzd:['duct'],
+  vrp   :['grille'], flt:['filter'], krp:['fix'],
+};
+
+const CN = C.counts();
+
+/* ═══ Крошки ═════════════════════════════════════════════════════════ */
+$('#crumbCnt').textContent =
+  `${plural(CN.total.razdel, 'раздел', 'раздела', 'разделов')} · ` +
+  `${nser(CN.total.series)} · ${nsku(CN.total.sku)}`;
+
+/* ═══ Сетка разделов ═════════════════════════════════════════════════
+   Раздел без заводских таблиц не притворяется полным: он гаснет, не
+   уводит по клику и честно называет причину. Кнопкой, а не ссылкой —
+   ссылка обязана вести туда, где что-то есть. */
+$('#tiles').innerHTML = C.RAZDEL.map(r => {
+  const c = CN.razdel[r.id];
+  const fig = `<span class="silh">${silh(SILH[r.id] || [r.ic])}</span>`;
+  const nm = `<span class="nm">${esc(r.name)}</span>`;
+  if (c.stub) {
+    return `<button class="tile tile--pick" type="button" data-empty="1" data-r="${r.id}"
+        title="Заводских таблиц по разделу нет — номенклатура запрошена">
+      ${fig}${nm}
+      <span class="cn">номенклатура уточняется<br>${r.cnt} на действующем сайте</span>
+    </button>`;
   }
-  for (const f of FACETS) {
-    if (skip === f.k || !F[f.k].size) continue;
-    let hit = false;
-    for (const v of F[f.k]) if (f.test(r, v)) { hit = true; break; }
-    if (!hit) return false;
+  return `<a class="tile" href="razdel.html?r=${encodeURIComponent(r.id)}">
+      ${fig}${nm}
+      <span class="cn">${nser(c.series)}<br>${nsku(c.sku)}</span>
+    </a>`;
+}).join('');
+
+/* Хвост последнего ряда добивается пустой бумагой: 13 разделов не делятся
+   нацело ни на пять колонок, ни на четыре, ни на две, а пустая клетка сетки
+   показывает подложку линовки — то есть дыру в листе. Сколько клеток
+   добивать, знает только раскладка, поэтому считаем по факту. */
+function fillGrid(el) {
+  for (const f of $$('.fill', el)) f.remove();
+  const cols = getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length;
+  const need = cols > 0 ? (cols - el.childElementCount % cols) % cols : 0;
+  el.insertAdjacentHTML('beforeend',
+    '<span class="tile fill" aria-hidden="true"></span>'.repeat(need));
+}
+fillGrid($('#tiles'));
+addEventListener('resize', () => fillGrid($('#tiles')), {passive:true});
+
+/* Клик по погашенной плитке обязан иметь видимое следствие: полоса под
+   сеткой называет раздел, счётчик действующего сайта и даёт два выхода —
+   открыть честную заглушку раздела или уйти в подбор по характеристике. */
+const note = $('#stubnote');
+$('#tiles').addEventListener('click', e => {
+  const b = e.target.closest('[data-r]');
+  if (!b) return;
+  const r = C.RAZDEL.find(x => x.id === b.dataset.r);
+  if (!r) return;
+  const subs = C.SUB.filter(s => s.razdel === r.id).map(s => s.short).join(' · ');
+  note.hidden = false;
+  note.innerHTML =
+    `<b>${esc(r.name)}</b>
+     <span>Заводских таблиц по разделу нет: номенклатура запрошена у завода.
+       На действующем сайте ${plural(r.cnt, 'позиция', 'позиции', 'позиций')} —
+       ${esc(subs)}.</span>
+     <span class="go">
+       <a class="btn btn--ghost btn--sm" href="razdel.html?r=${encodeURIComponent(r.id)}">Открыть раздел</a>
+       <a class="btn btn--ghost btn--sm" href="podbor.html">Подбор по Q и P</a>
+     </span>`;
+});
+
+/* ═══ Дерево каталога в рейке ════════════════════════════════════════ */
+$('#tree').innerHTML = C.RAZDEL.map(r => {
+  const c = CN.razdel[r.id];
+  const n = c.stub ? `— · ${r.cnt}` : `${c.series} · ${c.sku}`;
+  const tt = c.stub
+    ? `Номенклатура запрошена у завода; на действующем сайте ${r.cnt} позиций`
+    : `${nser(c.series)} · ${nsku(c.sku)}`;
+  const kids = c.stub ? '' : `<ul class="sub">${
+    C.SUB.filter(s => s.razdel === r.id).map(s => `
+      <li><a href="razdel.html?r=${encodeURIComponent(r.id)}&s=${encodeURIComponent(s.id)}">
+        <span>${esc(s.short)}</span><span class="n">${CN.sub[s.id].sku}</span></a></li>`).join('')
+  }</ul>`;
+  return `<li>
+    <a href="razdel.html?r=${encodeURIComponent(r.id)}" title="${esc(tt)}">
+      <span>${esc(r.short)}</span><span class="n">${n}</span></a>
+    ${kids}</li>`;
+}).join('');
+$('#railSum').textContent = CN.total.razdel + ' разделов';
+
+/* ═══ Мгновенный поиск ═══════════════════════════════════════════════
+   Терпим к написанию: «вр80-75» = «ВР 80-75» = «BP 80 75» — нормализация
+   живёт в VPCAT.norm и общая с поиском по каталогу. */
+const inp = $('#q'), list = $('#findList'), clr = $('#findClear');
+let items = [], cur = -1, tm = 0;
+
+function build(qs) {
+  const nq = C.norm(qs);
+  const out = [];
+  if (!nq) return out;
+
+  /* 1. Разделы и подразделы: запрос мог быть названием группы */
+  for (const r of C.RAZDEL) {
+    if (C.norm(r.name).indexOf(nq) < 0 && C.norm(r.short).indexOf(nq) < 0) continue;
+    const c = CN.razdel[r.id];
+    out.push({kd:'раздел', href:`razdel.html?r=${encodeURIComponent(r.id)}`,
+              mk:r.short, sz:'', gr:c.stub ? 'уточняется' : `${c.series} сер. · ${c.sku} типоразм.`});
   }
-  return true;
-}
-const view = () => ALL.filter(r => pass(r, null));
-const anyFilter = () => !!(F.series || F.q0 != null || F.q1 != null || F.p0 != null || F.p1 != null
-  || FACETS.some(f => F[f.k].size));
-
-/* ═══ Столбцы таблицы ════════════════════════════════════════════════ */
-const COLS = [
-  {k:'mk',   t:'Марка',       cls:'l mk', sort:r => r.mk,   cell:r => r.mk},
-  {k:'size', t:'№',           cls:'',     sort:r => szNum(r),
-   cell:r => `<button class="szb" type="button" data-act="size" data-id="${r.id}"
-      aria-pressed="${UI.cur === r.id}">${D.szl(r)}</button>`},
-  {k:'q',    t:'Q, м³/ч',     cls:'',     sort:r => r.q,    cell:r => D.fmt(r.q)},
-  {k:'p',    t:'Pv, Па',      cls:'',     sort:r => r.p,    cell:r => D.fmt(r.p)},
-  {k:'n',    t:'N уст., кВт', cls:'',     sort:r => r.n,    cell:r => D.dec(r.n)},
-  {k:'rpm',  t:'n, об/мин',   cls:'',     sort:r => r.rpm,  cell:r => D.fmt(r.rpm)},
-  {k:'mass', t:'Масса, кг',   cls:'',     sort:r => r.mass, cell:r => D.fmt(r.mass)},
-  {k:'ind',  t:'Исполнения',  cls:'l',    sort:null, cell:indCell},
-  {k:'data', t:'Данные',      cls:'l',    sort:null, cell:dataCell},
-];
-const szNum = r => typeof r.size === 'number' ? r.size : parseFloat(String(r.size)) || 0;
-
-function indCell(r) {
-  const head = r.ind.slice(0, 3).map(indShort).join(' · ');
-  const tail = r.ind.length > 3 ? ` +${r.ind.length - 3}` : '';
-  return `<span title="${r.ind.map(indLabel).join('; ')}">${head}${tail}</span>`;
-}
-function dataCell(r) {
-  const d = D.DATA[r.data];
-  return `<span class="st" data-s="${d.s}" title="${d.t}">${d.short}</span>`;
-}
-
-/* ═══ Разметка шапки таблицы ═════════════════════════════════════════ */
-$('#thead').innerHTML = `<tr>${
-  COLS.map(c => c.sort
-    ? `<th class="${c.cls}" data-k="${c.k}" scope="col"><button class="sortb" type="button">${c.t}<i class="ar"></i></button></th>`
-    : `<th class="${c.cls}" scope="col">${c.t}</th>`).join('')
-}<th class="acts l" scope="col">Действия</th></tr>`;
-
-/* ═══ Стойка фасетов ═════════════════════════════════════════════════ */
-function buildFacets() {
-  for (const f of FACETS) {
-    $(`[data-facet="${f.k}"]`).innerHTML = f.opts.map(o => `
-      <label class="opt" data-o="${o.v}">
-        <input type="checkbox" data-f="${f.k}" value="${o.v}">
-        <span class="lb">${o.l}</span><span class="n">0</span>
-      </label>`).join('');
+  for (const s of C.SUB) {
+    if (C.norm(s.name).indexOf(nq) < 0 && C.norm(s.short).indexOf(nq) < 0) continue;
+    if (!CN.sub[s.id].sku) continue;
+    out.push({kd:'подраздел',
+              href:`razdel.html?r=${encodeURIComponent(s.razdel)}&s=${encodeURIComponent(s.id)}`,
+              mk:s.short, sz:'', gr:`${CN.sub[s.id].sku} типоразм.`});
   }
-}
-/* Счётчики обновляются на месте: пересборка разметки увела бы фокус
-   с клавиатуры прямо во время отбора. */
-function syncFacets() {
-  for (const f of FACETS) {
-    for (const lab of $$(`[data-facet="${f.k}"] .opt`)) {
-      const v = lab.dataset.o, inp = $('input', lab);
-      const n = ALL.reduce((s, r) => s + (pass(r, f.k) && f.test(r, v) ? 1 : 0), 0);
-      $('.n', lab).textContent = n;
-      const on = F[f.k].has(v);
-      inp.checked = on;
-      if (n === 0 && !on) { lab.dataset.empty = '1'; inp.disabled = true; }
-      else { delete lab.dataset.empty; inp.disabled = false; }
+
+  /* 2. Серии и типоразмеры — через общий поиск модуля данных */
+  const hits = C.search(qs, 60);
+  const by = new Map();
+  for (const r of hits) {
+    if (!by.has(r.mk)) by.set(r.mk, []);
+    by.get(r.mk).push(r);
+  }
+  for (const [mk, rows] of by) {
+    const rz = C.razdelOf(mk);
+    if (C.norm(mk).indexOf(nq) >= 0 || rows.length > 1) {
+      out.push({kd:'серия', href:`series.html?s=${encodeURIComponent(mk)}`,
+                mk, sz:'', gr:`${rows.length} типоразм.${rz ? ' · ' + rz.short : ''}`});
+    }
+    for (const r of rows.slice(0, 3)) {
+      out.push({kd:'типоразмер', href:`product.html?p=${encodeURIComponent(r.id)}`,
+                mk, sz:C.szl(r),
+                gr:r.q === null ? 'Q не опубликован' : C.fmt(r.q) + ' м³/ч'});
     }
   }
+  return out.slice(0, 9);
 }
 
-/* ═══ Карточки серий ═════════════════════════════════════════════════ */
-function renderCards() {
-  $('#cards').innerHTML = D.SERIES.map(s => {
-    const n = ALL.reduce((a, r) => a + (r.mk === s.mk && pass(r, 'series') ? 1 : 0), 0);
-    const total = ALL.reduce((a, r) => a + (r.mk === s.mk ? 1 : 0), 0);
-    const on = F.series === s.mk;
-    const d = D.DATA[s.data];
-    return `
-    <div class="card" data-mk="${s.mk}"${on ? ' data-on="1"' : ''}${n ? '' : ' data-empty="1"'}>
-      <div class="top">
-        <a class="go mk" href="${sheetHref(s.mk)}">${s.mk}</a>
-        <span class="sub">${s.sub}</span>
-      </div>
-      ${BIG[s.art] || ''}
-      <dl>
-        <dt>Q, м³/ч</dt><dd>${D.fmt(s.qr[0])} … ${D.fmt(s.qr[1])}</dd>
-        <dt>Pv, Па</dt><dd>${D.fmt(s.pr[0])} … ${D.fmt(s.pr[1])}</dd>
-        <dt>N, кВт</dt><dd>${D.dec(s.nr[0])} … ${D.dec(s.nr[1])}</dd>
-        <dt>Тип</dt><dd>${D.TYPE[s.type]}</dd>
-      </dl>
-      <div class="bottom">
-        <span class="cnt">${n === total ? plural(total, 'типоразмер', 'типоразмера', 'типоразмеров')
-          : n + ' из ' + plural(total, 'типоразмера', 'типоразмеров', 'типоразмеров')}</span>
-        <button class="btn btn--ghost btn--sm only" type="button" data-act="only" data-mk="${s.mk}"
-                aria-pressed="${on}"${n ? '' : ' disabled'}>${on ? 'Снять фильтр' : 'Только эта'}</button>
-        <span class="badge" data-d="${d.s}" title="${d.t}">${d.short}</span>
-      </div>
-      ${s.note ? `<p class="pnote">${s.note}</p>` : ''}
-    </div>`;
-  }).join('');
-}
-
-/* ═══ Таблица ════════════════════════════════════════════════════════ */
-function sorted() {
-  const rows = view();
-  if (!UI.sortK) return rows;
-  const c = COLS.find(x => x.k === UI.sortK);
-  return rows.slice().sort((a, b) => {
-    const x = c.sort(a), y = c.sort(b);
-    const d = typeof x === 'string' ? x.localeCompare(y, 'ru') : x - y;
-    return d * UI.sortD || IDX.get(a.id) - IDX.get(b.id);
-  });
-}
-
-function renderTable() {
-  const rows = sorted();
-  const picked = new Set(store.pick);
-  $('#tbody').innerHTML = rows.map(r => {
-    const dm = r.edge ? '' : ' dim2';
-    const t = r.edge
-      ? 'Крайний типоразмер серии: значения сняты с сайта завода.'
-      : 'Промежуточный типоразмер: значения интерполированы между опубликованными краями серии — для проверки интерфейса, не для подбора.';
-    return `<tr data-id="${r.id}" title="${t}"${picked.has(r.id) ? ' data-picked="1"' : ''}${UI.cur === r.id ? ' data-cur="1"' : ''}>
-      ${COLS.map(c => `<td class="${c.cls}${dm}">${c.cell(r)}</td>`).join('')}
-      <td class="acts${dm}"><span>
-        <button class="btn btn--ghost btn--sm ib" type="button" data-act="pick" data-id="${r.id}"
-          aria-pressed="${picked.has(r.id)}"
-          title="${picked.has(r.id) ? 'Убрать из подбора' : 'В подбор'}"
-          aria-label="${picked.has(r.id) ? 'Убрать из подбора' : 'В подбор'}: ${r.mk} ${D.szl(r)}">${picked.has(r.id) ? ICON.close : ICON.check}</button>
-        <a class="btn btn--ghost btn--sm ib" href="${sheetHref(r.mk, r.id)}"
-          title="Открыть лист серии на этом типоразмере"
-          aria-label="Лист серии ${r.mk}, типоразмер ${D.szl(r)}">${ICON.doc}</a>
-      </span></td>
-    </tr>`;
-  }).join('');
-
-  const n = rows.length;
-  $('#shown').textContent = `показано ${n} из ${ALL.length}`;
-  $('#tabVal').textContent = n === ALL.length ? `${ALL.length} строк` : `${n} из ${ALL.length}`;
-  $('#railN').textContent = `${n} из ${ALL.length}`;
-  $('#railN2').textContent = `${n} из ${ALL.length}`;
-  $('#tbl').hidden = n === 0;
-  $('#empty').hidden = n !== 0;
-  if (!n) $('#emptyWhy').innerHTML = why();
-
-  for (const th of $$('#thead th[data-k]')) {
-    if (th.dataset.k === UI.sortK) th.setAttribute('aria-sort', UI.sortD > 0 ? 'ascending' : 'descending');
-    else th.removeAttribute('aria-sort');
+function paint(qs) {
+  items = build(qs);
+  cur = -1;
+  inp.removeAttribute('aria-activedescendant');
+  if (!qs.trim()) { close(); return; }
+  if (!items.length) {
+    list.innerHTML = `<li class="none">По запросу <b>${esc(qs)}</b> ничего не нашлось.
+      Марку можно набирать как угодно: <b>вр80-75</b>, <b>ВР 80 75</b>, <b>BP 80-75</b>.
+      Если марка неизвестна — <a href="podbor.html">подбор по расходу и давлению</a>.</li>`;
+  } else {
+    list.innerHTML = items.map((it, i) => `<li role="presentation">
+      <a role="option" id="fo${i}" aria-selected="false" href="${it.href}" tabindex="-1">
+        <span class="kd">${it.kd}</span>
+        <span class="mk">${esc(it.mk)}</span>
+        ${it.sz ? `<span class="sz">${esc(it.sz)}</span>` : ''}
+        <span class="gr">${esc(it.gr)}</span>
+      </a></li>`).join('');
   }
+  list.hidden = false;
+  inp.setAttribute('aria-expanded', 'true');
+}
+function close() {
+  list.hidden = true;
+  inp.setAttribute('aria-expanded', 'false');
+  inp.removeAttribute('aria-activedescendant');
+  cur = -1;
+}
+function move(d) {
+  if (list.hidden || !items.length) return;
+  const links = $$('a[role="option"]', list);
+  cur = (cur + d + links.length + 1) % (links.length + 1) - 1;
+  links.forEach((a, i) => a.setAttribute('aria-selected', String(i === cur)));
+  if (cur < 0) { inp.removeAttribute('aria-activedescendant'); return; }
+  inp.setAttribute('aria-activedescendant', 'fo' + cur);
+  links[cur].scrollIntoView({block:'nearest'});
 }
 
-/* Какое условие слишком жёсткое: снимаем по одному и смотрим, что откроется */
-function why() {
-  const act = [];
-  if (F.series) act.push(['series', `серия «${F.series}»`]);
-  if (F.q0 != null || F.q1 != null) act.push(['q', 'диапазон расхода Q']);
-  if (F.p0 != null || F.p1 != null) act.push(['p', 'диапазон давления Pv']);
-  for (const f of FACETS) if (F[f.k].size) act.push([f.k, f.t.toLowerCase()]);
-  if (!act.length) return 'Отбор пуст, а строк нет — это сбой данных, а не условий.';
-  const open = act.filter(([k]) => ALL.some(r => pass(r, k)));
-  if (open.length) {
-    return `Условия перекрыли друг друга. Достаточно снять одно: ` +
-      open.map(([, t]) => `<b>${t}</b>`).join(' или ') + '.';
+inp.addEventListener('input', () => {
+  clr.hidden = !inp.value;
+  clearTimeout(tm);
+  tm = setTimeout(() => paint(inp.value), 90);
+});
+inp.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown') { e.preventDefault(); if (list.hidden) paint(inp.value); else move(1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
+  else if (e.key === 'Escape') { if (!list.hidden) { e.preventDefault(); close(); } }
+  else if (e.key === 'Enter') {
+    const links = $$('a[role="option"]', list);
+    const go = links[cur >= 0 ? cur : 0];
+    if (go) { e.preventDefault(); location.href = go.getAttribute('href'); }
   }
-  return `Наложено ${plural(act.length, 'условие', 'условия', 'условий')} — ` +
-    act.map(([, t]) => t).join(', ') +
-    `. Снятия одного условия мало: они исключают друг друга, нужен полный сброс.`;
-}
-
-/* ═══ Стадии ═════════════════════════════════════════════════════════ */
-const ST = {g:$('[data-st="g"]'), s:$('[data-st="s"]'), t:$('[data-st="t"]'), i:$('[data-st="i"]')};
-function stage(el, on, text, disabled) {
-  el.dataset.on = on ? '1' : '0';
-  $('em', el).textContent = text;
-  el.disabled = !!disabled;
-  el.removeAttribute('aria-current');
-}
-function syncStages() {
-  const r = UI.cur ? rowOf(UI.cur) : null;
-  stage(ST.g, true, 'Общеобменные вентиляторы', false);
-  stage(ST.s, !!F.series, F.series || 'не выбрана', false);
-  stage(ST.t, !!r, r ? `${r.mk} ${D.szl(r)}` : 'не выбран', !F.series);
-  stage(ST.i, !!UI.ind, UI.ind ? indLabel(UI.ind) : 'не выбрано', !r);
-  const deep = UI.ind ? ST.i : r ? ST.t : F.series ? ST.s : ST.g;
-  deep.setAttribute('aria-current', 'step');
-}
-
-/* ═══ Полоса исполнения ══════════════════════════════════════════════ */
-function syncPickbar() {
-  const bar = $('#pickbar'), r = UI.cur ? rowOf(UI.cur) : null;
-  bar.hidden = !r;
-  if (!r) return;
-  $('#pbWho').textContent = `${r.mk} ${D.szl(r)}`;
-  $('#pbSheet').href = sheetHref(r.mk, r.id);
-  $('#pbOpts').innerHTML = r.ind.map(v => `
-    <label class="opt">
-      <input type="radio" name="pbind" value="${v}"${UI.ind === v ? ' checked' : ''}>
-      <span class="lb">${indLabel(v)}</span>
-    </label>`).join('');
-  const inPick = store.pick.includes(r.id);
-  $('#pbAdd').textContent = inPick ? 'Убрать из подбора' : 'В подбор';
-}
-
-/* ═══ Поддон подбора ═════════════════════════════════════════════════ */
-function renderTray() {
-  const ids = store.pick.filter(id => rowOf(id));
-  const tray = $('#tray');
-  tray.hidden = ids.length === 0;
-  if (!ids.length) { $('#traySumBox').hidden = true; $('#traySum').setAttribute('aria-expanded', 'false'); return; }
-  $('#trayN').textContent = plural(ids.length, 'позиция', 'позиции', 'позиций');
-  $('#trayChips').innerHTML = ids.map(id => {
-    const r = rowOf(id), ex = CHOSEN[id];
-    return `<span class="chipx"><b>${r.mk}</b> ${D.szl(r)}${ex ? ' · ' + indShort(ex) : ''}
-      <button class="x" type="button" data-act="unpick" data-id="${id}"
-        aria-label="Убрать ${r.mk} ${D.szl(r)} из подбора">${ICON.close}</button></span>`;
-  }).join('');
-  if (!$('#traySumBox').hidden) renderSum(ids);
-}
-function renderSum(ids) {
-  $('#traySumBox').innerHTML = `
-    <ol class="sumlist">${ids.map(id => {
-      const r = rowOf(id), d = D.DATA[r.data], ex = CHOSEN[id];
-      return `<li>
-        <span class="mk">${r.mk}</span>
-        <span class="v">${D.szl(r)}</span>
-        <span class="v">${D.fmt(r.q)} м³/ч</span>
-        <span class="v">${D.fmt(r.p)} Па</span>
-        <span class="v">${D.dec(r.n)} кВт</span>
-        <span class="v">${D.fmt(r.mass)} кг</span>
-        <span class="ex">${ex ? indLabel(ex) : 'исполнение не выбрано'}
-          · <span class="st" data-s="${d.s}" title="${d.t}">${d.short}</span></span>
-      </li>`;
-    }).join('')}</ol>
-    <p class="small" style="margin:0;max-width:80ch">Состав хранится в этом браузере и
-      переносится в <a href="cabinet.html#pick">кабинет</a> при входе. Цен, сроков и
-      комплектности здесь нет: завод их не передавал. Готовый состав уходит в
-      <a href="podbor.html#survey">опросный лист</a>.</p>`;
-}
-
-/* ═══ Пересчёт всего ═════════════════════════════════════════════════ */
-function update() {
-  syncFacets();
-  renderCards();
-  renderTable();
-  syncStages();
-  syncPickbar();
-  $('#reset').disabled = !anyFilter();
-  $('#serVal').textContent = F.series ? '1 из ' + D.SERIES.length : D.SERIES.length + ' из ' + D.SERIES.length;
-}
-
-/* ═══ События ════════════════════════════════════════════════════════ */
-/* Фасеты */
-$('#rail').addEventListener('change', e => {
-  const inp = e.target.closest('input[data-f]');
-  if (!inp) return;
-  const set = F[inp.dataset.f];
-  if (inp.checked) set.add(inp.value); else set.delete(inp.value);
-  update();
 });
-
-/* Числовые поля рабочей точки */
-let tm = 0;
-const readRange = () => {
-  const g = id => { const v = $('#' + id).value.trim(); return v === '' || !Number.isFinite(+v) ? null : +v; };
-  F.q0 = g('q0'); F.q1 = g('q1'); F.p0 = g('p0'); F.p1 = g('p1');
-};
-for (const id of ['q0', 'q1', 'p0', 'p1']) {
-  $('#' + id).addEventListener('input', () => {
-    clearTimeout(tm);
-    tm = setTimeout(() => { readRange(); update(); }, 180);
-  });
-}
-
-/* Сброс */
-function resetAll() {
-  F.series = null; F.q0 = F.q1 = F.p0 = F.p1 = null;
-  for (const f of FACETS) F[f.k].clear();
-  for (const id of ['q0', 'q1', 'p0', 'p1']) $('#' + id).value = '';
-  UI.cur = null; UI.ind = null;
-  update();
-}
-$('#reset').addEventListener('click', resetAll);
-$('#emptyReset').addEventListener('click', () => { resetAll(); $('#secTable').focus(); });
-
-/* Карточки серий: «только эта» фильтрует таблицу, марка ведёт на лист серии */
-$('#cards').addEventListener('click', e => {
-  const b = e.target.closest('[data-act="only"]');
-  if (!b) return;
-  F.series = F.series === b.dataset.mk ? null : b.dataset.mk;
-  UI.cur = null; UI.ind = null;
-  update();
-  goTo('#secTable');
+inp.addEventListener('focus', () => { if (inp.value.trim()) paint(inp.value); });
+$('#find').addEventListener('submit', e => {
+  e.preventDefault();
+  const go = $('a[role="option"]', list);
+  if (go) location.href = go.getAttribute('href');
 });
+clr.addEventListener('click', () => { inp.value = ''; clr.hidden = true; close(); inp.focus(); });
+document.addEventListener('click', e => { if (!e.target.closest('#find')) close(); });
 
-/* Сортировка */
-$('#thead').addEventListener('click', e => {
-  const b = e.target.closest('.sortb');
-  if (!b) return;
-  const k = b.closest('th').dataset.k;
-  if (UI.sortK === k) UI.sortD = -UI.sortD; else { UI.sortK = k; UI.sortD = 1; }
-  renderTable();
-});
-
-/* Таблица: выбор типоразмера и подбор */
-$('#tbody').addEventListener('click', e => {
-  const sz = e.target.closest('[data-act="size"]');
-  if (sz) {
-    const r = rowOf(sz.dataset.id);
-    if (UI.cur === r.id) { UI.cur = null; UI.ind = null; }
-    else { UI.cur = r.id; UI.ind = CHOSEN[r.id] || null; F.series = r.mk; }
-    update();
-    return;
-  }
-  const pk = e.target.closest('[data-act="pick"]');
-  if (pk) { store.togglePick(pk.dataset.id); }
-});
-
-/* Полоса исполнения */
-$('#pbOpts').addEventListener('change', e => {
-  const inp = e.target.closest('input[name="pbind"]');
-  if (!inp) return;
-  UI.ind = inp.value;
-  if (UI.cur) CHOSEN[UI.cur] = inp.value;
-  syncStages();
-  renderTray();
-});
-$('#pbAdd').addEventListener('click', () => {
-  if (UI.cur) store.togglePick(UI.cur);
-});
-
-/* Поддон */
-$('#trayChips').addEventListener('click', e => {
-  const b = e.target.closest('[data-act="unpick"]');
-  if (b) store.togglePick(b.dataset.id);
-});
-$('#traySum').addEventListener('click', () => {
-  const box = $('#traySumBox'), open = box.hidden;
-  box.hidden = !open;
-  $('#traySum').setAttribute('aria-expanded', String(open));
-  if (open) renderSum(store.pick.filter(id => rowOf(id)));
-});
-$('#trayClear').addEventListener('click', () => {
-  for (const id of store.pick.slice()) store.togglePick(id);
-});
-
-/* Подбор изменился где угодно — обновляем строки, полосу и поддон.
-   Полной пересборки таблицы не делаем: фокус остаётся на кнопке строки. */
-addEventListener('vp:store', () => {
-  const picked = new Set(store.pick);
-  for (const tr of $$('#tbody tr')) {
-    const id = tr.dataset.id, on = picked.has(id);
-    if (on) tr.dataset.picked = '1'; else delete tr.dataset.picked;
-    const b = $('[data-act="pick"]', tr);
-    const r = rowOf(id);
-    b.setAttribute('aria-pressed', String(on));
-    b.title = on ? 'Убрать из подбора' : 'В подбор';
-    b.setAttribute('aria-label', `${on ? 'Убрать из подбора' : 'В подбор'}: ${r.mk} ${D.szl(r)}`);
-    b.innerHTML = on ? ICON.close : ICON.check;
-  }
-  if (UI.cur) $('#pbAdd').textContent = store.pick.includes(UI.cur) ? 'Убрать из подбора' : 'В подбор';
-  renderTray();
-});
-
-/* Стадии: возврат на стадию сбрасывает всё, что глубже */
-function goTo(sel) {
-  const el = $(sel);
-  if (!el) return;
-  scrollTo({top: el.getBoundingClientRect().top + scrollY - 86, behavior: VP.reduced.matches ? 'auto' : 'smooth'});
-  if (el.tabIndex === -1) el.focus({preventScroll:true});
-}
-$('#stages').addEventListener('click', e => {
-  const b = e.target.closest('.stage');
-  if (!b || b.disabled) return;
-  const st = b.dataset.st;
-  if (st === 'g') { F.series = null; UI.cur = null; UI.ind = null; update(); goTo('#secSeries'); }
-  if (st === 's') { UI.cur = null; UI.ind = null; update(); goTo('#secSeries'); }
-  if (st === 't') { UI.ind = null; update(); goTo('#secTable'); }
-  if (st === 'i') { update(); goTo('#pickbar'); $('#pbOpts input') && $('#pbOpts input').focus(); }
-});
-
-/* Стойка на узком экране складывается, на широком стоит открытой */
-const wide = matchMedia('(min-width:901px)');
+/* Рейка на узком листе складывается, на широком стоит открытой */
+const wide = matchMedia('(min-width:961px)');
 const syncRail = () => { $('#rail').open = wide.matches; };
 wide.addEventListener('change', syncRail);
 syncRail();
-
-/* ═══ Первый рисунок ═════════════════════════════════════════════════ */
-$('#crumbCnt').textContent =
-  `${plural(D.SERIES.length, 'серия', 'серии', 'серий')} · ${plural(ALL.length, 'типоразмер', 'типоразмера', 'типоразмеров')}`;
-$('#q0').placeholder = String(Math.min(...ALL.map(r => r.q)));
-$('#q1').placeholder = String(Math.max(...ALL.map(r => r.q)));
-$('#p0').placeholder = String(Math.min(...ALL.map(r => r.p)));
-$('#p1').placeholder = String(Math.max(...ALL.map(r => r.p)));
-$$('.stages .sep').forEach(s => { s.innerHTML = ICON.arrow; });
-buildFacets();
-update();
-renderTray();
 })();
 </script>
 </body>

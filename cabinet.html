@@ -2,7 +2,6 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Личный кабинет — подбор, объекты, расчёты · Вентпром</title>
 <meta name="description" content="Подбор, объекты, просмотренная номенклатура и сохранённые расчёты. Всё копится без регистрации и хранится в вашем браузере; вход нужен только чтобы поднять накопленное на другом компьютере.">
@@ -407,9 +406,10 @@ FORM: мир закреплён распоряжением заказчика, �
 
 <div id="vp-foot"></div>
 
-<!-- Данные этой сборки лежат отдельно: assets/data.js занят ES-модулем
-     прежней сборки. -->
+<!-- data.vp.js — старый модуль на восемь серий, catalog.vp.js — полный каталог.
+     Кабинет разбирает позиции из обоих через VP.resolve(). -->
 <script src="assets/data.vp.js"></script>
+<script src="assets/catalog.vp.js"></script>
 <script src="assets/vp.js"></script>
 <script>
 (() => {
@@ -422,10 +422,27 @@ init('cabinet.html');
 /* ── Служебное ────────────────────────────────────────────────────── */
 const ESC = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ESC[c]);
-const rowById = id => D.NUM.find(r => r.id === id);
+/* Позиция может прийти из двух модулей: старого VPDATA (восемь серий) и
+   полного каталога VPCAT (45 серий). Кабинет общий, поэтому ищем в обоих —
+   иначе всё, отложенное в новом каталоге, до кабинета не доедет, а счётчик
+   в шапке при этом растёт. VP.resolve возвращает и строку, и её адрес. */
+const rowById = id => {
+  const r = VP.resolve(id);
+  if (!r) return null;
+  /* Адрес кладём на саму строку: у каталожных позиций своя карточка,
+     у старых — только страница серии с якорем на типоразмер. */
+  return Object.assign({_href:r.href}, r.row);
+};
 const rowsOf = ids => (ids || []).map(rowById).filter(Boolean);
-const kwSum = rows => Math.round(rows.reduce((s, r) => s + Number(r.n), 0) * 100) / 100;
-const cardHref = r => 'series.html?s=' + encodeURIComponent(r.mk);
+/* У клапанов мощности нет вовсе — Number(null) дал бы NaN на всю сумму. */
+const kwSum = rows => Math.round(
+  rows.reduce((s, r) => s + (Number(r.n) || 0), 0) * 100) / 100;
+const cardHref = r => r._href || ('series.html?s=' + encodeURIComponent(r.mk));
+/* Число или прочерк. У клапанов противопожарной вентиляции завод не
+   публикует ни расхода, ни давления, ни оборотов; D.fmt(null) дал бы «0»,
+   а ноль — это выдуманное значение, а не отсутствующее. */
+const nz  = v => (v == null || v === '') ? '—' : D.fmt(v);
+const nzd = v => (v == null || v === '') ? '—' : D.dec(v);
 const plural = (n, a, b, c) => {
   const n10 = n % 10, n100 = n % 100;
   if (n10 === 1 && n100 !== 11) return a;
@@ -573,7 +590,9 @@ function specCsv(rows, title) {
     line(['Марка', 'Типоразмер', 'Q, м3/ч', 'Pv, Па', 'N двигателя, кВт',
           'Частота, об/мин', 'Масса, кг', 'Состояние данных']),
   ];
-  rows.forEach(r => out.push(line([r.mk, D.szl(r), r.q, r.p, D.dec(r.n), r.rpm, r.mass, D.DATA[r.data].t])));
+  rows.forEach(r => out.push(line([r.mk, D.szl(r), r.q == null ? '' : r.q,
+    r.p == null ? '' : r.p, nzd(r.n), r.rpm == null ? '' : r.rpm,
+    r.mass == null ? '' : r.mass, D.DATA[r.data].t])));
   return out.join('\r\n');
 }
 
@@ -596,9 +615,9 @@ function posTable(rows, dropAttr, caption) {
             <td class="l mk"><a href="${cardHref(r)}"
                 style="color:inherit;text-decoration:none">${esc(r.mk)}</a></td>
             <td class="l"><span class="num">${esc(D.szl(r))}</span></td>
-            <td>${D.fmt(r.q)}</td>
-            <td>${D.fmt(r.p)}</td>
-            <td>${D.dec(r.n)}</td>
+            <td>${nz(r.q)}</td>
+            <td>${nz(r.p)}</td>
+            <td>${nzd(r.n)}</td>
             <td class="l"><span class="st" data-s="${D.DATA[r.data].s}"
                 title="${esc(D.DATA[r.data].t)}">${esc(D.DATA[r.data].short)}</span></td>
             <td class="acts"><span>
@@ -1022,7 +1041,7 @@ function renderViewed() {
       <li>
         <a class="mk" href="${cardHref(r)}">${esc(r.mk)}</a>
         <span class="sz">${esc(D.szl(r))}</span>
-        <span class="gr">${D.fmt(r.q)} м³/ч · ${D.fmt(r.p)} Па · ${D.dec(r.n)} кВт</span>
+        <span class="gr">${nz(r.q)} м³/ч · ${nz(r.p)} Па · ${nzd(r.n)} кВт</span>
       </li>`).join('')}</ol></div>
     <div class="bar">
       ${armedViewed

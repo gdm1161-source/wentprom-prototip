@@ -61,6 +61,10 @@ const ICON = {
   close:  S(`<path d="M6.6 6.6 21.4 17.4M21.4 6.6 6.6 17.4"/>`, 16),
   arrow:  S(`<path d="M4.6 12h18.8"/><path d="m17.4 6.6 6 5.4-6 5.4"/>`),
   check:  S(`<path d="m5.6 12.6 5.2 5.2L22.4 6.2"/>`),
+  /* Сравнение: два столбца разной высоты на общей базовой линии.
+     Читается как сопоставление величин, а не как «график» вообще. */
+  cmp:    S(`<path d="M4.4 20.4h19.2"/><path d="M8 20.4V10.2h4.4v10.2"/>
+             <path d="M15.6 20.4V5.2H20v15.2"/>`),
 };
 
 /* ═══ 2. Крупные силуэты агрегатов ═══════════════════════════════════
@@ -118,7 +122,7 @@ const BIG = {
    она поднимает уже накопленное в кабинет и связывает с аккаунтом. */
 const KEY = 'vp.anon.v2';
 const store = {
-  clientId:null, pick:[], viewed:[], projects:[], calcs:[],
+  clientId:null, pick:[], viewed:[], projects:[], calcs:[], kp:[],
   load() {
     try { const raw = localStorage.getItem(KEY); if (raw) Object.assign(this, JSON.parse(raw)); }
     catch (e) { /* приватный режим — работаем в памяти */ }
@@ -130,6 +134,10 @@ const store = {
       localStorage.setItem(KEY, JSON.stringify({
         clientId:this.clientId, pick:this.pick, viewed:this.viewed.slice(0, 40),
         projects:this.projects, calcs:this.calcs.slice(0, 30),
+        /* Заявки на КП: пока backend не подключён, они живут здесь и
+           показываются в кабинете — иначе кнопка «Запросить КП» отправляет
+           заявку в никуда, а пользователю сказано, что она сохранена. */
+        kp:this.kp.slice(0, 30),
       }));
     } catch (e) { /* квота или приватный режим */ }
     root.dispatchEvent(new CustomEvent('vp:store'));
@@ -201,11 +209,8 @@ function mountHeader(current) {
   $('#vpViewed').addEventListener('click', () => toggleViewed());
   $('#vpViewedClose').addEventListener('click', () => { toggleViewed(false); $('#vpViewed').focus(); });
   $('#vpViewedPanel').addEventListener('click', e => {
-    const b = e.target.closest('[data-go]');
-    /* series.html адресуется МАРКОЙ серии, а не идентификатором строки;
-       идентификатор уходит якорем, чтобы страница подсветила типоразмер */
-    if (b) location.href = 'series.html?s=' + encodeURIComponent(b.dataset.go)
-                         + (b.dataset.row ? '#' + b.dataset.row : '');
+    const b = e.target.closest('[data-href]');
+    if (b) location.href = b.dataset.href;
   });
   document.addEventListener('click', e => {
     const p = $('#vpViewedPanel');
@@ -228,17 +233,47 @@ function toggleViewed(force) {
   b.setAttribute('aria-expanded', String(open));
 }
 
+/* Разрешение идентификатора позиции.
+   В прототипе сосуществуют два модуля данных: старый VPDATA (восемь серий,
+   идентификаторы p1, p2, …) и полный каталог VPCAT (45 серий, vp1, vp2, …).
+   Лента просмотренного и подбор общие для всех страниц, поэтому позицию
+   надо уметь найти в обоих — иначе всё, отмеченное в новом каталоге, молча
+   пропадает из шапки. Сначала спрашиваем полный каталог, потом старый. */
+function resolve(id) {
+  const C = root.VPCAT;
+  if (C) {
+    const r = C.sku(id);
+    if (r) return {row:r, src:C, href:'product.html?p=' + encodeURIComponent(r.id)};
+  }
+  if (D) {
+    const r = D.NUM.find(x => x.id === id);
+    if (!r) return null;
+    /* Позиция из старого модуля почти всегда есть и в полном каталоге —
+       это та же серия и тот же типоразмер, только другой идентификатор.
+       Переводим её на каталожную карточку, иначе «подбор» и «серия»
+       разъезжаются: подбор кладёт в запрос p-идентификаторы, а страница
+       серии их уже не знает. */
+    if (C) {
+      const same = C.SKU.find(x => x.mk === r.mk && String(x.size) === String(r.size));
+      if (same) return {row:same, src:C, href:'product.html?p=' + encodeURIComponent(same.id)};
+    }
+    /* Соответствия нет — ведём на страницу серии с якорем на типоразмер. */
+    return {row:r, src:D, href:'series.html?s=' + encodeURIComponent(r.mk) + '#' + r.id};
+  }
+  return null;
+}
+
 function paintCounts() {
   const cp = $('#vpCPick'), cv = $('#vpCViewed');
   if (cp) { cp.textContent = store.pick.length;   cp.dataset.zero = store.pick.length ? '0' : '1'; }
   if (cv) { cv.textContent = store.viewed.length; cv.dataset.zero = store.viewed.length ? '0' : '1'; }
-  const list = store.viewed.map(id => D.NUM.find(r => r.id === id)).filter(Boolean).slice(0, 14);
+  const list = store.viewed.map(resolve).filter(Boolean).slice(0, 14);
   const ol = $('#vpViewedList');
   if (!ol) return;
   ol.innerHTML = list.length
-    ? list.map(r => `<li><button type="button" data-go="${r.mk}" data-row="${r.id}">
-        <span class="mk">${r.mk} ${D.szl(r)}</span>
-        <span class="gr">${D.fmt(r.q)} м³/ч</span></button></li>`).join('')
+    ? list.map(({row:r, src, href}) => `<li><button type="button" data-href="${href}">
+        <span class="mk">${r.mk} ${src.szl(r)}</span>
+        <span class="gr">${r.q ? src.fmt(r.q) + ' м³/ч' : '—'}</span></button></li>`).join('')
     : `<li><p class="foot" style="border:0;margin:0">Пока пусто. Лента заполняется,
         когда вы открываете типоразмеры или ставите их в подбор.</p></li>`;
   const f = $('#vpViewedFoot');
@@ -246,17 +281,28 @@ function paintCounts() {
 }
 
 /* ═══ 5. Подвал ══════════════════════════════════════════════════════ */
+/* Ссылки каталога строятся из дерева, а не вписаны руками. Раньше здесь
+   стояли четыре разные подписи, ведущие на одну и ту же catalog.html:
+   читатель жал «Воздуховоды», а попадал в общий каталог. Берём разделы,
+   в которых реально есть номенклатура, — они и полезны читателю. */
+function catLinks() {
+  const C = root.VPCAT;
+  if (!C) return '';
+  return C.RAZDEL
+    .filter(r => !r.stub)
+    .slice(0, 4)
+    .map(r => `<a href="razdel.html?r=${encodeURIComponent(r.id)}">${r.name}</a>`)
+    .join('\n          ');
+}
+
 function mountFooter() {
   const host = $('#vp-foot');
   if (!host) return;
   host.innerHTML = `
     <footer><div class="wrap">
       <div class="cols">
-        <div><h4>Каталог</h4>
-          <a href="catalog.html">Общеобменные вентиляторы</a>
-          <a href="catalog.html">Противопожарная вентиляция</a>
-          <a href="catalog.html">Приточно-вытяжные установки</a>
-          <a href="catalog.html">Воздуховоды и фасонные элементы</a></div>
+        <div><h4>Каталог</h4>${catLinks()}
+          <a href="catalog.html">Все разделы каталога</a></div>
         <div><h4>Инженеру</h4>
           <a href="podbor.html">Подбор по Q и P</a>
           <a href="calc.html">Инженерные калькуляторы</a>
@@ -273,10 +319,12 @@ function mountFooter() {
           <a href="about.html#docs">Документы</a>
           <a href="about.html#contacts">Контакты</a></div>
       </div>
-      <p class="legal">Прототип нового сайта. Реквизиты, телефоны, цены, сроки,
-        характеристики и все изображения — демонстрационные и подлежат замене на
-        фактические данные завода. Ни одна цифра на этих страницах не годится
-        для подбора оборудования.</p>
+      <p class="legal">Прототип нового сайта. Марки серий, диапазоны и индексы
+        исполнений сняты с сайта завода; строки внутри диапазонов получены
+        интерполяцией и служат только для проверки интерфейса — <b>подбирать по
+        ним оборудование нельзя</b>. Цен, сроков изготовления, гарантий и номеров
+        сертификатов здесь нет вовсе: завод их не публикует, а выдумывать их
+        мы не стали.</p>
     </div></footer>`;
 }
 
@@ -439,5 +487,6 @@ function init(currentPage) {
   revealDims();
 }
 
-root.VP = {$, $$, ICON, BIG, store, init, airflow, reduced, revealDims, paintCounts, toggleViewed};
+root.VP = {$, $$, ICON, BIG, store, init, airflow, reduced, revealDims, paintCounts,
+           toggleViewed, resolve};
 })(window);

@@ -301,8 +301,16 @@ td.acts>span{display:flex;gap:6px;justify-content:flex-end}
 .fld textarea{height:auto;padding:10px 12px;font-family:var(--f-ui);resize:vertical}
 .fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--blue)}
 .fld input::placeholder{color:var(--ink-4)}
-.fld .hint{display:block;margin-top:5px;font-size:12px;color:var(--ink-3)}
-.fld .err{display:block;margin-top:5px;font-size:12px;color:var(--stop)}
+/* Подсказка и ошибка — это связная речь, а не надпись чертежа. Оба лежат
+   внутри .fld прямыми потомками и потому попадали под .fld>span с его
+   прописными и разрядкой: сообщение об ошибке кричало на пользователя
+   капслоком. Возвращаем нормальный набор. */
+.fld .hint,.fld .err{
+  display:block;margin-top:5px;font-size:12px;
+  font-family:var(--f-ui);text-transform:none;letter-spacing:normal;
+}
+.fld .hint{color:var(--ink-3)}
+.fld .err{color:var(--stop)}
 .fld[data-err="1"] input{border-color:var(--stop);background:var(--stop-pale)}
 
 /* ═══ Полоса-предупреждение ═════════════════════════════════════════ */
@@ -451,6 +459,16 @@ footer .legal{
 .mb0{margin-bottom:0}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
+/* position:relative обязателен и вне переломов. Контейнер прокрутки НЕ
+   обрезает абсолютно позиционированного потомка, если содержащий блок для
+   того лежит выше контейнера. Скрытые подписи .vh для экранного диктора
+   как раз абсолютные: без этой строки они цеплялись за ближайший
+   позиционированный .sheet СНАРУЖИ прокрутки, вставали на x≈641 при листе
+   375 и распирали страницу на 267 px — при том, что ни один видимый узел
+   за габарит не выходил. Отсюда же и то, что обход предков по overflow-x
+   ничего не находил: предок и содержащий блок — разные вещи. */
+.tbl-scroll{position:relative}
+
 /* Ниже этой ширины таблица данных перестаёт влезать: включаем контейнер
    прокрутки и переводим липкую шапку на нулевое смещение, иначе она
    уедет вниз внутри контейнера и накроет первую строку. */
@@ -458,12 +476,17 @@ footer .legal{
   .tbl-scroll{overflow-x:auto}
   table.data thead th{top:0}
 }
-@media (max-width:900px){
-  :root{--gut:16px}
+/* Порог сворачивания навигации — 1045 px, а не 900.
+   Замер: логотип, шесть пунктов меню и две кнопки действий встают в одну
+   строку только с ~1045 px. При прежнем пороге 900 в полосе 901…1044
+   шапка молча распирала лист на всех без исключения страницах
+   (1036 против 1009 при окне 1024) — снаружи это выглядело как
+   горизонтальная прокрутка всего сайта на планшете и в половинном окне. */
+@media (max-width:1044px){
   .head .wrap{flex-wrap:wrap;gap:12px}
-  /* Рейка разделов на телефоне прокручивается, и это надо СКАЗАТЬ:
-     без градиента у правой кромки пункты просто пропадают за обрезом,
-     и посетитель не догадывается, что там что-то есть */
+  /* Рейка разделов прокручивается, и это надо СКАЗАТЬ: без градиента
+     у правой кромки пункты просто пропадают за обрезом, и посетитель
+     не догадывается, что там что-то есть */
   .nav{
     order:3;flex:1 1 100%;margin-left:0;
     overflow-x:auto;scroll-snap-type:x proximity;
@@ -474,6 +497,17 @@ footer .legal{
   .nav a{flex:0 0 auto;scroll-snap-align:start}
   .nav::-webkit-scrollbar{height:3px}
   .nav::-webkit-scrollbar-thumb{background:var(--rule-ink);border:0}
+}
+@media (max-width:900px){
+  :root{--gut:16px}
+}
+/* Размерная линия на телефоне: выноска с номером не сжимается (flex:0 0 auto)
+   и вместе с заголовком распирает лист шире экрана. Переносим её на
+   следующую строку — приём сохраняется, горизонтальная прокрутка уходит. */
+@media (max-width:620px){
+  .dim{flex-wrap:wrap}
+  .dim .line{min-width:40px}
+  .dim .val{flex:1 0 100%;order:3;text-align:right}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}

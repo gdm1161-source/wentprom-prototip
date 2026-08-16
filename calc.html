@@ -2,7 +2,6 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Инженерные калькуляторы · Вентпром</title>
 <meta name="description" content="Аэродинамика участка воздуховода с показом каждого шага — скорость, динамическое давление, число Рейнольдса, коэффициент трения по Альтшулю, потери на трение и местные. И площадь воздуховодов по спецификации участков.">
@@ -68,6 +67,10 @@
    своего контейнера ей место у его верхней кромки. */
 /* Заплатка снята: контейнер прокрутки теперь включается в vp.css только
    ниже 1280 px, и там же шапка переводится на нулевое смещение. */
+
+/* Переполнение листа скрытыми подписями .vh в правых столбцах спецификации
+   вылечено в системе: .tbl-scroll{position:relative} стоит в vp.css.
+   Разбор причины — там же в комментарии. */
 
 /* Греческие буквы обязаны остаться строчными: text-transform превратит ζ в Ζ */
 .lc{text-transform:none}
@@ -302,8 +305,11 @@ FORM: мир закреплён распоряжением заказчика, �
         <div class="acts">
           <button class="btn" type="button" id="aeroSave">Сохранить расчёт</button>
           <a class="btn btn--ghost" href="podbor.html" id="aeroToPick">Взять эту ΔP в подбор</a>
+          <a class="btn btn--ghost" href="flow.html">Показать поток в канале</a>
           <p class="note">Ссылка «в подбор» переносит расход и полученное ΔP в
-            рабочую точку страницы подбора.</p>
+            рабочую точку страницы подбора. «Поток в канале» открывает поле
+            скорости: те же формулы, показанные картинкой, — видно, где
+            теряется давление и откуда придёт шум.</p>
         </div>
 
         <div class="ack" id="aeroAck" hidden role="status" aria-live="polite"></div>
@@ -500,6 +506,8 @@ FORM: мир закреплён распоряжением заказчика, �
 <div id="vp-foot"></div>
 
 <script src="assets/data.vp.js"></script>
+<!-- Из каталога подвал берёт ссылки на разделы, а шапка — ленту просмотренного -->
+<script src="assets/catalog.vp.js"></script>
 <script src="assets/vp.js"></script>
 <script>
 (() => {

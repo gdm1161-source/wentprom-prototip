@@ -1,0 +1,2321 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Типоразмер · Каталог · Вентпром</title>
+<meta name="description" content="Карточка типоразмера: вид, разрез и габарит агрегата, лента исполнений, паспорт, технические, аэродинамические, габаритные и акустические характеристики, документы и соседние типоразмеры.">
+<link rel="stylesheet" href="assets/vp.css">
+<link rel="stylesheet" href="assets/cat.css">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   Локальный слой карточки. Только то, чего нет в vp.css и cat.css:
+   черчение внутри SVG, всплывающее пояснение к подписи характеристики,
+   модальное окно запроса КП и пара мелочей раскладки.
+   Ни одного нового цвета — всё токенами системы.
+   ═══════════════════════════════════════════════════════════════════════ */
+#page{padding-top:24px;padding-bottom:34px;position:relative}
+
+/* ── Черчение внутри фигуры ─────────────────────────────────────────── */
+.dwg{display:block;width:100%;height:auto}
+.dwg .o    {fill:none;stroke:var(--ink-2);stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
+.dwg .o2   {fill:none;stroke:var(--ink-3);stroke-width:1.1}
+.dwg .fine {fill:none;stroke:var(--rule-ink);stroke-width:.9}
+.dwg .axl  {fill:none;stroke:var(--ink-4);stroke-width:.8;stroke-dasharray:10 3 2 3}
+.dwg .hid  {fill:none;stroke:var(--ink-4);stroke-width:.9;stroke-dasharray:5 4}
+.dwg .cut  {fill:url(#pcHx);stroke:var(--ink-2);stroke-width:1.4}
+.dwg .base {fill:none;stroke:var(--ink-2);stroke-width:2.4;stroke-linecap:round}
+.dwg .dl   {fill:none;stroke:var(--blue);stroke-width:.9}
+.dwg .ext  {fill:none;stroke:var(--blue);stroke-width:.7}
+.dwg .lead {fill:none;stroke:var(--blue);stroke-width:.8}
+.dwg marker path{fill:var(--blue);stroke:none}
+.dwg pattern path{fill:none;stroke:var(--rule-ink);stroke-width:.9}
+.dwg text{font-family:var(--f-num);font-size:9px;fill:var(--ink-3)}
+.dwg .dt{fill:var(--blue);font-size:8.5px}
+.dwg .lb{fill:var(--ink-2);font-size:8.5px}
+.dwg .exb{fill:none;stroke:var(--ink);stroke-width:1.1}
+.dwg .ext-t{fill:var(--ink);font-family:var(--f-draw);font-size:10px;letter-spacing:.08em}
+.dwg .sig{fill:var(--signal);stroke:none}
+
+/* Подпись под фигурой: что именно нарисовано и чего на чертеже нет */
+.figcap{margin:9px 0 0;font-size:12px;line-height:1.45;color:var(--ink-3)}
+
+/* ── Всплывающее пояснение к подписи характеристики ─────────────────── */
+.tip{
+  position:absolute;z-index:40;max-width:270px;padding:8px 11px;
+  background:var(--ink);color:#fff;font-size:12.5px;line-height:1.4;
+  pointer-events:none;opacity:0;transform:translateY(3px);
+}
+@media (prefers-reduced-motion:no-preference){
+  .tip{transition:opacity .12s var(--ease),transform .12s var(--ease)}
+}
+.tip[data-on="1"]{opacity:1;transform:none}
+.specs dt[data-tip] span{cursor:help}
+.specs dt[data-tip] span:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+/* ── Мелочи паспорта ───────────────────────────────────────────────── */
+.pc-pass .dtag{
+  display:inline-flex;align-self:flex-start;align-items:center;gap:7px;margin-top:12px;padding:5px 10px;
+  border:1px solid currentColor;font-family:var(--f-draw);font-size:10.5px;
+  letter-spacing:.14em;text-transform:uppercase;cursor:help;
+}
+.pc-pass .dtag[data-d="ok"]{color:var(--ok)}
+.pc-pass .dtag[data-d="wait"]{color:var(--warn)}
+.pc-pass .dtag[data-d="stop"]{color:var(--stop)}
+.pc-pass .kind{
+  display:inline-block;margin-top:9px;padding:3px 9px;border:1px solid var(--blue-pale);
+  font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.13em;
+  font-size:10.5px;color:var(--blue);
+}
+.specs dd .no{font-family:var(--f-ui);font-size:12px;color:var(--ink-4);letter-spacing:0}
+
+/* ── Вкладки: таблицы и поле Q-P ───────────────────────────────────── */
+.tabp h3{margin-bottom:11px;font-size:12.5px;letter-spacing:.14em;color:var(--ink-2)}
+.tabp p{max-width:88ch}
+.tabp .none{color:var(--ink-4);font-family:var(--f-ui);font-size:12.5px}
+table.data td.no{color:var(--ink-4);font-family:var(--f-ui);font-size:12.5px;letter-spacing:0}
+.qpwrap{display:grid;grid-template-columns:minmax(0,560px) minmax(220px,1fr);gap:22px;align-items:start}
+.qp .fld-area{fill:var(--blue-wash);stroke:var(--blue);stroke-width:1;stroke-dasharray:6 4}
+.qp .gridln{stroke:var(--rule-fine);stroke-width:.8}
+.qp .axis{stroke:var(--ink-3);stroke-width:1.1;fill:none}
+.qp text{font-family:var(--f-num);font-size:9px;fill:var(--ink-3)}
+.qp .ttl{fill:var(--ink-2);font-size:9.5px}
+.qp .row{fill:none;stroke:var(--ink-4);stroke-width:.9;stroke-dasharray:3 3}
+.qp .pt{fill:var(--paper-hi);stroke:var(--blue);stroke-width:1.2}
+.qp .here{fill:var(--signal);stroke:var(--paper-hi);stroke-width:1.6}
+.qp .hlab{fill:var(--ink);font-size:9.5px}
+.leg{margin:0;padding:0;list-style:none;font-size:12.5px;color:var(--ink-2)}
+.leg li{display:flex;align-items:flex-start;gap:9px;padding:5px 0;line-height:1.4}
+.leg i{flex:0 0 auto;width:16px;height:11px;margin-top:3px;border:1px solid var(--blue)}
+.leg i[data-k="area"]{background:var(--blue-wash);border-style:dashed}
+.leg i[data-k="row"]{border:0;border-top:1px dashed var(--ink-4);height:0;margin-top:8px}
+.leg i[data-k="here"]{width:11px;height:11px;border:0;background:var(--signal);border-radius:50%}
+
+/* Развороты корпуса: выбор перечерчивает габарит */
+.razv{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+.gabgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+.gabfig{
+  padding:10px;border:1px solid var(--rule-fine);
+  background:linear-gradient(var(--grid-fine) 1px,transparent 1px),
+             linear-gradient(90deg,var(--grid-fine) 1px,transparent 1px);
+  background-size:20px 20px;
+}
+
+/* Рейка соседей: подписи внутри ячейки — b и i, а не вложенные span.
+   Селектор системы «.neigh span» задаёт саму ЯЧЕЙКУ, и вложенный span
+   получал бы её ширину, поля и подложку. */
+.neigh .sz{font-weight:400}
+.neigh .q{font-style:normal}
+
+/* ── Соседние серии и комплектующие: строки как у документов ────────── */
+.doc .ic svg{display:block}
+.doc .mk{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.07em;font-size:14.5px;color:var(--ink)}
+.doc .gr{display:block;margin-top:2px;font-size:12px;color:var(--ink-3)}
+.doc .body{min-width:0}
+
+/* ── Модальное окно «Запросить КП» ─────────────────────────────────── */
+.mdl{
+  position:fixed;inset:0;z-index:60;display:flex;align-items:flex-start;justify-content:center;
+  padding:4vh 16px;overflow:auto;background:rgba(19,26,30,.55);
+}
+.mdl[hidden]{display:none}
+.mdl .box{
+  width:100%;max-width:580px;background:var(--paper-hi);
+  border:1px solid var(--rule-ink);box-shadow:0 18px 50px rgba(19,26,30,.22);
+}
+@media (prefers-reduced-motion:no-preference){
+  .mdl .box{animation:mdlin .17s var(--ease)}
+}
+@keyframes mdlin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.mdl .hd{
+  display:flex;align-items:flex-start;gap:14px;padding:16px 20px;
+  border-bottom:1px solid var(--rule-ink);
+}
+.mdl .hd h2{font-size:17px;letter-spacing:.1em}
+.mdl .hd .who{margin:5px 0 0;font-size:12.5px;color:var(--ink-3)}
+.mdl .hd button{
+  margin-left:auto;flex:0 0 auto;display:flex;padding:4px;background:none;border:0;
+  color:var(--ink-3);cursor:pointer;
+}
+.mdl .hd button:hover{color:var(--stop)}
+.mdl .bd{padding:18px 20px}
+.mdl .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mdl .fld{margin-bottom:12px}
+/* Сообщение об ошибке — связная речь, а не чертёжная надпись: прописные
+   буквы системы здесь читаются как окрик */
+.mdl .fld .err{text-transform:none;letter-spacing:0;font-family:var(--f-ui);font-size:12px}
+.mdl .ft{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:4px}
+.mdl .ft .btn{flex:0 0 auto}
+.mdl .say{
+  margin:14px 0 0;padding:11px 13px;border-left:2px solid var(--blue);
+  background:var(--blue-wash);font-size:13px;line-height:1.5;color:var(--ink-2);
+}
+.mdl .say[data-s="ok"]{border-color:var(--ok);background:var(--ok-pale)}
+.mdl .say[data-s="err"]{border-color:var(--stop);background:var(--stop-pale)}
+.mdl .say[hidden]{display:none}
+.mdl .legal{margin:12px 0 0;font-size:12px;line-height:1.45;color:var(--ink-3)}
+
+/* ── Пустое состояние ──────────────────────────────────────────────── */
+.gone{max-width:76ch}
+.gone .hits{margin:12px 0 0;padding:0;list-style:none;border-top:1px solid var(--rule)}
+.gone .hits li{border-bottom:1px solid var(--rule-fine)}
+.gone .hits a{display:flex;align-items:baseline;gap:12px;padding:9px 2px;text-decoration:none;color:var(--ink-2)}
+.gone .hits a:hover{background:var(--blue-wash);color:var(--blue)}
+.gone .hits .mk{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.07em;font-size:14px;color:var(--ink)}
+.gone .hits .gr{margin-left:auto;font-family:var(--f-num);font-size:11.5px;color:var(--ink-3)}
+
+@media (max-width:900px){
+  .qpwrap,.gabgrid{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:560px){
+  .mdl .two{grid-template-columns:1fr}
+}
+@media (max-width:620px){
+  /* Размерная строка системы не переносится: длинный заголовок распирал бы
+     лист на телефоне. Токены и сам компонент не трогаем — только перенос. */
+  .dim{flex-wrap:wrap;gap:8px 12px}
+  .dim h2{flex:0 1 auto;min-width:0}
+  .dim .line{min-width:40px;margin-right:2px}
+}
+</style>
+</head>
+<body>
+<!--
+IMPECCABLE DIRECTION CONTRACT · мир «Чертёж»
+THESIS: Карточка типоразмера — рабочий лист изделия: агрегат начерчен в трёх
+видах, исполнение переключает само изделие, а не ярлык, и каждая цифра
+подписана источником.
+OWN-WORLD: бумага с миллиметровкой, волосяная линовка, приборный синий на
+структуре и на размерных линиях, сигнальный оранжевый только на действии.
+FORM: «Чертёж» закреплён распоряжением заказчика; раунд направления не проводился.
+-->
+
+<div id="vp-head"></div>
+
+<main>
+  <div class="wrap" id="page"></div>
+</main>
+
+<div id="vp-foot"></div>
+<div id="mdlHost"></div>
+
+<script src="assets/data.vp.js"></script>
+<script src="assets/catalog.vp.js"></script>
+<script src="assets/vp.js"></script>
+<script>
+(() => {
+'use strict';
+
+/* Крупные силуэты из библиотеки здесь больше не нужны: карточка чертит
+   изделие сама, параметрически из чисел позиции. */
+const {$, $$, ICON, store} = VP;
+const C = VPCAT;          /* дерево каталога: разделы → серии → типоразмеры */
+const D = VPDATA;         /* старый модуль: с ним живут кабинет и подбор     */
+
+VP.init('catalog.html');
+
+const esc = s => String(s == null ? '' : s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const NO = '<span class="no">не опубликовано</span>';
+
+/* Число или честный прочерк. dec() сама по себе на null даёт «null» — здесь
+   этого не случится ни разу: у клапанов нет ни Q, ни P, ни оборотов. */
+const numOr = (v, f) => (v === null || v === undefined || Number.isNaN(v)) ? null : (f ? f(v) : C.fmt(v));
+
+/* ═══════════════════════════════════════════════════════════════════════
+   1. КТО ОТКРЫТ
+   Терпим к трём написаниям адреса: собственный id SKU (vp5), адрес ступени
+   из контракта (vr-80-75-6-3) и id строки старого модуля (p5) — он приходит
+   из ленты просмотренного.
+   ═══════════════════════════════════════════════════════════════════════ */
+const skuSlug = r => C.slug(r.mk) + (r.size === null || r.size === undefined ? '' : '-' + C.slug(String(r.size)));
+
+/* Номер типоразмера там, где он опубликован. У ВМЭ, ВКРФ ДУ и клапанов
+   обозначений в таблицах нет — заголовок не должен превращаться в
+   «ПКВ-1м типоразмер не опубликован». */
+const szTag = r => (r.size === null || r.size === undefined) ? '' : C.szl(r);
+const titleOf = r => r.mk + (szTag(r) ? ' ' + szTag(r) : '');
+
+function resolve(q) {
+  if (!q) return null;
+  const raw = String(q).trim();
+  let r = C.sku(raw);
+  if (r) return r;
+  const low = raw.toLowerCase();
+  r = C.SKU.filter(x => skuSlug(x) === low)[0];
+  if (r) return r;
+  const d = D.NUM.filter(x => x.id === raw)[0];
+  if (d) {
+    r = C.SKU.filter(x => x.mk === d.mk && String(x.size) === String(d.size))[0];
+    if (r) return r;
+  }
+  const n = C.norm(raw);
+  r = C.SKU.filter(x => C.norm(x.mk + ' ' + (x.size === null ? '' : x.size)) === n)[0];
+  return r || null;
+}
+
+/* Состояние пользователя адресуется идентификаторами каталога (VPCAT.SKU) —
+   теми же, что у листа раздела и листа серии: иначе одна и та же позиция
+   попала бы в подбор дважды под разными ключами.
+   Ленту просмотренного в шапке собирает vp.js через VP.resolve(), который
+   ищет позицию и в каталоге, и в старом модуле, — дорисовывать её здесь
+   не нужно. */
+
+/* ═══════════════════════════════════════════════════════════════════════
+   2. ИСПОЛНЕНИЕ — состояние изделия, а не ярлык
+   Материал колеса и признак взрывозащиты читаются из самой расшифровки
+   индекса (VPCAT.IND) — это опубликованный заводом перечень. Конкретная
+   маркировка Ex, температурные таблицы по каждому индексу и масса по
+   исполнениям заводом НЕ опубликованы, и здесь об этом сказано прямо.
+   ═══════════════════════════════════════════════════════════════════════ */
+const MAT = {
+  '-'   :{w:'углеродистая сталь',                          ex:false, hot:false},
+  'Ж2'  :{w:'сталь, теплостойкое исполнение',              ex:false, hot:true },
+  'К1'  :{w:'коррозионностойкая сталь',                    ex:false, hot:false},
+  'К1Ж2':{w:'коррозионностойкая сталь, теплостойкое',      ex:false, hot:true },
+  'В'   :{w:'сталь, искробезопасное сочетание материалов', ex:true,  hot:false},
+  'ВЖ2' :{w:'сталь, искробезопасное, теплостойкое',        ex:true,  hot:true },
+  'ВК1' :{w:'коррозионностойкая сталь, искробезопасное',   ex:true,  hot:false},
+  'ВК3' :{w:'алюминиевые сплавы',                          ex:true,  hot:false},
+  'С'   :{w:'углеродистая сталь, сейсмостойкое',           ex:false, hot:false},
+};
+/* Поправка массы на исполнение. Завод массу не публикует вообще — базовая
+   величина уже оценка модуля данных, коэффициент здесь такая же оценка
+   интерфейса. В паспорте это подписано под таблицей, а не спрятано. */
+const KM = {'-':1, 'Ж2':1.03, 'К1':1.08, 'К1Ж2':1.10, 'В':1.04, 'ВЖ2':1.07, 'ВК1':1.12, 'ВК3':0.94, 'С':1.06};
+
+const indSlug = v => v === '-' ? 'base' : C.slug(v);
+
+/* Температурный предел исполнения. Серия публикует пару значений: рабочую
+   температуру среды t и предельную tmax. Вторая относится к теплостойким
+   исполнениям; отдельной таблицы по каждому индексу на сайте нет. */
+function tempOf(row, ind) {
+  const m = MAT[ind] || MAT['-'];
+  if (m.hot && row.tmax) return row.tmax;
+  return row.t === null || row.t === undefined ? null : row.t;
+}
+
+function massOf(row, ind) {
+  if (row.mass === null || row.mass === undefined) return null;
+  return Math.round(row.mass * (KM[ind] || 1));
+}
+
+/* Обозначение позиции. Заводского артикула на сайте нет ни у одной позиции,
+   поэтому строка собирается из марки, номера, индекса и схемы привода. */
+function artOf(row, ind, sch) {
+  let s = row.mk;
+  if (row.size !== null && row.size !== undefined) s += ' № ' + C.dec(row.size);
+  if (ind && ind !== '-') s += '-' + ind;
+  if (sch) s += '-сх.' + sch;
+  return s;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   3. СОСТОЯНИЕ СТРАНИЦЫ
+   ═══════════════════════════════════════════════════════════════════════ */
+const st = {row:null, ind:'-', sch:'', view:'view', tab:0, razv:'ПР0°'};
+const seen = {};          /* чтобы не писать одну позицию в ленту дважды */
+let lastSig = '';         /* подпись адреса: свои изменения отличаем от «назад» */
+
+/* Параметры страницы. Штатно они живут в query. Под file:// браузер
+   запрещает History API менять путь и query (origin здесь «null»), поэтому
+   на локальном прототипе то же состояние дублируется в хвост адреса —
+   и переход по соседям вместе с кнопкой «назад» работает и там. */
+function params() {
+  const P = new URLSearchParams(location.search);
+  const h = location.hash.replace(/^#/, '');
+  if (h.indexOf('=') >= 0) new URLSearchParams(h).forEach((v, k) => P.set(k, v));
+  return P;
+}
+
+function readURL() {
+  const P = params();
+  const row = resolve(P.get('p'));
+  if (!row) return null;
+  st.row = row;
+  const inds = row.ind && row.ind.length ? row.ind : ['-'];
+  const wantI = String(P.get('isp') || '').toLowerCase();
+  st.ind = inds.filter(v => indSlug(v) === wantI)[0] || inds[0];
+  const schs = row.sch && row.sch.length ? row.sch : [];
+  const wantS = String(P.get('sch') || '');
+  st.sch = schs.indexOf(wantS) >= 0 ? wantS : (schs[0] || '');
+  return row;
+}
+
+function query() {
+  let u = 'p=' + encodeURIComponent(st.row.id);
+  if (st.ind && st.ind !== '-') u += '&isp=' + indSlug(st.ind);
+  if (st.sch) u += '&sch=' + st.sch;
+  return u;
+}
+function pushURL(mode) {
+  const m = mode === 'push' ? 'pushState' : 'replaceState';
+  const s = {p:st.row.id, isp:st.ind, sch:st.sch};
+  try { history[m](s, '', 'product.html?' + query()); }
+  catch (e) {
+    /* file:// — путь и query менять нельзя, уходим в хвост адреса */
+    try { history[m](s, '', '#' + query()); }
+    catch (e2) { location.hash = query(); }
+  }
+  /* Свой же адрес запоминаем, иначе возврат по «назад» будет принят за
+     собственную запись и страница не перерисуется */
+  lastSig = location.search + '|' + location.hash;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   4. ЧЕРЧЕНИЕ
+   Три отрисовки одного и того же изделия, а не три подписи под картинкой:
+     вид     — агрегат целиком: спиральный корпус с языком, тангенциальный
+               патрубок с фланцем, всасывающий конфузор, привод, станина;
+     разрез  — то же изделие в сечении: колесо с загнутыми назад лопатками,
+               ступица, вал, входной коллектор, стенка корпуса со штриховкой;
+     габарит — контур с размерными линиями B, B1, H1, H2 и разворотом корпуса.
+
+   Геометрия СЧИТАЕТСЯ из чисел позиции — диаметра колеса (номер вентилятора
+   равен диаметру колеса в дециметрах), сечения канала у канальных, типа
+   агрегата и схемы привода — в миллиметрах изделия, и уже готовая сцена
+   вписывается в лист. Поэтому № 2,5 и № 20 чертит одна и та же функция.
+
+   Что здесь схематично: пропорции корпуса, толщина стенки, размер двигателя —
+   заводского габаритного чертежа нам не передали. Что НЕ схематично: закон
+   спирали улитки, положение языка, выход патрубка по касательной, наклон
+   лопаток назад и порядок узлов агрегата.
+   ═══════════════════════════════════════════════════════════════════════ */
+const TAU = Math.PI * 2;
+
+/* ── 4.0 Лист: полосы, а не наложения ───────────────────────────────────
+   Лист — не картинка, поверх которой напечатан текст. Это стопка полос, и
+   место каждой считается ДО того, как в лист вписана сцена. Сверху вниз:
+
+     поле · ярлык вида · полка верхних выносок · ОКНО ЧЕРТЕЖА ·
+     полка нижних выносок · размерные линии под чертежом · подпись · поле
+
+   Окно чертежа закреплено намертво: изделие не съёживается оттого, что
+   подпись под ним стала на строку длиннее. Всё, что ниже окна, сдвигается
+   вниз, и лист вырастает ровно на занятое — уменьшается поле листа, а не
+   изделие. Высота листа берётся одна на все три отрисовки, иначе
+   переключатель «вид / разрез / габарит» дёргал бы страницу по высоте.
+
+   Метрика надписей взята из CSS этого же файла: .lb и .dt — PT Mono 8.5px,
+   моноширинный, ширина знака 0.6 em, подъём и свес замерены по готовому
+   листу. Отсюда рамка любой надписи считается без обращения к DOM, ещё до
+   отрисовки, и заведомо не уже настоящей. Сверяет одно с другим PCDWG. */
+const W = 320;           /* ширина листа */
+const HMIN = 210;        /* лист короче не бывает: пропорции карточки */
+const MG = 6;            /* поле листа — за него не заходит ничто */
+const GAP = 5;           /* обязательный просвет между полосами */
+const CW = 5.1;          /* ширина знака .lb / .dt: 0.6 em при 8.5px */
+const ASC = 8, DESC = 2.5;   /* строка 8.5px вверх и вниз от базовой */
+const LH = 11;           /* шаг строк подписи */
+const VLBH = 19;         /* полоса под ярлык вида: он лежит HTML-накладкой */
+const TSH = 31;          /* полка верхних выносок */
+const SHW = 20;          /* длина полки */
+const TW = t => String(t).length * CW;            /* ширина надписи на листе */
+/* Прямоугольники последнего начерченного листа — по ним PCDWG проверяет,
+   что ничто ни на что не наехало (см. 4.9). */
+let pcLast = null;
+
+/* Полки выносок стоят по краям листа, над чертежом и под ним. Место
+   выбирает не автор сцены, а сам чертёж: узел левее получает левую полку,
+   правее — правую, поэтому две подписи одной полосы не сходятся.
+
+   Сторона, в которую полка уводит надпись, у верхней и нижней полосы
+   разная, и разная не по вкусу. Надпись всегда стоит НАД своей полкой.
+   К верхней полке выноска подходит СНИЗУ и выше полки не поднимается —
+   надписи она не касается никогда, поэтому сторону там задаёт порядок
+   узлов. К нижней полке выноска приходит СВЕРХУ, сквозь ту самую полосу,
+   где лежит надпись: если полка уводит надпись в сторону узла, выноска
+   ложится прямо поперёк своих же букв. Так и было у крышного — опорный
+   поддон лежит левее левой полки. Поэтому внизу полка уводит надпись ОТ
+   узла, а если узел вынесло за край полосы, полка переезжает под сам узел:
+   выноска идёт к ней отвесно, а надпись уходит внутрь листа, не за поле. */
+function slot(band, i, ax, txt) {
+  const w = TW(txt), base = i ? 208 : 112, out = i ? 1 : -1;
+  const dir = band === 'b' ? (ax >= base ? -1 : 1) : out;
+  const home = dir === out ? base
+             : (dir < 0 ? Math.min(ax, W - MG) : Math.max(ax, MG));
+  const tx = dir < 0 ? Math.max(home, MG + 2 + w) : Math.min(home, W - MG - 2 - w);
+  const x = tx + dir * 2;
+  return {tx:tx, dir:dir, x0:dir < 0 ? x - w : x, x1:dir < 0 ? x : x + w};
+}
+
+function defs(p) {
+  return '<defs>' +
+    '<marker id="' + p + 'Ar" viewBox="0 0 10 10" refX="9.2" refY="5" markerWidth="6.5" markerHeight="6.5"' +
+    ' orient="auto-start-reverse"><path d="M0.6 1.3 9.2 5 0.6 8.7Z"/></marker>' +
+    '<pattern id="pcHx" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">' +
+    '<path d="M0 0V3"/></pattern></defs>';
+}
+const n1 = v => Math.round(v * 10) / 10;
+
+function dimH(x1, x2, y, txt, p, up) {
+  const ty = up === false ? y + 11 : y - 5;
+  return '<path class="ext" d="M' + n1(x1) + ' ' + n1(y - 7) + 'V' + n1(y + 7) +
+         'M' + n1(x2) + ' ' + n1(y - 7) + 'V' + n1(y + 7) + '"/>' +
+         '<path class="dl" marker-start="url(#' + p + 'Ar)" marker-end="url(#' + p + 'Ar)" d="M' +
+         n1(x1) + ' ' + n1(y) + 'H' + n1(x2) + '"/>' +
+         '<text class="dt" x="' + n1((x1 + x2) / 2) + '" y="' + n1(ty) + '" text-anchor="middle">' + txt + '</text>';
+}
+function dimV(y1, y2, x, txt, p) {
+  const my = (y1 + y2) / 2;
+  return '<path class="ext" d="M' + n1(x - 7) + ' ' + n1(y1) + 'H' + n1(x + 7) +
+         'M' + n1(x - 7) + ' ' + n1(y2) + 'H' + n1(x + 7) + '"/>' +
+         '<path class="dl" marker-start="url(#' + p + 'Ar)" marker-end="url(#' + p + 'Ar)" d="M' +
+         n1(x) + ' ' + n1(y1) + 'V' + n1(y2) + '"/>' +
+         '<text class="dt" x="' + n1(x - 5) + '" y="' + n1(my) + '" text-anchor="middle"' +
+         ' transform="rotate(-90 ' + n1(x - 5) + ' ' + n1(my) + ')">' + txt + '</text>';
+}
+/* Выноска с полкой — так на чертеже подписывают узел */
+function lead(x, y, tx, ty, txt, dir) {
+  /* Сторону полки задаёт лист, а не положение узла: левая полка всегда
+     уводит надпись влево, правая — вправо, иначе две подписи налезают. */
+  dir = dir || (tx < x ? -1 : 1);
+  return '<path class="lead" d="M' + n1(x) + ' ' + n1(y) + 'L' + n1(tx) + ' ' + n1(ty) +
+         'h' + (dir * SHW) + '"/><circle class="sig" cx="' + n1(x) + '" cy="' + n1(y) + '" r="2"/>' +
+         '<text class="lb" x="' + n1(tx + dir * 2) + '" y="' + n1(ty - 4) + '"' +
+         (dir < 0 ? ' text-anchor="end"' : '') + '>' + txt + '</text>';
+}
+
+/* ── 4.1 Мини-язык геометрии ─────────────────────────────────────────────
+   Форма — либо путь {c:класс, d:[['M',x,y],['L',x,y],['Q',x1,y1,x,y],['Z']]},
+   либо окружность {k:'c',c:класс,x,y,r}. Координаты модельные, в миллиметрах
+   изделия. fit() вписывает сцену в лист, emit() печатает её уже в пикселях —
+   поэтому толщина линий и шаг штриховки не «плывут» вместе с типоразмером. */
+const SH  = (c, d) => ({c:c, d:d});
+const CR  = (c, x, y, r) => ({k:'c', c:c, x:x, y:y, r:r});
+const RC  = (c, x, y, w, h) => SH(c, [['M', x, y], ['L', x + w, y], ['L', x + w, y + h], ['L', x, y + h], ['Z']]);
+const LN  = (c, pts) => SH(c, pts.map((q, i) => [i ? 'L' : 'M', q[0], q[1]]));
+const mv  = pts => pts.map((q, i) => [i ? 'L' : 'M', q[0], q[1]]);
+const ln  = pts => pts.map(q => ['L', q[0], q[1]]);
+const pol = (r, a) => [r * Math.cos(a), r * Math.sin(a)];
+const vs  = (p, v, k) => [p[0] + v[0] * k, p[1] + v[1] * k];
+const un  = v => { const l = Math.hypot(v[0], v[1]) || 1; return [v[0] / l, v[1] / l]; };
+/* Перенос готовой группы форм: узел чертится в своих координатах и ставится
+   на место (колесо канального сидит не в центре корпуса, а на оси патрубка) */
+const tr  = (sh, dx, dy) => sh.map(f => f.k === 'c'
+  ? {k:'c', c:f.c, x:f.x + dx, y:f.y + dy, r:f.r}
+  : {c:f.c, eo:f.eo, d:f.d.map(c => c.map((v, i) => i === 0 ? v : (i % 2 ? v + dx : v + dy)))});
+
+function fit(sh, box) {
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  const eat = (x, y) => { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; };
+  for (const f of sh) {
+    if (f.k === 'c') { eat(f.x - f.r, f.y - f.r); eat(f.x + f.r, f.y + f.r); continue; }
+    for (const c of f.d) for (let i = 1; i < c.length; i += 2) eat(c[i], c[i + 1]);
+  }
+  const s = Math.min((box[2] - box[0]) / ((x1 - x0) || 1), (box[3] - box[1]) / ((y1 - y0) || 1));
+  const tx = box[0] + (box[2] - box[0] - (x1 - x0) * s) / 2 - x0 * s;
+  const ty = box[1] + (box[3] - box[1] - (y1 - y0) * s) / 2 - y0 * s;
+  const X = x => tx + x * s, Y = y => ty + y * s;
+  return {s:s, X:X, Y:Y, P:(x, y) => [X(x), Y(y)], bb:[X(x0), Y(y0), X(x1), Y(y1)]};
+}
+function emit(sh, M) {
+  let out = '';
+  for (const f of sh) {
+    if (f.k === 'c') {
+      out += '<circle class="' + f.c + '" cx="' + n1(M.X(f.x)) + '" cy="' + n1(M.Y(f.y)) +
+             '" r="' + n1(f.r * M.s) + '"/>';
+      continue;
+    }
+    let d = '';
+    for (const c of f.d) {
+      d += c[0];
+      for (let i = 1; i < c.length; i += 2) d += (i > 1 ? ' ' : '') + n1(M.X(c[i])) + ' ' + n1(M.Y(c[i + 1]));
+    }
+    out += '<path class="' + f.c + '" d="' + d + '"' + (f.eo ? ' fill-rule="evenodd"' : '') + '/>';
+  }
+  return out;
+}
+
+/* ── 4.2 Улитка ──────────────────────────────────────────────────────────
+   Спиральный корпус радиального вентилятора — логарифмическая спираль:
+
+        r(θ) = r0 · k^(θ/2π),    θ отсчитывается от языка
+
+   при θ=0 радиус равен r0 (колесо плюс зазор), за полный оборот радиус растёт
+   в k раз, и стенка уходит ПО КАСАТЕЛЬНОЙ в прямой нагнетательный патрубок с
+   фланцем. Язык улитки — место, где спираль смыкается с патрубком: начало и
+   конец витка лежат на одном луче, между ними ровно проход патрубка, и на
+   контуре это читается характерным изломом. Окружности здесь нет ни одной.
+   Раскрытие k и зазор — схематичные пропорции, сам закон спирали — настоящий. */
+function voluteGeom(D, o) {
+  o = o || {};
+  const rw = D / 2, k = o.k || 1.80;
+  const r0 = rw * (o.gap || 1.08), r1 = r0 * k;
+  const wall = o.wall || D * 0.035;
+  const a0 = -Math.PI + (o.ang || 0) * Math.PI / 180;   /* при 0° патрубок вверх */
+  const b = Math.log(k) / TAU, N = 84;
+  const inn = [], out = [];
+  for (let i = 0; i <= N; i++) {
+    const th = a0 + i / N * TAU, rr = r0 * Math.exp(b * (th - a0));
+    inn.push(pol(rr, th));
+    out.push(pol(rr + wall, th));
+  }
+  /* Касательная в конце витка задаёт направление патрубка */
+  const th1 = a0 + TAU;
+  const u = un([b * Math.cos(th1) - Math.sin(th1), b * Math.sin(th1) + Math.cos(th1)]);
+  const Po = out[N], Pi = inn[0];
+  let v = [-u[1], u[0]];
+  if (v[0] * (Pi[0] - Po[0]) + v[1] * (Pi[1] - Po[1]) < 0) v = [u[1], -u[0]];
+  const L = o.duct || D * 0.55, fo = D * 0.045, ft = D * 0.026;
+  const A2 = vs(Po, u, L), B2 = vs(Pi, u, L);
+  const dh = v[0] * (B2[0] - A2[0]) + v[1] * (B2[1] - A2[1]);
+  const F1 = vs(A2, v, -fo), F2 = vs(F1, u, ft), F3 = vs(F2, v, dh + 2 * fo), F4 = vs(F3, u, -ft);
+  const nose = vs([(Pi[0] + out[0][0]) / 2, (Pi[1] + out[0][1]) / 2], u, -wall);
+  const C1 = vs(inn[N], u, L + ft), C2 = vs(out[0], u, L + ft);
+
+  const R = {
+    rw:rw, r0:r0, r1:r1, wall:wall, u:u, v:v, inn:inn, out:out,
+    body:mv(out).concat(ln([A2, F1, F2, F3, F4, B2, Pi]),
+                        [['Q', nose[0], nose[1], out[0][0], out[0][1]], ['Z']]),
+    cav :mv(inn).concat(ln([C1, C2, out[0]]), [['Z']]),
+    tongue:Pi, nose:nose,
+    duct:[(A2[0] + B2[0]) / 2, (A2[1] + B2[1]) / 2],
+    flange:[(F2[0] + F3[0]) / 2, (F2[1] + F3[1]) / 2],
+  };
+  if (o.mir) {                     /* левое вращение — зеркало по оси колеса */
+    const mp = q => [-q[0], q[1]];
+    const md = d => d.map(c => c.map((x, i) => (i > 0 && i % 2) ? -x : x));
+    R.body = md(R.body); R.cav = md(R.cav);
+    R.inn = inn.map(mp); R.out = out.map(mp); R.u = mp(u); R.v = mp(v);
+    R.tongue = mp(R.tongue); R.nose = mp(R.nose);
+    R.duct = mp(R.duct); R.flange = mp(R.flange);
+  }
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (const c of R.body) for (let i = 1; i < c.length; i += 2) {
+    if (c[i] < x0) x0 = c[i];
+    if (c[i] > x1) x1 = c[i];
+    if (c[i + 1] < y0) y0 = c[i + 1];
+    if (c[i + 1] > y1) y1 = c[i + 1];
+  }
+  R.bb = [x0, y0, x1, y1];
+  return R;
+}
+
+/* Рабочее колесо в сечении: диск, ступица, вал и лопатки, ЗАГНУТЫЕ НАЗАД —
+   сход лопатки отстаёт от направления вращения (у ВР 80-75 и ДН именно так).
+   dir = +1 правое вращение, −1 левое. Число лопаток условное: завод его не
+   публикует, и подписи с количеством на чертеже поэтому нет. */
+function wheelShapes(rw, nb, dir) {
+  const ri = rw * 0.60, rh = rw * 0.30;
+  const sh = [CR('o2', 0, 0, rw), CR('fine', 0, 0, ri), CR('o2', 0, 0, rh)];
+  for (let i = 0; i < nb; i++) {
+    const a = i * TAU / nb;
+    const p1 = pol(ri, a), p2 = pol(rw, a - dir * 0.60), pc = pol(rw * 0.86, a - dir * 0.19);
+    sh.push(SH('o2', [['M', p1[0], p1[1]], ['Q', pc[0], pc[1], p2[0], p2[1]]]));
+  }
+  sh.push(CR('cut', 0, 0, rw * 0.11));            /* вал в сечении */
+  return sh;
+}
+/* Внешние касательные к двум шкивам — это и есть ветви клинового ремня */
+function belts(c1, r1, c2, r2) {
+  const dx = c2[0] - c1[0], dy = c2[1] - c1[1], dl = Math.hypot(dx, dy) || 1;
+  const th = Math.atan2(dy, dx), be = Math.acos(Math.max(-1, Math.min(1, (r1 - r2) / dl)));
+  return [th + be, th - be].map(a => {
+    const e = [Math.cos(a), Math.sin(a)];
+    return [vs(c1, e, r1), vs(c2, e, r2)];
+  });
+}
+
+/* Семейство формы: чем чертить агрегат. Тягодутьевая машина вынесена из
+   радиальных отдельно — у неё всасывающий карман и направляющий аппарат. */
+function famOf(r) {
+  if (r.type === 'klap') return 'klap';
+  if (r.type === 'tyaga') return 'tyaga';
+  if (r.art === 'fireroof' || r.type === 'roof') return 'roof';
+  if (r.art === 'fireax' || r.type === 'ax' || r.type === 'shaht') return 'ax';
+  if (r.type === 'kan') return 'kan';
+  return 'rad';
+}
+const hasRazv  = r => famOf(r) === 'rad' || famOf(r) === 'tyaga';
+const razvAng  = () => parseInt(String(st.razv).replace(/[^\d]/g, ''), 10) || 0;
+const razvLeft = () => String(st.razv).charAt(0) === 'Л';
+const wheelMat = m => 'материал колеса: ' + m.w;
+
+/* Сечение канала — это опубликованный заводом типоразмер: «40-20» значит
+   400×200 мм, «Ø100» — воздуховод Ø 100. Отсюда пропорции корпуса и
+   единственный размер, который у канальных можно поставить числом. */
+function ductSize(r) {
+  const s = String(r.size === null || r.size === undefined ? '' : r.size);
+  let mm = /^Ø(\d+)$/.exec(s);
+  if (mm) return {round:true, a:+mm[1], b:+mm[1], txt:'Ø ' + mm[1]};
+  mm = /^(\d+)-(\d+)$/.exec(s);
+  if (mm) return {round:false, a:+mm[1] * 10, b:+mm[2] * 10, txt:(+mm[1] * 10) + '×' + (+mm[2] * 10)};
+  return null;
+}
+
+/* ── 4.3 РАДИАЛЬНЫЙ и ТЯГОДУТЬЕВОЙ ──────────────────────────────────────
+   Одна сцена на два семейства: у тягодутьевой машины спираль круче, стенка
+   толще, а на всасывании стоит карман с осевым направляющим аппаратом. */
+function sceneRad(mode, r, m) {
+  const heavy = r.type === 'tyaga';
+  const D = r.dia || 500, rw = D / 2;
+  const sch = st.sch || '1', belt = sch === '5';
+  const g = voluteGeom(D, {ang:razvAng(), mir:razvLeft(), k:heavy ? 1.92 : 1.80,
+                           duct:D * (heavy ? 0.46 : 0.55),
+                           wall:D * (heavy ? 0.06 : 0.045)});
+  const dir = razvLeft() ? -1 : 1;
+  const sh = [], lb = [], dim = [];
+  const baseY = g.bb[3] + D * 0.16;
+  let mx = 0, mw = 0;
+
+  if (mode === 'cut') sh.push({c:'cut', eo:1, d:g.body.concat(g.cav)});
+  else sh.push(SH('o', g.body));
+
+  if (mode === 'view') {
+    /* Колесо и язык лежат за боковой стенкой — на виде они штриховые,
+       как и положено невидимому контуру. */
+    sh.push(CR('hid', 0, 0, rw));
+    sh.push(SH('hid', mv(g.inn.slice(0, 16))));
+    /* Всасывающий конфузор на боковой стенке. При прямом приводе смотрим со
+       стороны всасывания, при ремённом — со стороны привода. */
+    const cc = belt ? 'hid' : 'o2';
+    sh.push(CR(cc, 0, 0, rw * 0.78), CR(cc, 0, 0, rw * 0.55));
+    if (heavy) {
+      /* Всасывающий карман и осевой направляющий аппарат */
+      sh.push(RC('o2', -rw * 0.98, -rw * 0.98, rw * 1.96, rw * 1.96));
+      sh.push(RC('fine', -rw * 0.86, -rw * 0.86, rw * 1.72, rw * 1.72));
+      for (let i = 0; i < 10; i++) {
+        const a = i * TAU / 10;
+        sh.push(LN('fine', [pol(rw * 0.30, a), pol(rw * 0.56, a + 0.42)]));
+      }
+      lb.push([-rw * 0.98, -rw * 0.62].concat(['t'], ['всасывающий карман']));
+      lb.push(pol(rw * 0.44, -0.9).concat(['t'], ['направляющий аппарат']));
+    } else {
+      lb.push(pol(rw * 0.78, -2.35).concat(['t'], ['всасывающий конфузор']));
+      lb.push([g.flange[0], g.flange[1]].concat(['t'], ['патрубок с фланцем']));
+    }
+    lb.push([g.nose[0], g.nose[1]].concat(['b'], ['язык улитки']));
+  }
+
+  if (mode !== 'cut' && belt) {
+    /* Схема №5: колесо на собственном валу, привод клиноремённый — двигатель
+       стоит рядом на общей раме, и контур агрегата другой, чем у схемы №1. */
+    const mh = D * 0.38;
+    mw = D * 0.50;
+    mx = Math.max(g.bb[2], rw) + D * 0.34 + mw / 2;
+    const my = baseY - mh / 2 - D * 0.05;
+    sh.push(RC('o', mx - mw / 2, my - mh / 2, mw, mh));
+    sh.push(RC('o2', mx - mw * 0.16, my - mh / 2 - D * 0.05, mw * 0.32, D * 0.05));
+    sh.push(SH('o', [['M', mx - mw * 0.34, my + mh / 2], ['L', mx - mw * 0.34, baseY],
+                     ['M', mx + mw * 0.34, my + mh / 2], ['L', mx + mw * 0.34, baseY]]));
+    if (mode === 'view') {
+      const rp1 = rw * 0.34, rp2 = rw * 0.20, P2 = [mx - mw / 2 - D * 0.06, my];
+      sh.push(CR('o', 0, 0, rp1), CR('fine', 0, 0, rp1 * 0.70),
+              CR('o', P2[0], P2[1], rp2), CR('fine', P2[0], P2[1], rp2 * 0.62),
+              CR('o2', 0, 0, rw * 0.12));
+      for (const t of belts([0, 0], rp1, P2, rp2)) sh.push(LN('o2', t));
+      lb.push([P2[0], P2[1] - rp2].concat(['b'], ['шкивы и ремень']));
+    }
+  } else if (mode === 'view') {
+    /* Схема №1: колесо прямо на валу двигателя — двигатель сидит за корпусом
+       и показан скрытым контуром; схема №3 отличается муфтой. */
+    sh.push(CR('hid', 0, 0, rw * 0.52));
+    sh.push(SH('hid', [['M', -rw * 0.36, rw * 0.50], ['L', -rw * 0.36, baseY],
+                       ['M', rw * 0.36, rw * 0.50], ['L', rw * 0.36, baseY]]));
+    sh.push(CR('o2', 0, 0, rw * 0.12));
+    lb.push([-rw * 0.36, rw * 0.80].concat(['b'],
+            [sch === '3' ? 'двигатель и муфта' : 'двигатель за стенкой']));
+  }
+
+  if (mode === 'cut') {
+    for (const f of wheelShapes(rw, 12, dir)) sh.push(f);
+    sh.push(CR('hid', 0, 0, rw * 0.80), CR('hid', 0, 0, rw * 0.55));
+    if (heavy) for (let i = 0; i < 10; i++) {
+      const a = i * TAU / 10;
+      sh.push(LN('fine', [pol(rw * 0.30, a), pol(rw * 0.56, a + 0.42)]));
+    }
+    sh.push(SH('axl', [['M', g.bb[0] - D * 0.08, 0], ['L', g.bb[2] + D * 0.08, 0],
+                       ['M', 0, g.bb[1] - D * 0.08], ['L', 0, g.bb[3] + D * 0.08]]));
+    lb.push([g.nose[0], g.nose[1]].concat(['t'], ['язык улитки']));
+    lb.push(pol(rw * 0.88, -2.1).concat(['t'], ['лопатка назад']));
+    lb.push([rw * 0.30, 0].concat(['b'], ['вал и ступица']));
+    lb.push(pol(rw * 0.78, 2.1).concat(['b'], ['входной коллектор']));
+    /* Диаметр колеса — единственное число, которое мы знаем точно: номер
+       вентилятора равен диаметру колеса в дециметрах. Размер вынесен влево,
+       чтобы не столкнуться с подписью под чертежом. */
+    if (r.dia) dim.push({t:'v', p1:[0, -rw], p2:[0, rw], txt:'Ø ' + C.fmt(r.dia)});
+    return {sh:sh, lb:lb, dim:dim, axis:0, foot:wheelMat(m),
+            alt:'Разрез ' + r.mk + ': колесо с загнутыми назад лопатками, ступица, вал, ' +
+                'входной коллектор и стенка спирального корпуса в сечении'};
+  }
+
+  /* Станина: опоры под корпусом, у ремённого привода рама уходит под двигатель */
+  const sx = [-rw * 0.66, rw * 0.66];
+  sh.push(SH('o', [['M', sx[0], g.bb[3] - D * 0.01], ['L', sx[0], baseY],
+                   ['M', sx[1], g.bb[3] - D * 0.01], ['L', sx[1], baseY]]));
+  const fx0 = Math.min(g.bb[0], -rw) - D * 0.05;
+  const fx1 = (belt ? mx + mw / 2 : Math.max(g.bb[2], rw)) + D * 0.05;
+  sh.push(SH('base', [['M', fx0, baseY], ['L', fx1, baseY]]));
+  sh.push(SH('axl', [['M', g.bb[0] - D * 0.10, 0], ['L', g.bb[2] + D * 0.10, 0]]));
+  return {sh:sh, lb:lb, dim:dim, sup:sx, base:baseY, axis:0,
+          foot:mode === 'gab' ? 'значения полей заводом не опубликованы' : wheelMat(m),
+          alt:(heavy ? 'Тягодутьевая машина ' : 'Радиальный вентилятор ') + r.mk +
+              ': спиральный корпус с языком, тангенциальный патрубок, колесо, привод, станина'};
+}
+
+/* ── 4.4 ОСЕВОЙ ─────────────────────────────────────────────────────────
+   Улитки нет вовсе: колесо работает в обечайке, воздух идёт вдоль оси. */
+function sceneAx(mode, r, m) {
+  const D = r.dia || 500, rw = D / 2;
+  const rc = rw * 1.05, rf = rw * 1.28, t = D * 0.035, Lc = D * 0.95;
+  const sh = [], lb = [], dim = [];
+  const nb = 6;
+
+  if (mode === 'view') {
+    /* Вид с торца: осевой узнаётся колесом в обечайке */
+    sh.push(CR('o', 0, 0, rf), CR('o2', 0, 0, rc), CR('o', 0, 0, rw * 0.36));
+    for (let i = 0; i < nb; i++) {
+      const a = i * TAU / nb;
+      const p1 = pol(rw * 0.36, a - 0.30), p2 = pol(rc * 0.96, a + 0.04),
+            p3 = pol(rc * 0.96, a + 0.44), p4 = pol(rw * 0.36, a + 0.34);
+      const c1 = pol(rw * 0.74, a - 0.32), c2 = pol(rw * 0.72, a + 0.62);
+      sh.push(SH('o2', [['M', p1[0], p1[1]], ['Q', c1[0], c1[1], p2[0], p2[1]],
+                        ['L', p3[0], p3[1]], ['Q', c2[0], c2[1], p4[0], p4[1]], ['Z']]));
+    }
+    for (let i = 0; i < 8; i++) {
+      const q = pol(rf * 0.91, i * TAU / 8 + TAU / 16);
+      sh.push(CR('fine', q[0], q[1], D * 0.02));
+    }
+    const by = rf + D * 0.18;
+    sh.push(SH('o', [['M', -rf * 0.62, rf * 0.78], ['L', -rf * 0.62, by],
+                     ['M', rf * 0.62, rf * 0.78], ['L', rf * 0.62, by]]));
+    sh.push(SH('base', [['M', -rf * 1.04, by], ['L', rf * 1.04, by]]));
+    sh.push(SH('axl', [['M', -rf * 1.14, 0], ['L', rf * 1.14, 0],
+                       ['M', 0, -rf * 1.14], ['L', 0, rf * 1.14]]));
+    lb.push(pol(rw * 0.86, -1.15).concat(['t'], ['лопатка колеса']));
+    lb.push([-rf * 0.92, -rf * 0.38].concat(['t'], ['обечайка с фланцем']));
+    lb.push([rf * 0.62, by].concat(['b'], ['станина']));
+    if (r.dia) dim.push({t:'h', p1:[-rw, 0], p2:[rw, 0], txt:'Ø ' + C.fmt(r.dia)});
+    return {sh:sh, lb:lb, dim:dim, base:by, axis:0, foot:wheelMat(m),
+            alt:'Осевой вентилятор ' + r.mk + ': колесо в обечайке, вид с торца'};
+  }
+
+  const x0 = -Lc / 2, x1 = Lc / 2, by = rf + D * 0.18;
+  if (mode === 'cut') {
+    sh.push(RC('cut', x0, -rc - t, Lc, t), RC('cut', x0, rc, Lc, t));
+    for (const x of [x0, x1 - t]) {
+      sh.push(RC('cut', x, -rf, t, rf - rc - t), RC('cut', x, rc + t, t, rf - rc - t));
+    }
+    /* Входной коллектор — раструб на всасывании */
+    sh.push(SH('o2', [['M', x0, -rc], ['Q', x0 + D * 0.09, -rc, x0 + D * 0.12, -rc + D * 0.08]]),
+            SH('o2', [['M', x0, rc], ['Q', x0 + D * 0.09, rc, x0 + D * 0.12, rc - D * 0.08]]));
+    /* Двигатель на оси, ступица колеса перед ним и стойки к обечайке */
+    const mh = D * 0.30, xm0 = -D * 0.02, xm1 = D * 0.30;
+    sh.push(RC('o', xm0, -mh / 2, xm1 - xm0, mh));
+    sh.push(SH('o2', [['M', xm1, -mh * 0.34], ['L', x1 - D * 0.16, -rc],
+                      ['M', xm1, mh * 0.34], ['L', x1 - D * 0.16, rc]]));
+    sh.push(RC('o2', -D * 0.15, -rw * 0.40, D * 0.13, rw * 0.80));       /* ступица */
+    sh.push(RC('cut', -D * 0.30, -D * 0.04, D * 0.15, D * 0.08));        /* вал */
+    for (const sg of [-1, 1]) {                                          /* лопатки в сечении */
+      sh.push(SH('o2', [['M', -D * 0.13, sg * rw * 0.40], ['L', -D * 0.02, sg * rw * 0.34],
+                        ['L', D * 0.005, sg * rw * 0.99], ['L', -D * 0.105, sg * rw * 0.94], ['Z']]));
+    }
+    sh.push(SH('axl', [['M', x0 - D * 0.10, 0], ['L', x1 + D * 0.10, 0]]));
+    lb.push([x0 + D * 0.06, -rc - t / 2].concat(['t'], ['обечайка в сечении']));
+    lb.push([-D * 0.06, -rw * 0.70].concat(['t'], ['лопатка колеса']));
+    lb.push([D * 0.14, D * 0.06].concat(['b'], ['двигатель в потоке']));
+    lb.push([x0 + D * 0.10, rc - D * 0.06].concat(['b'], ['входной коллектор']));
+    if (r.dia) dim.push({t:'v', p1:[0, -rw], p2:[0, rw], txt:'Ø ' + C.fmt(r.dia)});
+    return {sh:sh, lb:lb, dim:dim, axis:0, foot:wheelMat(m),
+            alt:'Разрез осевого вентилятора ' + r.mk + ': обечайка в сечении, колесо, вал, двигатель'};
+  }
+
+  /* Габарит: обечайка сбоку, фланцы по торцам, лапы */
+  sh.push(RC('o', x0, -rc - t, Lc, 2 * (rc + t)));
+  sh.push(SH('o', [['M', x0, -rf], ['L', x0 + t, -rf], ['L', x0 + t, rf], ['L', x0, rf], ['Z'],
+                   ['M', x1 - t, -rf], ['L', x1, -rf], ['L', x1, rf], ['L', x1 - t, rf], ['Z']]));
+  const sx = [-Lc * 0.28, Lc * 0.28];
+  sh.push(SH('o', [['M', sx[0], rc + t], ['L', sx[0], by], ['M', sx[1], rc + t], ['L', sx[1], by]]));
+  sh.push(SH('base', [['M', x0 - D * 0.04, by], ['L', x1 + D * 0.04, by]]));
+  sh.push(SH('axl', [['M', x0 - D * 0.12, 0], ['L', x1 + D * 0.12, 0]]));
+  return {sh:sh, lb:lb, dim:dim, sup:sx, base:by, axis:0,
+          foot:'значения полей заводом не опубликованы',
+          alt:'Габаритная схема осевого вентилятора ' + r.mk};
+}
+
+/* ── 4.5 КРЫШНЫЙ ────────────────────────────────────────────────────────
+   Зонт над корпусом, выброс в сторону через кольцевую щель под зонтом,
+   агрегат стоит на опорном поддоне поверх кровельного стакана. Колесо здесь
+   радиальное с вертикальным валом: сбоку оно видно не окружностью, а полосой
+   по высоте лопатки — рисовать его кругом было бы ошибкой проекции. */
+function sceneRoof(mode, r, m) {
+  const D = r.dia || 500, rw = D / 2;
+  const Rk = rw * 1.15, Rz = rw * 1.68, hk = D * 0.62, hw = D * 0.26;
+  const yR = 0;                                    /* плоскость кровли */
+  const yT = yR - hk;                              /* верх корпуса */
+  const yC = yT - D * 0.20, yA = yC - D * 0.32;    /* нижняя кромка и верх зонта */
+  const yW = yT + hk * 0.46;                       /* середина колеса */
+  const t = D * 0.03;
+  const sh = [], lb = [], dim = [];
+
+  /* Опорный поддон на кровле и кровельный стакан ниже неё */
+  sh.push(RC(mode === 'cut' ? 'cut' : 'o', -Rk * 1.28, yR, Rk * 2.56, D * 0.05));
+  sh.push(SH('hid', [['M', -Rk * 0.82, yR + D * 0.05], ['L', -Rk * 0.82, yR + D * 0.26],
+                     ['M', Rk * 0.82, yR + D * 0.05], ['L', Rk * 0.82, yR + D * 0.26]]));
+  sh.push(SH('base', [['M', -Rz * 1.08, yR], ['L', Rz * 1.08, yR]]));
+  /* Зонт: скат и отбортовка по краю */
+  sh.push(SH('o', [['M', -Rz, yC], ['L', 0, yA], ['L', Rz, yC], ['L', Rz, yC + D * 0.05],
+                   ['L', -Rz, yC + D * 0.05], ['Z']]));
+  /* Стойки, на которых зонт держится над корпусом */
+  sh.push(SH('o2', [['M', -Rk * 0.88, yC + D * 0.05], ['L', -Rk * 0.88, yT],
+                    ['M', Rk * 0.88, yC + D * 0.05], ['L', Rk * 0.88, yT]]));
+
+  if (mode === 'cut') {
+    /* Корпус в сечении: боковые стенки и верхняя крышка со штриховкой */
+    sh.push(RC('cut', -Rk, yT, t, hk), RC('cut', Rk - t, yT, t, hk));
+    sh.push(RC('cut', -Rk, yT, 2 * Rk, t));
+    /* Колесо: покрывающий диск, лопатки в сечении по краю, ступица и вал */
+    sh.push(RC('cut', -rw, yW - hw / 2, 2 * rw, D * 0.025));                /* диск */
+    for (const sg of [-1, 1]) {
+      sh.push(RC('o2', sg * rw - (sg > 0 ? D * 0.03 : 0), yW - hw / 2, D * 0.03, hw));
+      sh.push(RC('o2', sg * rw * 0.62 - (sg > 0 ? D * 0.03 : 0), yW - hw / 2, D * 0.03, hw * 0.9));
+    }
+    sh.push(RC('cut', -rw * 0.26, yW - hw / 2 - D * 0.05, rw * 0.52, D * 0.05));   /* ступица */
+    sh.push(RC('cut', -D * 0.035, yT + t, D * 0.07, yW - yT - t));         /* вал */
+    sh.push(RC('o', -rw * 0.44, yT - D * 0.19, rw * 0.88, D * 0.19));      /* двигатель над корпусом */
+    /* Входной коллектор снизу — раструб по кромке поддона */
+    sh.push(SH('o2', [['M', -Rk + t, yR], ['Q', -rw * 0.94, yR, -rw * 0.94, yR - D * 0.14]]),
+            SH('o2', [['M', Rk - t, yR], ['Q', rw * 0.94, yR, rw * 0.94, yR - D * 0.14]]));
+    lb.push([-rw * 0.72, yW].concat(['t'], ['колесо в сечении']));
+    lb.push([rw * 0.30, yT - D * 0.10].concat(['t'], ['двигатель сверху']));
+    lb.push([-rw * 0.94, yR - D * 0.10].concat(['b'], ['входной коллектор']));
+    lb.push([Rk - t / 2, yT + hk * 0.84].concat(['b'], ['корпус в сечении']));
+    if (r.dia) dim.push({t:'h', p1:[-rw, yW], p2:[rw, yW], txt:'Ø ' + C.fmt(r.dia)});
+  } else {
+    sh.push(SH('o', [['M', -Rk, yT], ['L', -Rk, yR], ['M', Rk, yT], ['L', Rk, yR],
+                     ['M', -Rk, yT], ['L', Rk, yT]]));
+    if (mode === 'view') {
+      /* Колесо за стенкой корпуса — штриховым контуром, полосой по лопатке */
+      sh.push(SH('hid', [['M', -rw, yW - hw / 2], ['L', rw, yW - hw / 2],
+                         ['L', rw, yW + hw / 2], ['L', -rw, yW + hw / 2], ['Z']]));
+      sh.push(SH('hid', [['M', 0, yW - hw / 2], ['L', 0, yT]]));
+      /* Выброс в сторону — кольцевая щель между зонтом и корпусом */
+      for (const sg of [-1, 1]) {
+        const x = sg * Rk, y = yT - D * 0.10;
+        sh.push(SH('o2', [['M', x, y], ['L', x + sg * D * 0.22, y],
+                          ['M', x + sg * D * 0.22, y], ['L', x + sg * D * 0.15, y - D * 0.04],
+                          ['M', x + sg * D * 0.22, y], ['L', x + sg * D * 0.15, y + D * 0.04]]));
+      }
+      lb.push([0, yA + D * 0.16].concat(['t'], ['зонт']));
+      lb.push([-Rk - D * 0.22, yT - D * 0.10].concat(['t'], ['выброс в сторону']));
+      lb.push([rw * 0.6, yW + hw / 2].concat(['b'], ['колесо в корпусе']));
+      lb.push([-Rk * 1.24, yR + D * 0.025].concat(['b'], ['опорный поддон']));
+    }
+  }
+  sh.push(SH('axl', [['M', 0, yA - D * 0.06], ['L', 0, yR + D * 0.28]]));
+  return {sh:sh, lb:lb, dim:dim, sup:[-Rk * 0.82, Rk * 0.82], base:yR, axis:yW,
+          foot:mode === 'gab' ? 'значения полей заводом не опубликованы' : wheelMat(m),
+          alt:'Крышный вентилятор ' + r.mk + ': зонт над корпусом, выброс в сторону, опорный поддон'};
+}
+
+/* ── 4.6 КАНАЛЬНЫЙ ──────────────────────────────────────────────────────
+   Короб или цилиндр по сечению канала; у ВКПН двигатель вынесен из потока. */
+function sceneKan(mode, r, m) {
+  const ds = ductSize(r);
+  const round = ds ? ds.round : false;
+  const a = ds ? ds.a : 400, b = ds ? ds.b : 250;
+  const ext = r.art === 'ductext';                 /* двигатель снаружи корпуса */
+  const Lb = Math.max(a * 0.95, b * 1.9), Hb = b * 1.55;
+  const x0 = -Lb / 2, x1 = Lb / 2, y0 = -Hb / 2, y1 = Hb / 2;
+  const sp = b / 2, t = b * 0.05;
+  const cy = ext ? y1 - sp - b * 0.16 : 0;         /* ось патрубков и колеса */
+  const by = y1 + b * 0.28;                        /* опорная рама */
+  const rw = b * 0.36;                             /* колесо: доля сечения, не число */
+  const sh = [], lb = [], dim = [];
+  const spig = c => [RC(c, x0 - b * 0.30, cy - sp, b * 0.30, 2 * sp),
+                     RC(c, x1, cy - sp, b * 0.30, 2 * sp)];
+
+  if (mode === 'cut') {
+    sh.push(RC('cut', x0, y0, Lb, t), RC('cut', x0, y1 - t, Lb, t),
+            RC('cut', x0, y0, t, Hb), RC('cut', x1 - t, y0, t, Hb));
+    for (const f of spig('o2')) sh.push(f);
+    for (const f of tr(wheelShapes(rw, 11, 1), 0, cy)) sh.push(f);
+    sh.push(SH('o2', [['M', x0 + t, cy - sp], ['Q', -rw * 1.6, cy - sp, -rw * 1.3, cy - rw * 0.92]]),
+            SH('o2', [['M', x0 + t, cy + sp], ['Q', -rw * 1.6, cy + sp, -rw * 1.3, cy + rw * 0.92]]));
+    if (ext) {
+      sh.push(RC('o', -b * 0.34, y0 - b * 0.46, b * 0.68, b * 0.46));
+      sh.push(RC('cut', -b * 0.05, y0, b * 0.10, cy - rw * 0.3 - y0));
+      lb.push([0, y0 - b * 0.23].concat(['t'], ['двигатель вне потока']));
+    } else {
+      sh.push(RC('o', -b * 0.24, cy - b * 0.18, b * 0.48, b * 0.36));
+      lb.push([b * 0.24, cy - b * 0.09].concat(['t'], ['двигатель в корпусе']));
+    }
+    lb.push([x0 + t / 2, y0 + Hb * 0.30].concat(['t'], ['корпус в сечении']));
+    lb.push([-rw * 1.3, cy + rw * 0.92].concat(['b'], ['входной коллектор']));
+    lb.push([pol(rw * 0.86, -1.2)[0], cy + pol(rw * 0.86, -1.2)[1]].concat(['b'], ['колесо']));
+    sh.push(SH('axl', [['M', x0 - b * 0.45, cy], ['L', x1 + b * 0.45, cy]]));
+    return {sh:sh, lb:lb, dim:dim, axis:cy,
+            foot:[wheelMat(m)].concat(ds ? ['сечение канала ' + ds.txt + ' — типоразмер завода'] : []),
+            alt:'Разрез канального вентилятора ' + r.mk};
+  }
+
+  sh.push(round
+    ? SH('o', [['M', x0, y0], ['L', x1, y0], ['L', x1, y1], ['L', x0, y1], ['Z'],
+               ['M', x0, y0 + Hb * 0.13], ['L', x1, y0 + Hb * 0.13],
+               ['M', x0, y1 - Hb * 0.13], ['L', x1, y1 - Hb * 0.13]])
+    : RC('o', x0, y0, Lb, Hb));
+  for (const f of spig('o')) sh.push(f);
+  sh.push(RC('o2', x0 - b * 0.30, cy - sp - t, t, 2 * (sp + t)),
+          RC('o2', x1 + b * 0.30 - t, cy - sp - t, t, 2 * (sp + t)));
+  if (ext) sh.push(RC('o', -b * 0.34, y0 - b * 0.46, b * 0.68, b * 0.46),
+                   RC('o2', -b * 0.12, y0 - b * 0.58, b * 0.24, b * 0.12));
+  if (mode === 'view') {
+    sh.push(CR('hid', 0, cy, rw));
+    lb.push([x1 + b * 0.15, cy - sp].concat(['t'], ['патрубок ' + (ds ? ds.txt : 'по сечению канала')]));
+    lb.push([0, y0 - b * (ext ? 0.30 : 0)].concat(['t'], [ext ? 'двигатель вне потока' : 'корпус агрегата']));
+    lb.push([pol(rw, 0.95)[0], cy + pol(rw, 0.95)[1]].concat(['b'], ['колесо внутри']));
+    lb.push([x0 + Lb * 0.18, by].concat(['b'], ['опорная рама']));
+    if (ds) dim.push({t:'v', p1:[x0 - b * 0.3, cy - sp], p2:[x0 - b * 0.3, cy + sp],
+                      txt:C.fmt(ds.b)});
+  }
+  const sx = [x0 + Lb * 0.18, x1 - Lb * 0.18];
+  sh.push(SH('o', [['M', sx[0], y1], ['L', sx[0], by], ['M', sx[1], y1], ['L', sx[1], by]]));
+  sh.push(SH('base', [['M', x0 - b * 0.1, by], ['L', x1 + b * 0.1, by]]));
+  sh.push(SH('axl', [['M', x0 - b * 0.45, cy], ['L', x1 + b * 0.45, cy]]));
+  return {sh:sh, lb:lb, dim:dim, sup:sx, base:by, axis:cy,
+          foot:mode === 'gab' ? 'значения полей заводом не опубликованы'
+                              : [wheelMat(m)].concat(ds ? ['сечение канала ' + ds.txt + ' — типоразмер завода'] : []),
+          alt:'Канальный вентилятор ' + r.mk + ': корпус по сечению канала, колесо внутри'};
+}
+
+/* ── 4.7 КЛАПАН ─────────────────────────────────────────────────────────
+   Ни колеса, ни двигателя: корпус, поворотная заслонка и привод.
+   Перечня сечений завод не публикует — корпус чертится в условных долях,
+   поэтому у клапана нет ни одной размерной цифры, только буквы полей. */
+function sceneKlap(mode, r, m) {
+  const A = 600, B = 460, t = A * 0.035, L = A * 0.66, ov = A * 0.06;
+  const x0 = -L / 2, x1 = L / 2, y0 = -B / 2, y1 = B / 2;
+  const sh = [], lb = [], dim = [];
+  const bl = 0.72;                                 /* заслонка открыта */
+  const bx = Math.cos(bl) * (B / 2 - t), by2 = Math.sin(bl) * (B / 2 - t);
+
+  if (mode === 'cut') {
+    sh.push(RC('cut', x0, y0, L, t), RC('cut', x0, y1 - t, L, t));
+    sh.push(RC('cut', x0 - t, y0 - ov, t, B + 2 * ov), RC('cut', x1, y0 - ov, t, B + 2 * ov));
+    /* Заслонка в сечении и её ось */
+    sh.push(SH('cut', [['M', -bx - A * 0.018, -by2], ['L', -bx + A * 0.018, -by2],
+                       ['L', bx + A * 0.018, by2], ['L', bx - A * 0.018, by2], ['Z']]));
+    sh.push(CR('cut', 0, 0, A * 0.035));
+    sh.push(SH('hid', [['M', -L * 0.42, 0], ['L', L * 0.42, 0]]));
+    lb.push([x0 - t / 2, y0 + B * 0.32].concat(['t'], ['корпус в сечении']));
+    lb.push([0, 0].concat(['b'], ['ось заслонки']));
+    lb.push([bx * 0.62, by2 * 0.62].concat(['b'], ['заслонка в сечении']));
+  } else {
+    sh.push(RC('o', x0, y0, L, B));
+    sh.push(RC('o', x0 - t, y0 - ov, t, B + 2 * ov), RC('o', x1, y0 - ov, t, B + 2 * ov));
+    if (mode === 'view') {
+      sh.push(SH('hid', [['M', -bx, -by2], ['L', bx, by2]]));
+      sh.push(CR('o2', 0, 0, A * 0.035));
+      lb.push([bx * 0.7, by2 * 0.7].concat(['b'], ['заслонка (скрыта)']));
+      lb.push([x0, y0 + B * 0.30].concat(['t'], ['корпус с фланцами']));
+      lb.push([x1 + t, y1 - B * 0.2].concat(['b'], ['фланец под воздуховод']));
+    }
+  }
+  /* Привод — снаружи корпуса, на боковой стенке */
+  sh.push(SH('o', [['M', 0, -A * 0.035], ['L', 0, y0 - A * 0.10]]));
+  sh.push(RC('o', -A * 0.11, y0 - A * 0.24, A * 0.22, A * 0.14));
+  if (mode !== 'gab') lb.push([0, y0 - A * 0.17].concat(['t'], ['привод']));
+  sh.push(SH('axl', [['M', x0 - A * 0.10, 0], ['L', x1 + A * 0.10, 0]]));
+  return {sh:sh, lb:lb, dim:dim, sup:[x0, x1], base:y1, axis:0,
+          foot:mode === 'gab' ? 'значения полей заводом не опубликованы'
+                              : 'заслонка открыта · сечений корпуса завод не публикует',
+          alt:'Противопожарный клапан ' + r.mk + ': корпус, поворотная заслонка, привод'};
+}
+
+const SCENE = {rad:sceneRad, tyaga:sceneRad, ax:sceneAx, roof:sceneRoof, kan:sceneKan, klap:sceneKlap};
+
+/* ── 4.8 Печать листа ─────────────────────────────────────────────────
+   Подпись под чертежом переносится по словам: чертёжный шрифт моноширинный,
+   и строка длиннее поля листа просто обрезалась бы краем SVG. Со штампом Ex
+   свободного места меньше — предел строки короче. Ни одна строка при этом
+   не выбрасывается: в подписи сказано ровно то, чего завод не публикует, и
+   молча укоротить её до двух строк значило бы это скрыть. */
+function footLines(sc, r, ex) {
+  const lim = ex ? 46 : 57;
+  const out = [];
+  /* Если диаметра колеса завод не публикует, чертёж всё равно строится —
+     но об условности пропорций сказано прямо, а размерной линии нет. */
+  const src = [].concat(sc.foot || [])
+    .concat(!r.dia && famOf(r) !== 'klap' ? ['диаметр колеса не опубликован — пропорции условны'] : []);
+  for (const t of src) {
+    let cur = '';
+    for (const w of String(t).split(' ')) {
+      if (cur && (cur + ' ' + w).length > lim) { out.push(cur); cur = w; }
+      else cur = cur ? cur + ' ' + w : w;
+    }
+    if (cur) out.push(cur);
+  }
+  return out;
+}
+
+/* Раскладка одной отрисовки: считает сцену, вписывает её в закреплённое
+   окно чертежа и раскладывает полосы под окном — полку выносок, размерные
+   линии, подпись. Возвращает разметку, занятые прямоугольники и высоту
+   листа, которая для этой отрисовки понадобилась. */
+function planSheet(p, mode) {
+  const r = st.row, m = MAT[st.ind] || MAT['-'];
+  const sc = (SCENE[famOf(r)] || sceneRad)(mode, r, m);
+  const box = mode === 'gab' ? [70, 46, 254, 146] : [46, 38, 276, 158];
+  const M = fit(sc.sh, box);
+  let s = defs(p) + emit(sc.sh, M);
+  const rc = [];                       /* что и где занято на листе */
+  const put = (x0, y0, x1, y1, t) => rc.push({x0:x0, y0:y0, x1:x1, y1:y1, t:t});
+  /* Ярлык вида лежит HTML-накладкой поверх угла: в лист он не печатается,
+     но место под него в раскладке отведено — иначе верхняя полка выносок
+     заехала бы под него. */
+  put(0, 0, 88, VLBH, 'ярлык вида');
+
+  /* Выноски: не больше двух в полосе, узел левее берёт левую полку */
+  const bl = {};
+  for (const band of ['t', 'b']) {
+    bl[band] = (sc.lb || []).filter(l => l[2] === band)
+      .map(l => ({p:M.P(l[0], l[1]), t:l[3]}))
+      .sort((a, b) => a.p[0] - b.p[0]).slice(0, 2);
+  }
+  const shY = {t:TSH, b:box[3] + GAP + 4 + ASC};
+  let ybot = box[3];
+  for (const band of ['t', 'b']) {
+    let prev = null;
+    bl[band].forEach((g, i) => {
+      const q = slot(band, i, g.p[0], g.t);
+      /* Обе подписи нижней полосы могут смотреть внутрь листа — так у
+         ремённой схемы, где и язык улитки, и шкивы лежат по краям чертежа.
+         Тогда вторая полка уходит строкой ниже: на чертеже полки так и
+         ставят, лесенкой, а не впритык одна на другую. */
+      const ty = shY[band] + (band === 'b' && prev && q.x0 < prev + GAP ? LH : 0);
+      s += lead(g.p[0], g.p[1], q.tx, ty, g.t, q.dir);
+      put(q.x0, ty - 4 - ASC, q.x1, ty - 4 + DESC, g.t);
+      if (band === 'b') ybot = Math.max(ybot, ty);
+      prev = q.x1;
+    });
+  }
+
+  /* Размерная линия ставится только там, где число опубликовано: диаметр
+     колеса (он же номер вентилятора) и сечение канала. Больше цифр нет.
+     Вертикальный размер уходит влево от чертежа, горизонтальный — вниз, ПОД
+     полку выносок: иначе выноска пересекала бы размерную надпись. */
+  for (const d of sc.dim || []) {
+    const A = M.P(d.p1[0], d.p1[1]), B = M.P(d.p2[0], d.p2[1]);
+    if (d.t === 'v') {
+      const x = M.bb[0] - 22, my = (A[1] + B[1]) / 2, hw = TW(d.txt) / 2;
+      s += '<path class="ext" d="M' + n1(A[0]) + ' ' + n1(A[1]) + 'H' + n1(x) +
+           'M' + n1(B[0]) + ' ' + n1(B[1]) + 'H' + n1(x) + '"/>' + dimV(A[1], B[1], x, d.txt, p);
+      put(x - 5 - ASC, my - hw, x - 5 + DESC, my + hw, d.txt);
+    } else {
+      const y = ybot + GAP + 7, mx = (A[0] + B[0]) / 2, hw = TW(d.txt) / 2;
+      s += '<path class="ext" d="M' + n1(A[0]) + ' ' + n1(A[1]) + 'V' + n1(y) +
+           'M' + n1(B[0]) + ' ' + n1(B[1]) + 'V' + n1(y) + '"/>' + dimH(A[0], B[0], y, d.txt, p, false);
+      put(mx - hw, y + 11 - ASC, mx + hw, y + 11 + DESC, d.txt);
+      ybot = y + 11 + DESC;
+    }
+  }
+  if (mode === 'gab') {
+    /* Поля габаритной таблицы — буквами: числовых значений завод не даёт.
+       Выносок в этой отрисовке нет ни у одного семейства, поэтому размерный
+       ряд начинается сразу под окном чертежа. */
+    const bb = M.bb;
+    const sx = sc.sup ? [M.X(sc.sup[0]), M.X(sc.sup[1])] : [bb[0] + 14, bb[2] - 14];
+    const by = sc.base !== undefined ? M.Y(sc.base) : bb[3];
+    const mid = (a, b) => (a + b) / 2;
+    /* Надпись горизонтального размера стоит на 11 ниже своей линии,
+       вертикального — на 5 левее и повёрнута: рамки считаются по тем же
+       числам, что и разметка, чтобы одно не разъехалось с другим. */
+    const bh = (x, y, t) => put(x - TW(t) / 2, y + 11 - ASC, x + TW(t) / 2, y + 11 + DESC, t);
+    const bv = (x, y, t) => put(x - 5 - ASC, y - TW(t) / 2, x - 5 + DESC, y + TW(t) / 2, t);
+    s += dimH(bb[0], bb[2], by + 36, 'B', p, false);
+    s += dimH(sx[0], sx[1], by + 20, 'B1', p, false);
+    s += dimV(bb[1], by, bb[0] - 28, 'H1', p);
+    bh(mid(bb[0], bb[2]), by + 36, 'B');
+    bh(mid(sx[0], sx[1]), by + 20, 'B1');
+    bv(bb[0] - 28, mid(bb[1], by), 'H1');
+    if (sc.axis !== undefined) {
+      const ay = M.Y(sc.axis);
+      s += dimV(ay, by, bb[2] + 26, 'H2', p);
+      bv(bb[2] + 26, mid(ay, by), 'H2');
+    }
+    ybot = Math.max(ybot, by + 36 + 11 + DESC);
+  }
+
+  const foot = footLines(sc, r, m.ex);
+  const footH = foot.length ? (foot.length - 1) * LH + ASC + DESC : 0;
+  return {s:s, rc:rc, foot:foot, ex:m.ex, alt:sc.alt || ('Чертёж ' + r.mk),
+          need:Math.max(HMIN, Math.ceil(ybot + (footH ? GAP + footH : 0) + MG))};
+}
+
+/* Готовый лист. Высота берётся одна на все три отрисовки — по самой
+   требовательной: переключатель «вид / разрез / габарит» не должен менять
+   высоту фигуры и дёргать страницу. */
+function drawScene(p, mode, big) {
+  let H = HMIN, pl = null;
+  for (const md of ['view', 'cut', 'gab']) {
+    const q = planSheet(p, md);
+    if (q.need > H) H = q.need;
+    if (md === mode) pl = q;
+  }
+  let s = pl.s;
+  const rc = pl.rc.slice();
+  /* Штамп взрывозащищённого исполнения — в углу листа, как на чертеже. Он
+     стоит справа от подписи, на её же строках, поэтому предел переноса
+     строки при нём короче: см. footLines. */
+  if (pl.ex) {
+    const ew = 48, eh = 18, ex = W - MG - 2 - ew, ey = H - MG - eh;
+    s += '<rect class="exb" x="' + ex + '" y="' + n1(ey) + '" width="' + ew + '" height="' + eh + '"/>' +
+         '<text class="ext-t" x="' + (ex + ew / 2) + '" y="' + n1(ey + 13) + '" text-anchor="middle">Ex</text>';
+    rc.push({x0:ex, y0:ey, x1:ex + ew, y1:ey + eh, t:'штамп Ex'});
+  }
+  /* Подпись прижата к нижнему полю листа: место под неё отдано заранее */
+  const y0 = H - MG - DESC - (pl.foot.length - 1) * LH;
+  for (let i = 0; i < pl.foot.length; i++) {
+    const y = y0 + i * LH;
+    s += '<text class="lb" x="10" y="' + n1(y) + '">' + esc(pl.foot[i]) + '</text>';
+    rc.push({x0:10, y0:y - ASC, x1:10 + TW(pl.foot[i]), y1:y + DESC, t:pl.foot[i]});
+  }
+  pcLast = {rc:rc, W:W, H:H, mode:mode};
+  return svgWrap(s, pl.alt, H + (big ? 8 : 0));
+}
+
+function svgWrap(inner, label, h) {
+  return '<svg class="dwg" viewBox="0 0 ' + W + ' ' + n1(h) + '" role="img" aria-label="' +
+         esc(label) + '">' + inner + '</svg>';
+}
+
+/* ── 4.9 Проверка раскладки расчётом ─────────────────────────────────────
+   Раскладка считается прямоугольниками — значит её можно не «посмотреть», а
+   проверить. PCDWG.check() сверяет то, что посчитала сама раскладка для
+   последнего начерченного листа; PCDWG.audit(svg) берёт готовый лист из
+   документа, снимает НАСТОЯЩИЕ рамки надписей (с учётом поворота размерных)
+   и щупает каждую линию по её длине — так ловится и то, чего в расчёте не
+   было. Обе возвращают список нарушений: надпись на надписи, линия по
+   надписи, выход за край листа. Пустой список — лист чистый.
+
+   Прогон по всему каталогу этим и делается: перебрать позиции, на каждой
+   переключить вид / разрез / габарит и собрать PCDWG.audit(). Именно так
+   и нашлись выноска, лежавшая поперёк своей же надписи у крышного, и две
+   сошедшиеся подписи у ремённой схемы. */
+const rcHit = (a, b) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
+const PCDWG = {
+  rects:() => pcLast,
+  check() {
+    if (!pcLast) return ['лист ещё не начерчен'];
+    const q = pcLast.rc, bad = [];
+    for (let i = 0; i < q.length; i++) {
+      if (q[i].x0 < 0 || q[i].y0 < 0 || q[i].x1 > pcLast.W || q[i].y1 > pcLast.H)
+        bad.push('за краем листа: «' + q[i].t + '»');
+      for (let j = i + 1; j < q.length; j++)
+        if (rcHit(q[i], q[j])) bad.push('наложились: «' + q[i].t + '» × «' + q[j].t + '»');
+    }
+    return bad;
+  },
+  audit(svg) {
+    svg = svg || document.querySelector('.dwg');
+    if (!svg || !svg.getScreenCTM()) return ['листа в документе нет'];
+    const inv = svg.getScreenCTM().inverse(), vb = svg.viewBox.baseVal, bad = [];
+    const box = el => {
+      const m = inv.multiply(el.getScreenCTM()), b = el.getBBox();
+      const r = {x0:1e9, y0:1e9, x1:-1e9, y1:-1e9, t:(el.textContent || el.nodeName).trim()};
+      for (const c of [[b.x, b.y], [b.x + b.width, b.y],
+                       [b.x, b.y + b.height], [b.x + b.width, b.y + b.height]]) {
+        const x = m.a * c[0] + m.c * c[1] + m.e, y = m.b * c[0] + m.d * c[1] + m.f;
+        r.x0 = Math.min(r.x0, x); r.x1 = Math.max(r.x1, x);
+        r.y0 = Math.min(r.y0, y); r.y1 = Math.max(r.y1, y);
+      }
+      return r;
+    };
+    const tx = [].map.call(svg.querySelectorAll('text'), box);
+    /* Ярлык вида лежит HTML-накладкой на поле фигуры, выше верхней кромки
+       листа: сам лист он не занимает, но с надписями чертежа пересекаться
+       не смеет — поэтому в проверке он такой же прямоугольник, только край
+       листа ему не указ (flt). */
+    const vl = svg.parentNode.querySelector ? svg.parentNode.querySelector('.vlbl') : null;
+    if (vl) {
+      const b = vl.getBoundingClientRect(), o = svg.getBoundingClientRect();
+      const kx = vb.width / o.width, ky = vb.height / o.height;
+      tx.push({x0:(b.left - o.left) * kx, y0:(b.top - o.top) * ky,
+               x1:(b.right - o.left) * kx, y1:(b.bottom - o.top) * ky,
+               t:'ярлык вида', flt:1});
+    }
+    for (let i = 0; i < tx.length; i++) {
+      const a = tx[i];
+      if (!a.flt && (a.x0 < vb.x - 0.5 || a.y0 < vb.y - 0.5 ||
+          a.x1 > vb.x + vb.width + 0.5 || a.y1 > vb.y + vb.height + 0.5))
+        bad.push('надпись за краем листа: «' + a.t + '»');
+      for (let j = i + 1; j < tx.length; j++)
+        if (rcHit(a, tx[j])) bad.push('надписи наложились: «' + a.t + '» × «' + tx[j].t + '»');
+    }
+    for (const el of svg.querySelectorAll('path, circle, rect')) {
+      if (el.closest('defs') || !el.getTotalLength) continue;
+      const m = inv.multiply(el.getScreenCTM()), len = el.getTotalLength();
+      for (let d = 0; d <= len; d += 0.8) {
+        const q = el.getPointAtLength(Math.min(d, len));
+        const x = m.a * q.x + m.c * q.y + m.e, y = m.b * q.x + m.d * q.y + m.f;
+        let hit = false;
+        for (const a of tx) if (x > a.x0 && x < a.x1 && y > a.y0 && y < a.y1) {
+          bad.push('линия по надписи: ' + (el.getAttribute('class') || el.nodeName) +
+                   ' × «' + a.t + '»');
+          hit = true; break;
+        }
+        if (hit) break;
+      }
+    }
+    return bad.filter((v, i, a) => a.indexOf(v) === i);
+  },
+};
+window.PCDWG = PCDWG;
+
+function figure() {
+  if (st.view === 'cut') return drawScene('c', 'cut');
+  if (st.view === 'gab') return drawScene('g', 'gab');
+  return drawScene('v', 'view');
+}
+/* ── 4.10 Подпись под фигурой ───────────────────────────────────────────
+   Подпись описывает ТО, ЧТО НАРИСОВАНО, — поэтому она своя у каждого
+   семейства формы и у каждой из трёх отрисовок. Одной подписи на всех быть
+   не может: у клапана нет ни колеса, ни вала, ни двигателя, ни станины, и на
+   чертеже их правильно нет — назвать их подписью значило бы соврать поверх
+   честного рисунка. Условность пропорций и отсутствие чисел оговариваются
+   ровно там, где они есть, а не общей оговоркой на весь каталог. */
+const SCHEMA = 'Схема, а не заводской чертёж: габаритного чертежа завод не передал.';
+const GABEND = 'Числовых значений полей завод не публикует — на схеме стоят буквы.';
+const DIAONE = 'Проставлен один размер — диаметр колеса: номер агрегата равен диаметру колеса в дециметрах.';
+const NODIA  = 'Размерных чисел нет: диаметра колеса завод для этой позиции не публикует, пропорции условны.';
+
+/* Схема привода меняет сам чертёж радиального и тягодутьевого агрегата,
+   а не только ярлык, — значит меняет и подпись под ним. */
+function driveCap() {
+  if (st.sch === '5') return 'Схема №5: двигатель вынесен на общую раму рядом с корпусом, показаны шкивы ' +
+    'и клиновой ремень; колесо за боковой стенкой — штриховым контуром.';
+  if (st.sch === '3') return 'Схема №3: колесо и двигатель, соединённые муфтой, закрыты корпусом и показаны ' +
+    'штриховым контуром.';
+  return 'Схема №1: колесо сидит прямо на валу двигателя; оба закрыты корпусом и показаны штриховым контуром.';
+}
+/* Габарит у улитки один на радиальный и тягодутьевой: контур тот же */
+const gabVolute = () => 'Габаритная схема: контур спирального корпуса с нагнетательным патрубком, станина' +
+  (st.sch === '5' ? ', рама с двигателем' : '') + ' и поля B, B1, H1, H2. Разворот корпуса поворачивает ' +
+  'патрубок — контур перечерчивается вместе с ним. ' + GABEND;
+
+const CAP = {
+  rad:{
+    view:() => 'Вид общий. Спиральный корпус с языком, тангенциальный нагнетательный патрубок с фланцем, ' +
+      'всасывающий конфузор на боковой стенке, станина. ' + driveCap() + ' ' + SCHEMA,
+    cut :r => 'Разрез. Стенка спирального корпуса заштрихована, внутри — колесо с загнутыми назад лопатками, ' +
+      'ступица, вал в сечении и входной коллектор. Число лопаток и толщина стенки условны: завод их не ' +
+      'публикует. ' + (r.dia ? DIAONE : NODIA),
+    gab :gabVolute,
+  },
+  tyaga:{
+    view:() => 'Вид общий. Спиральный корпус с языком и тангенциальным патрубком, всасывающий карман с осевым ' +
+      'направляющим аппаратом, станина. ' + driveCap() + ' ' + SCHEMA,
+    cut :r => 'Разрез. Стенка корпуса заштрихована, внутри — колесо с загнутыми назад лопатками, ступица, вал ' +
+      'в сечении, входной коллектор и лопатки направляющего аппарата. Число лопаток и толщина стенки условны: ' +
+      'завод их не публикует. ' + (r.dia ? DIAONE : NODIA),
+    gab :gabVolute,
+  },
+  ax:{
+    view:r => 'Вид с торца. Обечайка с фланцем и крепёжными отверстиями, колесо с лопатками на ступице, ' +
+      'станина. Улитки у осевого агрегата нет: воздух идёт вдоль оси, корпус цилиндрический. ' +
+      (r.dia ? 'Проставлен диаметр колеса. ' : 'Диаметра колеса завод для этой позиции не публикует — ' +
+        'размерной линии нет, пропорции условны. ') + SCHEMA,
+    cut :r => 'Продольный разрез. Обечайка в сечении, входной коллектор на всасывании, колесо с лопатками на ' +
+      'ступице, вал и двигатель прямо в потоке, на стойках к обечайке. Число лопаток, толщина стенки и размер ' +
+      'двигателя условны: завод их не публикует. ' + (r.dia ? DIAONE : NODIA),
+    gab :() => 'Габаритная схема: обечайка сбоку, фланцы по торцам, лапы и поля B, B1, H1, H2. Разворачивать ' +
+      'у осевого агрегата нечего: улитки, которую поворачивают у радиального, здесь нет. ' + GABEND,
+  },
+  roof:{
+    view:() => 'Вид общий. Зонт на стойках над корпусом, кольцевая щель бокового выброса (показана стрелками), ' +
+      'корпус на опорном поддоне, кровельный стакан под кровлей — штриховым контуром. Колесо радиальное, на ' +
+      'вертикальном валу: сбоку оно видно полосой по высоте лопатки, а не окружностью, и закрыто стенкой ' +
+      'корпуса. ' + SCHEMA,
+    cut :r => 'Разрез. Стенки и крышка корпуса заштрихованы, внутри — колесо с покрывающим диском и лопатками ' +
+      'в сечении, ступица и вертикальный вал; двигатель стоит над корпусом, входной коллектор — снизу, по ' +
+      'кромке поддона. Число лопаток и толщина стенки условны. ' + (r.dia ? DIAONE : NODIA),
+    gab :() => 'Габаритная схема: зонт, корпус, опорный поддон и поля B, B1, H1, H2. Разворота корпуса у ' +
+      'крышного агрегата нет: выброс кольцевой, во все стороны сразу. ' + GABEND,
+  },
+  kan:{
+    view:r => {
+      const ds = ductSize(r);
+      return 'Вид общий. ' + (ds && ds.round ? 'Цилиндрический корпус' : 'Корпус-короб') + ' по сечению канала, ' +
+        'входной и выходной патрубки с фланцами, опорная рама. ' +
+        (r.art === 'ductext'
+          ? 'Двигатель вынесен из потока и стоит на корпусе сверху; колесо внутри — штриховым контуром. '
+          /* На виде у этого исполнения двигатель не вычерчен: он сидит в корпусе
+             прямо за колесом, и отдельного контура у него на этой проекции нет */
+          : 'Колесо внутри корпуса — штриховым контуром; двигатель стоит там же, за колесом, и на виде ' +
+            'отдельным контуром не выделен — его видно на разрезе. ') +
+        (ds ? 'Проставлен размер патрубка: сечение канала ' + ds.txt + ' — опубликованный заводом типоразмер. '
+            : 'Сечения канала для этой позиции завод не назвал — пропорции корпуса условны. ') + SCHEMA;
+    },
+    cut :r => {
+      const ds = ductSize(r);
+      return 'Разрез. Стенки корпуса заштрихованы, внутри — колесо с загнутыми назад лопатками, ступица, вал ' +
+        'в сечении, входной коллектор и патрубки. ' +
+        (r.art === 'ductext' ? 'Двигатель вынесен из потока, над корпусом, вал проходит сквозь стенку. '
+                             : 'Двигатель стоит в корпусе, рядом с колесом. ') +
+        'Размерных чисел на разрезе нет: диаметра колеса у канальных агрегатов завод не публикует, доля ' +
+        'сечения взята условно' + (ds ? ' — опубликовано только само сечение канала ' + ds.txt : '') + '.';
+    },
+    gab :() => 'Габаритная схема: корпус по сечению канала, патрубки с фланцами, опорная рама и поля ' +
+      'B, B1, H1, H2. Разворота корпуса у канального агрегата нет. ' + GABEND,
+  },
+  klap:{
+    view:() => 'Вид общий. Корпус с фланцами под воздуховод и привод снаружи корпуса. Поворотная заслонка ' +
+      'закрыта стенкой корпуса и показана штриховым контуром; вычерчена открытой. Ни колеса, ни вала, ни ' +
+      'двигателя, ни станины у клапана нет — и на чертеже их нет. Размерных чисел тоже нет ни одного: ' +
+      'перечня сечений корпуса завод не публикует, пропорции условны.',
+    cut :() => 'Разрез. Стенки корпуса и фланцы заштрихованы, внутри — поворотная заслонка в сечении и её ось; ' +
+      'привод остаётся снаружи, на стенке. Ни колеса, ни вала, ни двигателя здесь нет. Размерных чисел нет ни ' +
+      'одного: перечня сечений корпуса завод не публикует, пропорции условны.',
+    gab :() => 'Габаритная схема: корпус с фланцами, привод и поля B, B1, H1, H2. Разворота корпуса у клапана ' +
+      'нет. ' + GABEND + ' Перечень сечений корпуса завод тоже не публикует.',
+  },
+};
+function viewCap() {
+  const r = st.row, fam = CAP[famOf(r)] || CAP.rad;
+  return (fam[st.view] || fam.view)(r);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   5. ПОЛЕ Q-P
+   Это рабочая ОБЛАСТЬ по опубликованным краям диапазона серии, а не
+   паспортная кривая. Настоящие характеристики на боевом сайте грузятся с
+   чужих доменов zavodventilator.ru и ventilator.spb.ru — переносить их
+   нельзя, а выдумывать кривую тем более.
+   ═══════════════════════════════════════════════════════════════════════ */
+function qpField(row, ser) {
+  if (!ser || !ser.qr || !ser.pr || row.q === null || row.p === null) return '';
+  const w = 520, h = 340, L = 52, R = 16, T = 18, B = 40;
+  const qlo = ser.qr[0] / 1.7, qhi = ser.qr[1] * 1.7;
+  const plo = ser.pr[0] / 1.7, phi = ser.pr[1] * 1.7;
+  const lg = Math.log10;
+  const X = q => L + (lg(q) - lg(qlo)) / (lg(qhi) - lg(qlo)) * (w - L - R);
+  const Y = p => (h - B) - (lg(p) - lg(plo)) / (lg(phi) - lg(plo)) * (h - T - B);
+  const dec = (lo, hi) => { const a = []; for (let e = Math.floor(lg(lo)); e <= Math.ceil(lg(hi)); e++) { for (const m of [1, 2, 5]) { const v = m * Math.pow(10, e); if (v >= lo && v <= hi) a.push(v); } } return a; };
+
+  let s = '<defs><marker id="qpAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"' +
+          ' orient="auto"><path d="M0.6 1.3 9.2 5 0.6 8.7Z" fill="currentColor"/></marker></defs>';
+  for (const v of dec(qlo, qhi)) {
+    s += '<path class="gridln" d="M' + n1(X(v)) + ' ' + T + 'V' + (h - B) + '"/>' +
+         '<text x="' + n1(X(v)) + '" y="' + (h - B + 14) + '" text-anchor="middle">' + C.fmt(v) + '</text>';
+  }
+  for (const v of dec(plo, phi)) {
+    s += '<path class="gridln" d="M' + L + ' ' + n1(Y(v)) + 'H' + (w - R) + '"/>' +
+         '<text x="' + (L - 6) + '" y="' + n1(Y(v) + 3) + '" text-anchor="end">' + C.fmt(v) + '</text>';
+  }
+  /* Рабочая область серии — прямоугольник по опубликованным краям */
+  s += '<rect class="fld-area" x="' + n1(X(ser.qr[0])) + '" y="' + n1(Y(ser.pr[1])) + '" width="' +
+       n1(X(ser.qr[1]) - X(ser.qr[0])) + '" height="' + n1(Y(ser.pr[0]) - Y(ser.pr[1])) + '"/>';
+  /* Ряд типоразмеров серии — точки, а не характеристика */
+  const rows = C.SKU.filter(r => r.mk === row.mk && r.q !== null && r.p !== null);
+  if (rows.length > 1) {
+    s += '<path class="row" d="M' + rows.map(r => n1(X(r.q)) + ' ' + n1(Y(r.p))).join('L') + '"/>';
+  }
+  for (const r of rows) {
+    if (r.id === row.id) continue;
+    s += '<circle class="pt" cx="' + n1(X(r.q)) + '" cy="' + n1(Y(r.p)) + '" r="3.4"/>';
+  }
+  const hx = X(row.q), hy = Y(row.p);
+  s += '<path class="gridln" style="stroke:var(--signal)" d="M' + L + ' ' + n1(hy) + 'H' + n1(hx) +
+       'M' + n1(hx) + ' ' + (h - B) + 'V' + n1(hy) + '"/>';
+  s += '<circle class="here" cx="' + n1(hx) + '" cy="' + n1(hy) + '" r="5.4"/>';
+  s += '<text class="hlab" x="' + n1(Math.min(hx + 10, w - R - 96)) + '" y="' + n1(Math.max(hy - 9, T + 10)) + '">' +
+       C.fmt(row.q) + ' м³/ч · ' + C.fmt(row.p) + ' Па</text>';
+  s += '<path class="axis" d="M' + L + ' ' + T + 'V' + (h - B) + 'H' + (w - R) + '"/>';
+  s += '<text class="ttl" x="' + (w - R) + '" y="' + (h - 6) + '" text-anchor="end">Q, м³/ч (логарифмическая шкала)</text>';
+  const my = (T + h - B) / 2;
+  s += '<text class="ttl" x="12" y="' + n1(my) + '" text-anchor="middle" transform="rotate(-90 12 ' + n1(my) + ')">Pv, Па</text>';
+  return '<div class="qp"><svg viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="Поле Q-P: рабочая область серии ' +
+         esc(row.mk) + ' по опубликованным краям диапазона и положение этого типоразмера">' + s + '</svg></div>';
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   6. СБОРКА СТРАНИЦЫ
+   ═══════════════════════════════════════════════════════════════════════ */
+const TIPS = {
+  q   :'Объёмный расход воздуха, который агрегат перемещает в рабочей точке. Подбирают по расходу системы с запасом на утечки.',
+  p   :'Полное давление: сумма статического и динамического. Должно перекрывать сопротивление сети со всеми фасонными деталями.',
+  n   :'Установленная мощность двигателя, а не потребляемая. Потребление зависит от рабочей точки и всегда ниже.',
+  rpm :'Частота вращения колеса. Ниже обороты — тише агрегат и меньше износ, но и давление ниже.',
+  mass:'Масса агрегата. Нужна для расчёта опор, кровельного основания и подъёма. Завод её не публикует — величина оценочная.',
+  dia :'Диаметр рабочего колеса. Номер вентилятора равен диаметру колеса в дециметрах: № 6,3 — колесо Ø 630 мм.',
+  t   :'Предельная температура перемещаемой среды для выбранного исполнения.',
+  fire:'Предел огнестойкости: температура и время, в течение которого агрегат сохраняет работоспособность в дыму.',
+  vmax:'Предельная скорость среды в сечении клапана.',
+};
+
+function crumbs(r) {
+  const sb = C.subOf(r), rz = C.razdelOf(r);
+  const parts = ['<a href="catalog.html">Каталог</a>'];
+  if (rz) parts.push('<a href="razdel.html?r=' + rz.id + '">' + esc(rz.short) + '</a>');
+  if (sb) parts.push('<a href="razdel.html?r=' + (rz ? rz.id : '') + '&amp;s=' + sb.id + '">' + esc(sb.short) + '</a>');
+  parts.push('<a href="series.html?s=' + encodeURIComponent(r.mk) + '">' + esc(r.mk) + '</a>');
+  parts.push('<b aria-current="page">' + esc(szTag(r) || 'позиция без номера') + '</b>');
+  return '<nav class="crumbs" aria-label="Хлебные крошки">' + parts.join('<i>›</i>') + '</nav>';
+}
+
+function stages(r) {
+  const sb = C.subOf(r), rz = C.razdelOf(r);
+  const ispTxt = indWord(r) + (st.sch ? ' · схема №' + st.sch : '');
+  return '<nav class="stages" aria-label="Ступени каталога">' +
+    '<a class="stage" data-on="1" href="razdel.html?r=' + (rz ? rz.id : '') + '">' +
+      '<span class="k">Раздел</span><em>' + esc(rz ? rz.short : '—') + '</em></a>' +
+    '<a class="stage" data-on="1" href="series.html?s=' + encodeURIComponent(r.mk) + '">' +
+      '<span class="k">Серия</span><em>' + esc(r.mk) + '</em></a>' +
+    '<span class="stage" data-on="1" aria-current="step">' +
+      '<span class="k">Типоразмер</span><em>' + esc(szTag(r) || 'без номера') + '</em></span>' +
+    '<button class="stage" type="button" data-go="isp" data-on="1">' +
+      '<span class="k">Исполнение</span><em>' + esc(ispTxt) + '</em></button>' +
+    (sb ? '' : '') + '</nav>';
+}
+
+/* ── Паспорт ───────────────────────────────────────────────────────── */
+function specRow(k, label, value, hi) {
+  return '<dt data-tip="' + esc(TIPS[k] || '') + '"><span tabindex="0">' + label + '</span></dt>' +
+         '<dd>' + value + '</dd>';
+}
+function passport(r, ser) {
+  const d = C.DATA[r.data] || C.DATA.part;
+  const t = tempOf(r, st.ind), mass = massOf(r, st.ind);
+  const inPick = store.pick.indexOf(r.id) >= 0;
+  let rows = '';
+  if (r.type === 'klap') {
+    rows += specRow('fire', 'Предел огнестойкости', r.fire ? '<b>' + esc(r.fire) + '</b>' : NO);
+    rows += specRow('vmax', 'Скорость среды', ser && ser.vmax ? '<b>≤ ' + C.dec(ser.vmax) + '</b><i>м/с</i>' : NO);
+    rows += specRow('t', 'Температура среды', t === null ? NO :
+      '<b>' + (ser && ser.tmin ? C.dec(ser.tmin) + '…+' : 'до ') + C.dec(t) + '</b><i>°С</i>');
+    rows += specRow('', 'Климатическое исполнение', '<span class="no">УХЛ3 по ГОСТ 15150-69</span>');
+  } else {
+    /* Подписи без «N» и «n» рядом: система набирает их прописными, и мощность
+       с частотой вращения слились бы в одну букву */
+    rows += specRow('q', 'Расход', r.q === null ? NO : '<b>' + C.fmt(r.q) + '</b><i>м³/ч</i>', 1);
+    rows += specRow('p', 'Полное давление', r.p === null ? NO : '<b>' + C.fmt(r.p) + '</b><i>Па</i>', 1);
+    rows += specRow('n', 'Мощность', r.n === null ? NO : '<b>' + C.dec(r.n) + '</b><i>кВт</i>');
+    rows += specRow('rpm', 'Частота вращения', r.rpm === null ? NO : '<b>' + C.fmt(r.rpm) + '</b><i>об/мин</i>');
+    rows += specRow('mass', 'Масса', mass === null ? NO : '≈ <b>' + C.fmt(mass) + '</b><i>кг</i>');
+    rows += specRow('dia', 'Ø колеса', r.dia === null ? NO : '<b>' + C.fmt(r.dia) + '</b><i>мм</i>');
+    rows += specRow('t', 'Температура среды', t === null ? NO : 'до <b>' + C.dec(t) + '</b><i>°С</i>');
+    if (r.fire) rows += specRow('fire', 'Огнестойкость', '<b>' + esc(r.fire) + '</b>');
+  }
+  return '<div class="pc-pass">' +
+    '<h1 class="mk">' + esc(titleOf(r)) + '</h1>' +
+    '<span class="kind">' + esc(C.TYPE[r.type] || 'Изделие') + '</span>' +
+    '<p class="sub">' + esc(ser && ser.appl ? ser.appl : 'Назначение на сайте завода не описано') +
+      (szTag(r) ? '' : '<br><span class="no">Номер типоразмера на сайте завода не назван — позиция показана без него.</span>') + '</p>' +
+    '<p class="art">Обозначение позиции: <b id="pcArt">' + esc(artOf(r, st.ind, st.sch)) + '</b><br>' +
+      '<span class="no">заводского артикула на сайте нет — обозначение собрано из марки, номера, индекса и схемы</span></p>' +
+    '<dl class="specs">' + rows + '</dl>' +
+    '<p class="pc-note">' + (r.edge
+      ? 'Строка сверена с опубликованной таблицей серии.'
+      : 'Строка интерполирована между опубликованными краями ряда — для проверки интерфейса, не для подбора.') +
+      (r.mass !== null ? ' Масса заводом не публикуется: величина оценочная, поправка на исполнение — тоже оценка.' : '') + '</p>' +
+    '<div class="pc-acts">' +
+      '<button class="btn" type="button" id="pcPick" aria-pressed="' + inPick + '">' +
+        (inPick ? 'В запросе ✓' : 'В ЗАПРОС') + '</button>' +
+      '<button class="btn btn--ghost" type="button" id="pcCmp">Сравнить</button>' +
+      '<button class="btn btn--ghost" type="button" id="pcKp">Запросить КП</button>' +
+    '</div>' +
+    '<span class="dtag" data-d="' + d.s + '" title="' + esc(d.t) + '" tabindex="0">Достоверность: ' + d.short + '</span>' +
+    '<p class="pc-note" id="pcSay" role="status">' + esc(d.t) + '. ' +
+      (ser && ser.tu ? 'Норматив: ' + esc(ser.tu) + '.'
+                     : 'Норматив (ТУ или ГОСТ) на сайте завода для этой серии не указан — выдумывать его нельзя.') + '</p>' +
+    '</div>';
+}
+
+/* ── Переключатель отрисовки ───────────────────────────────────────── */
+const VIEWS = [['view', 'Вид'], ['cut', 'Разрез'], ['gab', 'Габарит']];
+const vswHTML = () => VIEWS.map(v =>
+  '<button type="button" data-view="' + v[0] + '" aria-pressed="' + (st.view === v[0]) + '">' + v[1] + '</button>').join('');
+
+/* ── Лента исполнений ──────────────────────────────────────────────────
+   Погашенная плитка — сведение, но только там, где исполнение действительно
+   измерение выбора: она говорит «у этой серии такого нет, а у соседней есть».
+   Когда исполнение ровно одно, сравнивать не с чем, и семь серых плиток из
+   восьми — шум. Тогда вместо ленты идёт строка словами. То же со схемой
+   привода: ноль схем — строка «не применяются», одна — строка с её именем. */
+const ALLIND = ['-', 'Ж2', 'К1', 'К1Ж2', 'В', 'ВЖ2', 'ВК1', 'ВК3'];
+const ALLSCH = ['1', '5'];
+
+const indsOf = r => (r.ind && r.ind.length ? r.ind : ['-']);
+const schsOf = r => (r.sch && r.sch.length ? r.sch : []);
+
+/* Имя индекса со строчной буквы — для середины фразы. Резать регистр целиком
+   нельзя: «Теплостойкое (Ж2)» превратилось бы в «(ж2)». */
+const lowIND = v => {
+  const s = C.IND[v] || v;
+  return s.charAt(0).toLowerCase() + s.slice(1);
+};
+/* У серий с единственным индексом «—» это не выбор «общепромышленного» из
+   ряда, а просто отсутствие индекса: у противопожарного клапана и у машин
+   дымоудаления никакого общепромышленного исполнения завод не объявлял. */
+const indWord = r => st.ind !== '-' ? st.ind
+  : (indsOf(r).length > 1 ? 'общепромышленное' : 'базовое, без индекса');
+
+function indChips(r) {
+  const has = r.ind || ['-'];
+  const inds = ALLIND.concat(has.filter(v => ALLIND.indexOf(v) < 0));
+  return inds.map(v => {
+    const on = has.indexOf(v) >= 0;
+    return '<button class="chip" type="button" data-ind="' + esc(v) + '" aria-pressed="' + (st.ind === v) + '"' +
+      (on ? '' : ' disabled') + ' title="' + esc(C.IND[v] || v) + (on ? '' : ' — у этой серии не публикуется') + '">' +
+      (v === '-' ? '—' : esc(v)) + '</button>';
+  }).join('');
+}
+function schChips(r) {
+  if (!r.sch || !r.sch.length) return '<span class="small">схемы привода для этого изделия не применяются</span>';
+  const schs = ALLSCH.concat(r.sch.filter(v => ALLSCH.indexOf(v) < 0)).sort((a, b) => Number(a) - Number(b));
+  return schs.map(v => {
+    const on = r.sch.indexOf(v) >= 0;
+    return '<button class="chip" type="button" data-sch="' + esc(v) + '" aria-pressed="' + (st.sch === v) + '"' +
+      (on ? '' : ' disabled') + ' title="' + esc(C.SCH[v] || ('Схема №' + v)) +
+      (on ? '' : ' — у этой серии не публикуется') + '">№' + esc(v) + '</button>';
+  }).join('');
+}
+
+/* Ряд исполнений: лента плиток либо строка словами */
+function indRow(r) {
+  const has = indsOf(r);
+  if (has.length > 1) return indChips(r);
+  return '<span class="small">Исполнение одно: <b>' + esc(has[0] === '-' ? 'базовое, без индекса' : lowIND(has[0])) +
+    '</b>. Других индексов завод для этой серии не публикует, поэтому выбирать здесь нечего.</span>';
+}
+/* Ряд схем привода: ноль — строка, одна — строка, две и больше — плитки */
+function schRow(r) {
+  const has = schsOf(r);
+  if (!has.length) return '<span class="small">схемы привода для этого изделия не применяются</span>';
+  if (has.length > 1) return schChips(r);
+  return '<span class="small">Схема привода одна: <b>' + esc(C.SCH[has[0]] || ('схема №' + has[0])) +
+    '</b>. Других завод для этой серии не публикует.</span>';
+}
+
+/* Пояснение под лентой пишется по тому, что под ним на самом деле стоит */
+function ispHow(r) {
+  const many = indsOf(r).length > 1, manyS = schsOf(r).length > 1;
+  if (!many && !manyS) {
+    return 'Плиток здесь нет намеренно: выбор состоит из одного варианта, а лента из одной плитки ничего ' +
+      'не сообщает. Всё, что завод публикует по исполнению этой позиции, сказано строками выше.';
+  }
+  return 'Выбор меняет само изделие: перечерчивается вид, ' +
+    (many ? 'пересчитываются масса и температурный предел, ' : '') +
+    'меняется обозначение позиции и адрес страницы.' +
+    (many ? ' Индекс, которого у серии нет, отключён, а не спрятан.' : '') +
+    (manyS && !many ? ' Схема, которой у серии нет, отключена, а не спрятана.' : '');
+}
+
+function ispBand(r) {
+  return '<div class="isp" id="ispBand">' +
+    '<h4>Исполнение</h4><div class="row" id="ispInd">' + indRow(r) + '</div>' +
+    '<h4 style="margin-top:13px">Схема привода</h4><div class="row" id="ispSch">' + schRow(r) + '</div>' +
+    '<p class="expl" id="ispExpl" role="status"></p>' +
+    '<p class="small" style="margin:6px 0 0">' + ispHow(r) + '</p>' +
+    '</div>';
+}
+function ispText() {
+  const r = st.row, m = MAT[st.ind] || MAT['-'];
+  const many = indsOf(r).length > 1, manyS = schsOf(r).length > 1;
+  const s = [];
+  /* Название исполнения и схемы повторяем только там, где выбор действительно
+     есть: когда вариант один, он уже назван строкой прямо над этой. */
+  if (many) s.push(C.IND[st.ind] || st.ind);
+  if (manyS && st.sch) s.push(C.SCH[st.sch] || ('Схема №' + st.sch));
+  /* Материал называем у того узла, к которому он относится. Перечень индексов
+     завод даёт по материалу РАБОЧЕГО КОЛЕСА — значит и говорить надо о колесе.
+     У клапана колеса нет вовсе, а материалов корпуса и заслонки завод для него
+     не публикует: тогда не называем никакого. */
+  s.push(famOf(r) === 'klap'
+    ? 'Материалов корпуса и заслонки завод для этого изделия не публикует'
+    : 'Колесо — ' + m.w);
+  if (m.ex) s.push('Маркировка взрывозащиты заводом не опубликована');
+  const t = tempOf(r, st.ind);
+  if (t !== null) s.push('Предельная температура среды — ' + C.dec(t) + ' °С');
+  return s.join('. ') + '.';
+}
+
+/* ── Вкладки ───────────────────────────────────────────────────────── */
+const TABS = ['Технические', 'Аэродинамика', 'Габариты', 'Акустика'];
+
+function tabTech(r, ser) {
+  const set = C.FIELDSET[r.type];
+  if (!set || !C.FIELDS[set]) {
+    return '<h3>Технические характеристики</h3>' +
+      '<p>Таблицы характеристик для этого изделия на сайте завода нет — опубликованы только предел ' +
+      'огнестойкости, климатическое исполнение и предельная скорость среды. Они вынесены в паспорт слева, ' +
+      'а выдуманной таблицы здесь не будет.</p>' +
+      '<p class="small">' + esc(ser && ser.note ? ser.note : '') + '</p>';
+  }
+  const F = C.FIELDS[set];
+  const val = k => {
+    /* Завод публикует расход в тысячах м³/ч — печатаем в его единице */
+    if (k === 'q')    return r.q === null ? null : C.dec((r.q / 1000).toFixed(r.q < 10000 ? 2 : 1));
+    if (k === 'p')    return r.p === null ? null : C.fmt(r.p);
+    if (k === 'n')    return r.n === null ? null : C.dec(r.n);
+    if (k === 'rpm')  return r.rpm === null ? null : C.fmt(r.rpm);
+    if (k === 'mass') { const m = massOf(r, st.ind); return m === null ? null : '≈ ' + C.fmt(m); }
+    if (k === 't')    { const t = tempOf(r, st.ind); return t === null ? null : 'до ' + C.dec(t); }
+    return null;
+  };
+  const rows = F.rows.map(f => {
+    const v = val(f.k);
+    return '<tr><td class="l">' + esc(f.l) + (f.u ? ', ' + esc(f.u) : '') + '</td>' +
+           (v === null ? '<td class="no">не опубликовано</td>' : '<td>' + v + '</td>') + '</tr>';
+  }).join('');
+  /* Заголовок набора берём из данных только тогда, когда набор действительно
+     «свой»: у осевых, крышных и ДУ завод показывает тот же набор полей, что и
+     у радиальных, и подписывать их карточку «радиальные» было бы неверно. */
+  const own = {rad:'rad', pyl:'pyl', vd:'pyl', ind:'pyl', shaht:'pyl', tyaga:'tyaga', kan:'kan'};
+  const title = own[r.type] === set ? F.name : 'Технические характеристики';
+  return '<h3>' + esc(title) + '</h3>' +
+    '<div class="tbl-scroll"><table class="data"><caption class="vh">Технические характеристики ' +
+      esc(titleOf(r)) + '</caption>' +
+    '<thead><tr><th class="l" scope="col">Характеристика</th><th scope="col">Значение</th></tr></thead>' +
+    '<tbody>' + rows + '</tbody></table></div>' +
+    '<p class="small" style="margin-top:12px">Набор полей повторяет боевую карточку для этого типа агрегата. Строки, ' +
+      'которых завод не публикует — тип двигателя, относительный диаметр колеса, марка и количество ' +
+      'виброизоляторов — оставлены пустыми намеренно: подставлять туда правдоподобные значения нельзя.</p>';
+}
+
+function tabAero(r, ser) {
+  const field = qpField(r, ser);
+  if (!field) {
+    return '<h3>Аэродинамика</h3>' +
+      '<p>Для этого изделия завод не публикует ни расхода, ни давления' +
+      (r.type === 'klap' ? ' — у противопожарного клапана аэродинамических таблиц на сайте нет вовсе' : '') +
+      '. Поля Q-P здесь нет и быть не может: строить его не из чего.</p>' +
+      '<p class="small">Настоящие аэродинамические характеристики на боевом сайте грузятся с посторонних ' +
+      'доменов <span class="num">zavodventilator.ru</span> и <span class="num">ventilator.spb.ru</span>. ' +
+      'Права на эти файлы не выяснены — переносить их нельзя.</p>';
+  }
+  return '<h3>Рабочая область серии и положение типоразмера</h3>' +
+    '<div class="qpwrap">' + field +
+    '<div><ul class="leg">' +
+      '<li><i data-k="area"></i><span>Рабочая область серии ' + esc(r.mk) +
+        ' по опубликованным краям диапазона: Q ' + C.fmt(ser.qr[0]) + '…' + C.fmt(ser.qr[1]) +
+        ' м³/ч, Pv ' + C.fmt(ser.pr[0]) + '…' + C.fmt(ser.pr[1]) + ' Па.</span></li>' +
+      '<li><i data-k="row"></i><span>Ряд типоразмеров серии — точки, а не характеристика.</span></li>' +
+      '<li><i data-k="here"></i><span>Этот типоразмер: ' + C.fmt(r.q) + ' м³/ч при ' + C.fmt(r.p) + ' Па.</span></li>' +
+    '</ul>' +
+    '<p class="small" style="margin-top:14px"><b>Это рабочая область по опубликованным краям диапазона, ' +
+      'а не паспортная кривая.</b> Аэродинамические характеристики на боевом сайте грузятся с чужих доменов ' +
+      '<span class="num">zavodventilator.ru</span> и <span class="num">ventilator.spb.ru</span>: переносить их ' +
+      'нельзя, а рисовать кривую по памяти — тем более. Настоящие кривые появятся, когда завод передаст ' +
+      'собственные характеристики; они же нужны подбору по рабочей точке.</p>' +
+    '<p class="small">Обе шкалы логарифмические — иначе ряд из десяти типоразмеров не умещается на одном поле.</p>' +
+    '</div></div>';
+}
+
+function tabGab(r) {
+  /* Разворот корпуса задаётся тем, у кого есть улитка: радиальным и
+     тягодутьевым. У осевого, крышного, канального и клапана его нет. */
+  const rot = hasRazv(r);
+  const chips = C.GABARIT.razv.map(v =>
+    '<button class="chip" type="button" data-razv="' + esc(v) + '" aria-pressed="' + (rot && st.razv === v) + '"' +
+    (rot ? '' : ' disabled') + '>' + esc(v) + '</button>').join('');
+  const rows = C.GABARIT.razv.map(v =>
+    '<tr' + (rot && v === st.razv ? ' data-picked="1"' : '') + '><td class="l">' +
+    (rot ? '<button class="szb" type="button" data-razv="' + esc(v) + '" style="background:none;border:0;' +
+           'font:inherit;color:var(--blue);cursor:pointer;padding:0">' + esc(v) + '</button>' : esc(v)) + '</td>' +
+    C.GABARIT.f.map(() => '<td class="no">—</td>').join('') + '</tr>').join('');
+  return '<h3>' + esc(C.GABARIT.name) + '</h3>' +
+    '<div class="gabgrid"><div>' +
+      (rot ? '<div class="razv" role="group" aria-label="Разворот корпуса">' + chips + '</div>' : '') +
+      '<div class="gabfig" id="gabFig">' + drawScene('g2', 'gab', true) + '</div>' +
+      '<p class="figcap">' + (rot
+        ? 'Разворот корпуса поворачивает нагнетательный патрубок: ПР — правое вращение, Л — левое, угол отсчитывается от вертикали.'
+        : 'Разворот корпуса задаётся для радиальных агрегатов с улиткой; для этой формы он не применяется.') +
+      ' Буквы B, B1, H1, H2 расставлены по общепринятой схеме — расшифровки полей завод не публикует и её надо сверить.</p>' +
+    '</div><div>' +
+      '<div class="tbl-scroll"><table class="data"><caption class="vh">Развороты корпуса и габаритные поля</caption>' +
+      '<thead><tr><th class="l" scope="col">Разворот</th>' +
+      C.GABARIT.f.map(f => '<th scope="col">' + esc(f.l) + ', ' + esc(f.u) + '</th>').join('') +
+      '</tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<p class="small" style="margin-top:12px">Шестнадцать разворотов корпуса сняты с боевой карточки. ' +
+      'Числовых значений полей завод не публикует ни для одного разворота — поэтому в таблице прочерки, ' +
+      'а не правдоподобные миллиметры. Габаритные чертежи на боевом сайте чужие ' +
+      '(<span class="num">zavodventilator.ru</span>), переносить их нельзя.</p>' +
+    '</div></div>';
+}
+
+function tabAcou(r) {
+  const A = C.ACOUSTIC;
+  const head = A.oct.map(o => '<th scope="col">' + C.fmt(o) + '</th>').join('');
+  return '<h3>' + esc(A.name) + '</h3>' +
+    '<div class="tbl-scroll"><table class="data"><caption class="vh">Уровни звукового давления по октавным полосам</caption>' +
+    '<thead><tr><th class="l" scope="col">Показатель</th>' + head + '<th scope="col">Lpa, дБА</th></tr></thead>' +
+    '<tbody><tr><td class="l">' + esc(A.rows[0].l) + ', ' + esc(A.rows[0].u) + '</td>' +
+      A.oct.map(() => '<td class="no">—</td>').join('') + '<td class="no">—</td></tr>' +
+    '<tr><td class="l">' + esc(A.rows[1].l) + ', ' + esc(A.rows[1].u) + '</td>' +
+      A.oct.map(() => '<td class="no">—</td>').join('') + '<td class="no">—</td></tr>' +
+    '</tbody></table></div>' +
+    '<p style="margin-top:12px"><b>Числа запрошены у завода.</b> Восемь октавных полос 63…8000 Гц и суммарный ' +
+      'Lpa — это структура заводской таблицы, снятая с боевой карточки; самих величин завод не публикует. ' +
+      'Придумать децибелы нельзя: по ним считают шум на рабочих местах и в жилой застройке.</p>' +
+    '<p class="small">Пока чисел нет, шумовую нагрузку оценивают по частоте вращения: ' +
+      (r.rpm === null ? 'оборотов для этой позиции завод тоже не публикует.'
+                      : C.fmt(r.rpm) + ' об/мин — чем ниже обороты, тем тише агрегат.') + '</p>';
+}
+
+/* ── Документы ─────────────────────────────────────────────────────── */
+function docs() {
+  const list = [
+    {t:'Паспорт изделия',            m:'запрошен у завода'},
+    {t:'Габаритный чертёж',          m:'запрошен у завода'},
+    {t:'Сертификат соответствия',    m:'запрошен у завода'},
+    {t:'BIM-модель Revit (.rfa)',    m:'запрошена у завода'},
+  ];
+  return '<div class="docs">' + list.map(d =>
+    '<div class="doc" data-none="1"><span class="ic">' + ICON.doc + '</span>' +
+    '<span class="body"><span class="nm">' + esc(d.t) + '</span></span>' +
+    '<span class="meta">' + esc(d.m) + '</span></div>').join('') + '</div>' +
+    '<p class="small" style="margin-top:11px">Мёртвых ссылок в каталоге не бывает: файла нет — строка не ' +
+    'притворяется ссылкой. На боевом сайте у этой позиции нет ни паспорта, ни чертежа; графика там грузится ' +
+    'с посторонних доменов <span class="num">zavodventilator.ru</span> и <span class="num">ventilator.spb.ru</span>. ' +
+    'BIM-модели Revit на боевом сайте выложены — но всего на десять позиций, страницей ' +
+    '<span class="num">/info/bim-modeli/</span>; относится ли к ней эта позиция, завод не подтвердил.</p>';
+}
+
+/* ── Соседние типоразмеры ──────────────────────────────────────────── */
+function neigh(r) {
+  const rows = C.SKU.filter(x => x.mk === r.mk);
+  const lab = (x, i) => x.size === null || x.size === undefined ? 'поз. ' + (i + 1) : C.szl(x);
+  return '<nav class="neigh" aria-label="Типоразмеры серии ' + esc(r.mk) + '">' + rows.map((x, i) => {
+    const on = x.id === r.id;
+    const q = x.q === null ? 'Q не опубликован' : C.fmt(x.q) + ' м³/ч';
+    const body = '<b class="sz">' + esc(lab(x, i)) + '</b><i class="q">' + q + '</i>';
+    return on
+      ? '<span aria-current="page">' + body + '</span>'
+      : '<a href="product.html?p=' + x.id + '" data-go="' + x.id + '">' + body + '</a>';
+  }).join('') + '</nav>' +
+  (rows.some(x => x.size === null)
+    ? '<p class="small" style="margin-top:9px">Номера типоразмеров этой серии на сайте завода не названы — ' +
+      'позиции пронумерованы порядком, а не заводским обозначением.</p>'
+    : '<p class="small" style="margin-top:9px">Переход по рейке меняет только числа паспорта и чертёж: ' +
+      'страница не перезагружается, адрес меняется, кнопка «назад» возвращает на прежний типоразмер.</p>');
+}
+
+/* ── Комплектующие ─────────────────────────────────────────────────── */
+const PARTS = [
+  {t:'Виброизоляторы',      r:'krp', s:'krp-elem',  w:'марка и количество на боевом сайте есть только колонкой в таблице серии — по этой позиции не опубликованы'},
+  {t:'Гибкие вставки',      r:'det', s:'det-vstav', w:'номенклатура раздела уточняется'},
+  {t:'Монтажные рамы',      r:'krp', s:'krp-prof',  w:'номенклатура раздела уточняется'},
+  {t:'Защитные решётки',    r:'vrp', s:'vrp-resh',  w:'номенклатура раздела уточняется'},
+  {t:'Шумоглушители',       r:'kkr', s:'kkr-shum',  w:'номенклатура раздела уточняется'},
+  {t:'Регуляторы оборотов', r:'avt', s:'avt-reg',   w:'номенклатура раздела уточняется'},
+];
+function parts() {
+  return '<div class="docs">' + PARTS.map(p =>
+    '<a class="doc" href="razdel.html?r=' + p.r + '&amp;s=' + p.s + '">' +
+    '<span class="ic">' + (ICON[C.razdelOf(p.r) ? C.razdelOf(p.r).ic : 'fix'] || ICON.fix) + '</span>' +
+    '<span class="body"><span class="nm">' + esc(p.t) + '</span><span class="gr">' + esc(p.w) + '</span></span>' +
+    '<span class="meta">раздел каталога</span><span class="arr">' + ICON.arrow + '</span></a>').join('') + '</div>';
+}
+
+/* ── Другие серии с той же рабочей точкой ──────────────────────────── */
+function covering(r) {
+  if (r.q === null || r.p === null) return [];
+  const best = {};
+  for (const x of C.SKU) {
+    if (x.mk === r.mk || x.q === null || x.p === null) continue;
+    const d = Math.abs(Math.log(x.q / r.q)) + Math.abs(Math.log(x.p / r.p));
+    if (d > 0.5) continue;
+    if (!best[x.mk] || d < best[x.mk].d) best[x.mk] = {r:x, d:d};
+  }
+  return Object.keys(best).map(k => best[k]).sort((a, b) => a.d - b.d).slice(0, 6);
+}
+function also(r) {
+  const list = covering(r);
+  if (!list.length) {
+    return '<p class="small">Позиций с близкой рабочей точкой в других сериях каталога не нашлось' +
+      (r.q === null ? ': у этой позиции расход и давление заводом не опубликованы.' : '.') + '</p>';
+  }
+  return '<div class="docs">' + list.map(x => {
+    const sb = C.subOf(x.r);
+    const d = C.DATA[x.r.data] || C.DATA.part;
+    return '<a class="doc" href="product.html?p=' + x.r.id + '">' +
+      '<span class="ic">' + (ICON[sb && ICON[sb.ic] ? sb.ic : 'radial'] || ICON.radial) + '</span>' +
+      '<span class="body"><span class="mk">' + esc(titleOf(x.r)) + '</span>' +
+      '<span class="gr">' + esc(C.TYPE[x.r.type] || '') + (sb ? ' · ' + esc(sb.short) : '') +
+      /* Состояние первоисточника видно сразу: половина близких по точке серий
+         несёт на боевом сайте чужие таблицы, и молчать об этом нельзя */
+      ' · <span class="st" data-s="' + d.s + '" title="' + esc(d.t) + '">' + d.short + '</span></span></span>' +
+      '<span class="meta">' + C.fmt(x.r.q) + ' м³/ч · ' + C.fmt(x.r.p) + ' Па</span>' +
+      '<span class="arr">' + ICON.arrow + '</span></a>';
+  }).join('') + '</div>' +
+  '<p class="small" style="margin-top:11px">Отобрано по близости расхода и давления к рабочей точке этой ' +
+  'позиции — по опубликованным краям диапазонов, без методики подбора. Методику завод не передал.</p>';
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   7. ОТРИСОВКА
+   ═══════════════════════════════════════════════════════════════════════ */
+function render() {
+  const r = st.row, ser = C.seriesOf(r.mk);
+  document.title = titleOf(r) + ' · Каталог · Вентпром';
+
+  $('#page').innerHTML =
+    crumbs(r) + stages(r) +
+    '<div class="pc" style="margin-top:20px">' +
+      '<div class="pc-view">' +
+        '<div class="pc-fig" id="pcFig"><span class="vlbl" id="pcVlbl">' + VLBL[st.view] + '</span>' + figure() + '</div>' +
+        '<div class="vsw" role="group" aria-label="Отрисовка изделия">' + vswHTML() + '</div>' +
+        '<p class="figcap" id="pcFigCap">' + esc(viewCap()) + '</p>' +
+        ispBand(r) +
+      '</div>' +
+      passport(r, ser) +
+    '</div>' +
+
+    '<div class="tabs" role="tablist" aria-label="Характеристики позиции">' + tabsHTML() + '</div>' +
+    TABS.map((t, i) => '<div class="tabp" role="tabpanel" id="tp' + i + '" aria-labelledby="tb' + i +
+      '" tabindex="0"' + (st.tab === i ? '' : ' hidden') + '>' + tabBody(i, r, ser) + '</div>').join('') +
+
+    '<section class="sec--tight"><div class="dim"><h2>Документы</h2><i class="line"></i>' +
+      '<span class="val">4 позиции</span></div><div style="margin-top:14px">' + docs() + '</div></section>' +
+
+    '<section class="sec--tight"><div class="dim"><h2>Соседние типоразмеры</h2><i class="line"></i>' +
+      '<span class="val">' + C.SKU.filter(x => x.mk === r.mk).length + ' в серии</span></div>' +
+      '<div style="margin-top:14px">' + neigh(r) + '</div></section>' +
+
+    '<section class="sec--tight"><div class="dim"><h2>Комплектующие к позиции</h2><i class="line"></i>' +
+      '<span class="val">6 групп</span></div><div style="margin-top:14px">' + parts() + '</div>' +
+      '<p class="small" style="margin-top:11px">Разделы есть в дереве каталога, номенклатура внутри них ' +
+      'уточняется у завода. Ссылка ведёт в раздел, а не в пустоту.</p></section>' +
+
+    '<section class="sec--tight"><div class="dim"><h2>Эту рабочую точку накрывают также</h2><i class="line"></i>' +
+      '<span class="val">по краям диапазонов</span></div><div style="margin-top:14px">' + also(r) + '</div></section>' +
+
+    '<dl class="stamp" style="margin-bottom:8px">' +
+      '<div><dt>Серия</dt><dd>' + esc(r.mk) + '</dd></div>' +
+      '<div><dt>Типоразмер</dt><dd>' + esc(szTag(r) || 'не опубликован') + '</dd></div>' +
+      '<div><dt>Исполнение</dt><dd>' +
+        esc(st.ind !== '-' ? st.ind : (indsOf(r).length > 1 ? 'общепром.' : 'базовое')) +
+        (st.sch ? ' · сх.' + st.sch : '') + '</dd></div>' +
+      '<div><dt>Источник</dt><dd>' + esc((C.DATA[r.data] || C.DATA.part).short) + '</dd></div>' +
+    '</dl>';
+
+  $('#ispExpl').textContent = ispText();
+  VP.revealDims();
+
+  if (!seen[r.id]) { seen[r.id] = 1; store.see(r.id); }
+}
+
+const tabsHTML = () => TABS.map((t, i) =>
+  '<button class="tab" type="button" role="tab" id="tb' + i + '" aria-controls="tp' + i +
+  '" aria-selected="' + (st.tab === i) + '" tabindex="' + (st.tab === i ? 0 : -1) + '">' + t + '</button>').join('');
+
+function tabBody(i, r, ser) {
+  if (i === 0) return tabTech(r, ser);
+  if (i === 1) return tabAero(r, ser);
+  if (i === 2) return tabGab(r);
+  return tabAcou(r);
+}
+
+/* Ярлык в углу листа — та же тройка, что и на переключателе. Отдельного
+   написания «Вид общий» в разметке больше нет: подпись угла и подпись под
+   чертежом обязаны говорить об одной и той же отрисовке. */
+const VLBL = {view:'Вид общий', cut:'Разрез', gab:'Габарит'};
+
+/* Перечерчивание фигуры: замена, а не мигание */
+function redraw() {
+  const fig = $('#pcFig');
+  if (!fig) return;
+  const paint = () => {
+    const lbl = VLBL[st.view];
+    fig.innerHTML = '<span class="vlbl">' + lbl + '</span>' + figure();
+    delete fig.dataset.redraw;
+    const cap = $('#pcFigCap');
+    if (cap) cap.textContent = viewCap();
+  };
+  if (VP.reduced.matches) { paint(); return; }
+  fig.dataset.redraw = '1';
+  setTimeout(paint, 90);
+}
+
+/* Пересчёт паспорта после смены исполнения — без перерисовки всей страницы,
+   чтобы вёрстка не прыгала */
+function repaintIsp() {
+  const r = st.row;
+  $('#ispExpl').textContent = ispText();
+  const art = $('#pcArt');
+  if (art) art.textContent = artOf(r, st.ind, st.sch);
+  const specs = $$('.specs dd');
+  const dts = $$('.specs dt span');
+  for (let i = 0; i < dts.length; i++) {
+    const k = dts[i].textContent;
+    if (k === 'Масса') {
+      const m = massOf(r, st.ind);
+      specs[i].innerHTML = m === null ? NO : '≈ <b>' + C.fmt(m) + '</b><i>кг</i>';
+    }
+    if (k === 'Температура среды') {
+      const t = tempOf(r, st.ind);
+      specs[i].innerHTML = t === null ? NO : 'до <b>' + C.dec(t) + '</b><i>°С</i>';
+    }
+  }
+  /* Плитки пересобираются целиком, а не переписываются атрибутом: смену
+     aria-pressed на уже отрисованной кнопке движок раскраски пропускает,
+     и выбранной остаётся прежняя плитка. Проверено на Edge 138. */
+  $('#ispInd').innerHTML = indRow(r);
+  $('#ispSch').innerHTML = schRow(r);
+  const stg = $('.stage[data-go="isp"] em');
+  if (stg) stg.textContent = indWord(r) + (st.sch ? ' · схема №' + st.sch : '');
+  /* Технические характеристики зависят от исполнения массой и температурой */
+  const tp0 = $('#tp0');
+  if (tp0) tp0.innerHTML = tabTech(r, C.seriesOf(r.mk));
+  redraw();
+  pushURL('replace');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   8. СОБЫТИЯ
+   ═══════════════════════════════════════════════════════════════════════ */
+function selectTab(i, focus) {
+  st.tab = i;
+  $('.tabs').innerHTML = tabsHTML();            /* пересборка, а не правка атрибута */
+  for (let k = 0; k < TABS.length; k++) $('#tp' + k).hidden = k !== i;
+  if (focus) $('#tb' + i).focus();
+}
+
+function goSku(id, mode) {
+  const r = C.sku(id);
+  if (!r) return;
+  st.row = r;
+  const inds = r.ind && r.ind.length ? r.ind : ['-'];
+  if (inds.indexOf(st.ind) < 0) st.ind = inds[0];
+  const schs = r.sch || [];
+  if (schs.indexOf(st.sch) < 0) st.sch = schs[0] || '';
+  if (!hasRazv(r)) st.razv = 'ПР0°';
+  pushURL(mode || 'push');
+  render();
+}
+
+document.addEventListener('click', e => {
+  const t = e.target;
+
+  const view = t.closest('.vsw button');
+  if (view) {
+    st.view = view.dataset.view;
+    $('.vsw').innerHTML = vswHTML();
+    redraw();
+    return;
+  }
+  const ind = t.closest('.chip[data-ind]');
+  if (ind && !ind.disabled) { st.ind = ind.dataset.ind; repaintIsp(); return; }
+
+  const sch = t.closest('.chip[data-sch]');
+  if (sch && !sch.disabled) { st.sch = sch.dataset.sch; repaintIsp(); return; }
+
+  const razv = t.closest('[data-razv]');
+  if (razv && !razv.disabled) {
+    st.razv = razv.dataset.razv;
+    $('#tp2').innerHTML = tabGab(st.row);       /* панель пересобирается целиком */
+    if (st.view === 'gab') redraw();
+    return;
+  }
+  const tab = t.closest('.tab');
+  if (tab) { selectTab($$('.tab').indexOf(tab), false); return; }
+
+  const go = t.closest('.neigh a[data-go]');
+  if (go) { e.preventDefault(); goSku(go.dataset.go, 'push'); return; }
+
+  const stg = t.closest('.stage[data-go="isp"]');
+  if (stg) {
+    const band = $('#ispBand');
+    if (band) {
+      band.scrollIntoView({block:'center', behavior:VP.reduced.matches ? 'auto' : 'smooth'});
+      const first = band.querySelector('.chip:not(:disabled)');
+      if (first) first.focus();
+    }
+    return;
+  }
+  if (t.closest('#pcPick')) { togglePick(); return; }
+  if (t.closest('#pcCmp'))  { compare(); return; }
+  if (t.closest('#pcKp'))   { openKP(); return; }
+});
+
+/* Клавиатура вкладок: ← → Home End */
+document.addEventListener('keydown', e => {
+  if (!e.target.classList || !e.target.classList.contains('tab')) return;
+  const i = $$('.tab').indexOf(e.target), n = TABS.length;
+  let to = -1;
+  if (e.key === 'ArrowRight') to = (i + 1) % n;
+  else if (e.key === 'ArrowLeft') to = (i - 1 + n) % n;
+  else if (e.key === 'Home') to = 0;
+  else if (e.key === 'End') to = n - 1;
+  if (to < 0) return;
+  e.preventDefault();
+  selectTab(to, true);
+});
+
+/* Кнопка «назад». popstate прилетает и при штатном адресе, и при запасном
+   хвостовом; hashchange страхует его на случай ручной правки адреса. */
+function backSync() {
+  const sig = location.search + '|' + location.hash;
+  if (sig === lastSig) return;
+  lastSig = sig;
+  if (readURL()) render();
+}
+addEventListener('popstate', backSync);
+addEventListener('hashchange', backSync);
+
+/* ── «В ЗАПРОС» и «Сравнить» ───────────────────────────────────────── */
+function togglePick() {
+  store.togglePick(st.row.id);
+  syncPick();
+  const on = store.pick.indexOf(st.row.id) >= 0;
+  $('#pcSay').textContent = on
+    ? 'Позиция добавлена в запрос — счётчик в шапке вырос. Перечень собирается в кабинете, там же из него ' +
+      'делается объект и спецификация.'
+    : 'Позиция убрана из запроса. Счётчик в шапке уменьшился.';
+}
+function syncPick() {
+  const b = $('#pcPick');
+  if (!b) return;
+  const on = store.pick.indexOf(st.row.id) >= 0;
+  b.setAttribute('aria-pressed', String(on));
+  b.textContent = on ? 'В запросе ✓' : 'В ЗАПРОС';
+}
+addEventListener('vp:store', syncPick);
+
+/* Сравнение живёт в кабинете: позиция уходит в подбор, и об этом говорится
+   прямо, а не кнопкой, которая никуда не ведёт. */
+function compare() {
+  const id = st.row.id;
+  if (store.pick.indexOf(id) < 0) store.togglePick(id);
+  syncPick();
+  $('#pcSay').innerHTML = 'Позиция поставлена в подбор для сравнения — сравнение идёт таблицей в кабинете: ' +
+    '<a href="cabinet.html#pick">открыть подбор</a>. Всего в подборе: ' + store.pick.length + '.';
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   9. ПОЯСНЕНИЕ К ПОДПИСИ ХАРАКТЕРИСТИКИ
+   ═══════════════════════════════════════════════════════════════════════ */
+const tip = document.createElement('div');
+tip.className = 'tip';
+tip.id = 'pcTip';
+tip.setAttribute('role', 'tooltip');
+tip.hidden = true;
+function tipShow(el) {
+  const dt = el.closest('dt[data-tip]');
+  if (!dt || !dt.dataset.tip) return;
+  const host = $('#page');
+  if (tip.parentNode !== host) host.appendChild(tip);
+  tip.textContent = dt.dataset.tip;
+  tip.hidden = false;
+  const hb = host.getBoundingClientRect(), b = el.getBoundingClientRect();
+  const x = Math.max(4, Math.min(b.left - hb.left, hb.width - 280));
+  tip.style.left = x + 'px';
+  tip.style.top = (b.bottom - hb.top + 7) + 'px';
+  requestAnimationFrame(() => { tip.dataset.on = '1'; });
+  el.setAttribute('aria-describedby', 'pcTip');
+}
+function tipHide() {
+  tip.dataset.on = '0';
+  tip.hidden = true;
+  for (const el of $$('[aria-describedby="pcTip"]')) el.removeAttribute('aria-describedby');
+}
+document.addEventListener('pointerover', e => {
+  const s = e.target.closest && e.target.closest('.specs dt[data-tip] span');
+  if (s) tipShow(s); else if (!e.target.closest || !e.target.closest('#pcTip')) tipHide();
+});
+document.addEventListener('focusin', e => {
+  const s = e.target.closest && e.target.closest('.specs dt[data-tip] span');
+  if (s) tipShow(s); else tipHide();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') tipHide(); });
+
+/* ═══════════════════════════════════════════════════════════════════════
+   10. ЗАПРОС КОММЕРЧЕСКОГО ПРЕДЛОЖЕНИЯ
+   Backend нет. Заявка кладётся в состояние пользователя и в этот браузер;
+   пользователю сказано ровно это, без «письмо отправлено».
+   ═══════════════════════════════════════════════════════════════════════ */
+const KPKEY = 'vp.kp.v1';
+let lastFocus = null;
+
+function openKP() {
+  const r = st.row;
+  lastFocus = document.activeElement;
+  $('#mdlHost').innerHTML =
+    '<div class="mdl" id="kp" role="dialog" aria-modal="true" aria-labelledby="kpH">' +
+      '<div class="box">' +
+        '<div class="hd"><div><h2 id="kpH">Запросить КП</h2>' +
+          '<p class="who">' + esc(artOf(r, st.ind, st.sch)) + '</p></div>' +
+          '<button type="button" id="kpX" aria-label="Закрыть окно">' + ICON.close + '</button></div>' +
+        '<div class="bd">' +
+          '<form id="kpF" novalidate>' +
+            '<div class="two">' +
+              '<label class="fld"><span>Имя *</span><input id="kpName" name="name" autocomplete="name">' +
+                '<span class="err" hidden></span></label>' +
+              '<label class="fld"><span>Компания</span><input id="kpOrg" name="org" autocomplete="organization"></label>' +
+            '</div>' +
+            '<div class="two">' +
+              '<label class="fld"><span>Телефон</span><input id="kpTel" name="tel" inputmode="tel" autocomplete="tel">' +
+                '<span class="err" hidden></span></label>' +
+              '<label class="fld"><span>Почта</span><input id="kpMail" name="mail" inputmode="email" autocomplete="email">' +
+                '<span class="err" hidden></span></label>' +
+            '</div>' +
+            '<p class="small" style="margin:-4px 0 12px">Телефон или почта — что-то одно обязательно, иначе ответить некуда.</p>' +
+            '<label class="fld"><span>Комментарий</span><textarea id="kpMsg" rows="3" ' +
+              'placeholder="Объект, количество, сроки, особые требования"></textarea></label>' +
+            '<div class="ft"><button class="btn" type="submit" id="kpGo">Оставить запрос</button>' +
+              '<button class="btn btn--ghost" type="button" id="kpC">Отмена</button></div>' +
+          '</form>' +
+          '<p class="say" id="kpSay" hidden></p>' +
+          '<p class="legal">Отправки не происходит: приёмной формы на сервере ещё нет. Запрос сохраняется ' +
+            'в этом браузере и попадёт к менеджеру после подключения Битрикс24. Цен, сроков изготовления ' +
+            'и гарантий завод не публикует — их не будет и в ответе автоматики.</p>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  const box = $('#kp');
+  const F = () => $$('a[href],button:not([disabled]),input,textarea,select', box).filter(el => el.offsetParent !== null);
+  $('#kpName').focus();
+
+  box.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeKP(); return; }
+    if (e.key !== 'Tab') return;
+    const f = F();
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+  box.addEventListener('mousedown', e => { if (e.target === box) closeKP(); });
+  $('#kpX').addEventListener('click', closeKP);
+  $('#kpC').addEventListener('click', closeKP);
+  $('#kpF').addEventListener('submit', submitKP);
+}
+
+function closeKP() {
+  $('#mdlHost').innerHTML = '';
+  if (lastFocus && lastFocus.focus) lastFocus.focus();
+}
+
+function setErr(id, msg) {
+  const inp = $('#' + id), fld = inp.closest('.fld'), err = $('.err', fld);
+  if (msg) {
+    fld.dataset.err = '1';
+    inp.setAttribute('aria-invalid', 'true');
+    if (err) { err.textContent = msg; err.hidden = false; }
+  } else {
+    delete fld.dataset.err;
+    inp.removeAttribute('aria-invalid');
+    if (err) { err.textContent = ''; err.hidden = true; }
+  }
+  return !msg;
+}
+
+function submitKP(e) {
+  e.preventDefault();
+  const name = $('#kpName').value.trim(), tel = $('#kpTel').value.trim(), mail = $('#kpMail').value.trim();
+  const say = $('#kpSay');
+  let ok = true;
+  ok = setErr('kpName', name.length >= 2 ? '' : 'Как к вам обращаться? Минимум два знака.') && ok;
+  const digits = tel.replace(/[^\d]/g, '');
+  ok = setErr('kpTel', !tel || digits.length >= 10 ? '' : 'В номере меньше десяти цифр — проверьте.') && ok;
+  ok = setErr('kpMail', !mail || /^[^@\s]+@[^@\s]+\.[a-zA-Zа-яА-Я]{2,}$/.test(mail) ? '' : 'Адрес без «собаки» или домена.') && ok;
+  if (!tel && !mail) {
+    setErr('kpTel', 'Оставьте телефон или почту — иначе ответить некуда.');
+    ok = false;
+  }
+  if (!ok) {
+    say.hidden = false; say.dataset.s = 'err';
+    say.textContent = 'Запрос не сохранён: поправьте отмеченные поля.';
+    const bad = $('[aria-invalid="true"]');
+    if (bad) bad.focus();
+    return;
+  }
+
+  const btn = $('#kpGo');
+  btn.disabled = true;
+  btn.textContent = 'Сохраняем…';
+  say.hidden = false; delete say.dataset.s;
+  say.textContent = 'Сохраняем запрос в этом браузере…';
+
+  setTimeout(() => {
+    const rec = {
+      id:'kp' + Date.now().toString(36),
+      sku:st.row.id, art:artOf(st.row, st.ind, st.sch),
+      name:name, org:$('#kpOrg').value.trim(), tel:tel, mail:mail,
+      msg:$('#kpMsg').value.trim(), ts:Date.now(), client:store.clientId, sent:false,
+    };
+    try {
+      store.kp = store.kp || [];
+      store.kp.unshift(rec);
+      let all = [];
+      try { all = JSON.parse(localStorage.getItem(KPKEY) || '[]'); } catch (err) { all = []; }
+      all.unshift(rec);
+      localStorage.setItem(KPKEY, JSON.stringify(all.slice(0, 40)));
+      store.save();
+      say.dataset.s = 'ok';
+      say.innerHTML = '<b>Запрос сохранён в этом браузере.</b> Письмо НЕ отправлено: приёмной формы на ' +
+        'сервере ещё нет. Как только подключим Битрикс24, запрос уйдёт менеджеру — вместе с позицией ' +
+        '<span class="num">' + esc(rec.art) + '</span> и вашими контактами. Номер записи: ' +
+        '<span class="num">' + rec.id + '</span>.';
+      btn.textContent = 'Сохранено';
+      $('#kpF').reset();
+      $('#kpC').textContent = 'Закрыть';
+    } catch (err) {
+      say.dataset.s = 'err';
+      say.textContent = 'Сохранить не удалось: браузер запретил запись (приватный режим или переполнено ' +
+        'хранилище). Позвоните 8 800 550 10 08 — это надёжнее, чем ещё одна попытка.';
+      btn.disabled = false;
+      btn.textContent = 'Повторить';
+    }
+  }, 320);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   11. ПОЗИЦИЯ НЕ НАЙДЕНА — не белый экран
+   ═══════════════════════════════════════════════════════════════════════ */
+function renderGone() {
+  const q = params().get('p') || '';
+  document.title = 'Позиция не найдена · Каталог · Вентпром';
+  $('#page').innerHTML =
+    '<nav class="crumbs" aria-label="Хлебные крошки"><a href="catalog.html">Каталог</a><i>›</i>' +
+    '<b aria-current="page">позиция не найдена</b></nav>' +
+    '<div class="sheet sheet--pad gone">' +
+      '<h2 style="margin-bottom:10px">Такой позиции в каталоге нет</h2>' +
+      '<p style="color:var(--ink-2)">' + (q
+        ? 'Адрес открыт с параметром <span class="num">p=' + esc(q) + '</span>, но под этим обозначением ' +
+          'в каталоге ничего не лежит. Возможно, позицию переименовали или адрес набран с ошибкой.'
+        : 'Карточка открывается с обозначением позиции в адресе, например ' +
+          '<span class="num">product.html?p=vr-80-75-6-3</span>. Параметра нет — показывать нечего.') + '</p>' +
+      '<label class="fld" style="max-width:420px"><span>Найти позицию</span>' +
+        '<input id="goneQ" type="search" placeholder="ВР 80-75, вр80-75 6,3, 8000" autocomplete="off">' +
+        '<span class="hint">Поиск терпим к написанию: «BP 80 75» и «вр80-75» находят одно и то же.</span></label>' +
+      '<ul class="hits" id="goneHits"></ul>' +
+      '<p class="small" id="goneHint" hidden>Если по обозначению ничего не совпало, поиск добирает ' +
+        'позиции с ближайшим расходом — числа в запросе он читает как м³/ч.</p>' +
+      '<p style="margin-top:18px"><a class="btn" href="catalog.html">Открыть каталог</a>' +
+        '<a class="btn btn--ghost" href="podbor.html" style="margin-left:8px">Подобрать по Q и P</a></p>' +
+    '</div>';
+
+  const inp = $('#goneQ'), box = $('#goneHits');
+  const paint = () => {
+    const hits = C.search(inp.value, 10);
+    box.innerHTML = hits.length
+      ? hits.map(r => '<li><a href="product.html?p=' + r.id + '"><span class="mk">' + esc(titleOf(r)) + '</span><span class="gr">' + (r.q === null ? 'Q не опубликован' : C.fmt(r.q) + ' м³/ч') +
+          '</span></a></li>').join('')
+      : (inp.value.trim()
+          ? '<li><p class="small" style="padding:9px 2px;margin:0">Ничего не нашлось. Попробуйте марку без номера — ' +
+            'например «ВР 80-75».</p></li>'
+          : '');
+    $('#goneHint').hidden = !hits.length;
+  };
+  inp.addEventListener('input', paint);
+  if (q) { inp.value = q.replace(/-/g, ' '); paint(); }
+  inp.focus();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   12. СТАРТ
+   ═══════════════════════════════════════════════════════════════════════ */
+if (readURL()) {
+  pushURL('replace');
+  lastSig = location.search + '|' + location.hash;
+  render();
+} else { renderGone(); }
+
+})();
+</script>
+</body>
+</html>

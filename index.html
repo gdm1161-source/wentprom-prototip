@@ -2,7 +2,6 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Вентпром — промышленные вентиляторы и вентиляционные установки</title>
 <meta name="description" content="Подбор промышленного вентилятора по расходу и давлению: каталог серий, инженерные калькуляторы, опросный лист и сохранение расчётов в личном кабинете.">
@@ -266,9 +265,10 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 
 <div id="vp-foot"></div>
 
-<!-- Данные этой сборки лежат отдельно: assets/data.js занят ES-модулем,
-     который импортируют остальные семь страниц. -->
+<!-- catalog.vp.js нужен и здесь, хотя главная его напрямую не читает: из него
+     подвал берёт ссылки на разделы, а шапка — позиции ленты просмотренного. -->
 <script src="assets/data.vp.js"></script>
+<script src="assets/catalog.vp.js"></script>
 <script src="assets/vp.js"></script>
 <script>
 (() => {

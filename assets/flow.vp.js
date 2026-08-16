@@ -1,8 +1,9 @@
-/* ВЕНТПРОМ · assets/flow.js
+/* ВЕНТПРОМ · assets/flow.vp.js
    ═══════════════════════════════════════════════════════════════════════════
-   Визуализация движения воздуха в воздуховоде. 2D-канвас, ванильный ES-модуль,
-   ноль зависимостей, ни одного собственного цвета — палитра читается из
-   CSS-переменных документа.
+   Визуализация движения воздуха в воздуховоде. 2D-канвас, ванильный JS,
+   обычный скрипт (не модуль) — страница открывается двойным кликом по file://.
+   Ноль зависимостей, ни одного собственного цвета: палитра читается из
+   CSS-переменных мира «Чертёж» (assets/vp.css).
 
    ЧЕСТНО О МОДЕЛИ.
    Это НЕ численное моделирование и не CFD. Поле скорости строится из
@@ -21,10 +22,12 @@
    вихрь Дина в отводе, закрутка за заслонкой — в разрезе не видны.
 
    ПОДКЛЮЧЕНИЕ:
-     import { mountFlow, ELEMENTS, stateOf, elementLoss } from './assets/flow.js';
-     const flow = mountFlow(canvas, { L:6000, D:500, element:'bend' });
+     <script src="assets/flow.vp.js"></script>
+     const flow = VPFLOW.mountFlow(canvas, { L:6000, D:500, element:'bend' });
      flow.set({ element:'expansion' });   flow.destroy();
    ═══════════════════════════════════════════════════════════════════════════ */
+(function (root) {
+'use strict';
 
 /* ═══ 0. Утилиты ═══════════════════════════════════════════════════════════ */
 
@@ -66,7 +69,7 @@ function tabLog(t, x){
 
 /* ═══ 1. Среда ═════════════════════════════════════════════════════════════ */
 
-export const AIR = {
+const AIR = {
   rho : 1.2,        // кг/м³ — плотность воздуха при 20 °C и 101,3 кПа
   nu  : 15.06e-6,   // м²/с  — кинематическая вязкость там же
   kAbs: 0.15e-3     // м     — эквивалентная шероховатость оцинкованного воздуховода
@@ -84,7 +87,7 @@ const DAMPER_Z = [[0, 0.20], [10, 0.52], [20, 1.54], [30, 3.91], [40, 10.8],
 /* ═══ 2. Одномерная физика. Чистые функции — их зовёт и страница ══════════ */
 
 /** Геометрия сечения. D, a, b — в мм. */
-export function sectionOf(o = {}){
+function sectionOf(o = {}){
   if(o.shape === 'rect'){
     const a = Math.max(0.05, (o.a || 600) / 1000);   // ширина, м
     const b = Math.max(0.05, (o.b || 400) / 1000);   // высота, м (её и рисуем)
@@ -98,7 +101,7 @@ export function sectionOf(o = {}){
 }
 
 /** Показатель степенного закона: n растёт с числом Рейнольдса. */
-export function nOf(Re){
+function nOf(Re){
   if(Re <= 0) return 7;
   const x = Math.log10(Math.max(1, Re));
   const t = N_TAB.map(([r, n]) => [Math.log10(r), n]);
@@ -110,7 +113,7 @@ export function nOf(Re){
  *   u_ср = (2/R²)∫u·r dr → u_max/u_ср = (n+1)(2n+1)/(2n²). При n = 7 это 1,224.
  * Прямоугольное — профиль работает по обеим сторонам: ((n+1)/n)².
  */
-export const coreRatio = (n, round = true) =>
+const coreRatio = (n, round = true) =>
   round ? (n + 1) * (2 * n + 1) / (2 * n * n) : Math.pow((n + 1) / n, 2);
 
 /**
@@ -120,19 +123,19 @@ export const coreRatio = (n, round = true) =>
  * то же u_max/u_ср, что и осесимметричный расчёт, подбираем n так, чтобы
  * (nп+1)/nп = u_max/u_ср.
  */
-export const planeN = kMax => clamp(1 / Math.max(0.02, kMax - 1), 1.5, 40);
+const planeN = kMax => clamp(1 / Math.max(0.02, kMax - 1), 1.5, 40);
 
 /** Коэффициент трения. Ламинарный — 64/Re, турбулентный — формула Альтшуля. */
-export function lambdaOf(Re, Dh){
+function lambdaOf(Re, Dh){
   if(Re < 2300) return Re > 1 ? 64 / Re : 0.05;
   return 0.11 * Math.pow(AIR.kAbs / Dh + 68 / Re, 0.25);
 }
 
 /** Динамическое давление ρu²/2, Па. */
-export const pDyn = u => AIR.rho * u * u / 2;
+const pDyn = u => AIR.rho * u * u / 2;
 
 /** Базовое состояние потока: скорость, Re, n, λ. L — м³/ч. */
-export function stateOf({ L = 6000, section } = {}){
+function stateOf({ L = 6000, section } = {}){
   const sec = section || sectionOf({});
   const Q   = Math.max(0, L) / 3600;                 // м³/с
   const u0  = sec.F > 0 ? Q / sec.F : 0;             // средняя скорость в сечении
@@ -144,7 +147,7 @@ export function stateOf({ L = 6000, section } = {}){
 }
 
 /* Каталог элементов трассы. Страница строит по нему переключатель и ползунок. */
-export const ELEMENTS = [
+const ELEMENTS = [
   { key:'straight', name:'Прямой участок', tag:'профиль и пристенная зона',
     param:{ key:'len', label:'Длина участка', unit:'калибров', min:3, max:14, step:0.5, def:7, dec:1 } },
   { key:'bend', name:'Отвод 90°', tag:'снос ядра, вихрь у внутренней стенки',
@@ -164,7 +167,7 @@ export const ELEMENTS = [
             min:0, max:3, step:0.25, def:0, dec:2 } }
 ];
 
-export const elementByKey = k => ELEMENTS.find(e => e.key === k) || ELEMENTS[0];
+const elementByKey = k => ELEMENTS.find(e => e.key === k) || ELEMENTS[0];
 
 /** Фиксированные пропорции элементов, общие для расчёта и для картинки. */
 const GEO = { confOut: 0.6, teeBranch: 0.6, fanThroat: 0.84, jetSpread: 0.44 };
@@ -175,7 +178,7 @@ const GEO = { confOut: 0.6, teeBranch: 0.6, fanThroat: 0.84, jetSpread: 0.44 };
  * Ни одно число не выдумано «для красоты»: либо формула, либо таблица, либо
  * явно помеченная оценка.
  */
-export function elementLoss(key, p, st){
+function elementLoss(key, p, st){
   const { sec, u0, lambda, Q } = st;
   const q0 = pDyn(u0);
   const F1 = sec.F;
@@ -309,8 +312,17 @@ function parseColor(str){
   return null;
 }
 
-/** Читает токены документа. Своих цветов модуль не объявляет: запасной
-    вариант — тоже цвет документа (цвет текста body). */
+/**
+ * Читает токены мира «Чертёж» из assets/vp.css. Своих цветов модуль не
+ * объявляет: запасной вариант — тоже цвет документа (цвет текста body).
+ *
+ * ЗАКОН МИРА, который здесь соблюдён. Сигнальный оранжевый --signal живёт
+ * ТОЛЬКО на действии — на кнопках. Возвратное течение и зоны отрыва — это не
+ * действие, а состояние, и притом дефектное: то место, где рождаются потери и
+ * шум. Поэтому им отдан --stop из закрытой тройки состояний, а не --signal.
+ * Приборный синий --blue остаётся на структуре: канал, оси, размерные линии,
+ * поле прямого течения.
+ */
 function readPalette(node){
   const cs   = getComputedStyle(node);
   const rs   = getComputedStyle(document.documentElement);
@@ -319,19 +331,21 @@ function readPalette(node){
                        parseColor((cs.getPropertyValue(name) || '').trim()) || base;
   const rgb  = c => `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`;
   const P = {
-    paper: get('--paper'), sheet: get('--sheet'), sheet2: get('--sheet-2'),
-    rule: get('--rule'), ruleSoft: get('--rule-soft'), ruleHard: get('--rule-hard'),
-    gridInk: get('--grid-ink'),
+    sheet: get('--paper-hi'),                                  /* поле листа  */
+    grid: get('--grid'), gridInk: get('--grid-fine'),          /* миллиметровка */
+    rule: get('--rule'), ruleHard: get('--rule-ink'),
     ink: get('--ink'), ink2: get('--ink-2'), ink3: get('--ink-3'), ink4: get('--ink-4'),
-    blue: get('--blue'), blueInk: get('--blue-ink'), blueLit: get('--blue-lit'),
-    blueWash: get('--blue-wash'), blueEdge: get('--blue-edge'),
-    sig: get('--sig'), sigInk: get('--sig-ink'), sigWash: get('--sig-wash'),
+    /* структура и прямое течение */
+    blue: get('--blue'), blueInk: get('--blue'), blueEdge: get('--blue-2'),
+    /* дефектная зона: отрыв, возвратное течение */
+    bad: get('--stop'), badInk: get('--stop'),
+    warnInk: get('--warn'),                                    /* оговорка в штампе */
     fUi: (rs.getPropertyValue('--f-ui') || '').trim() || 'sans-serif',
     fNum: (rs.getPropertyValue('--f-num') || '').trim() || 'monospace',
-    fPlate: (rs.getPropertyValue('--f-plate') || '').trim() || 'sans-serif'
+    fPlate: (rs.getPropertyValue('--f-draw') || '').trim() || 'sans-serif'
   };
-  /* Собственная прозрачность токена сохраняется: --grid-ink задан с альфой,
-     и миллиметровка обязана остаться волосяной. */
+  /* Собственная прозрачность токена сохраняется, если она у него есть:
+     миллиметровка обязана остаться волосяной. */
   P.c = (k, a) => {
     const v = P[k] || base;
     const av = (v[3] == null ? 1 : v[3]) * (a == null ? 1 : a);
@@ -804,7 +818,7 @@ const STUB = { set(){}, pause(){}, resume(){}, destroy(){}, read: () => null };
  * mountFlow(canvas, opts) → { set, pause, resume, destroy, read }
  * Модуль не падает на холсте нулевого размера: он просто ждёт первого ресайза.
  */
-export function mountFlow(canvas, opts = {}){
+function mountFlow(canvas, opts = {}){
   if(!canvas || typeof canvas.getContext !== 'function') return STUB;
   const ctx = canvas.getContext('2d');
   if(!ctx) return STUB;
@@ -1055,6 +1069,7 @@ export function mountFlow(canvas, opts = {}){
     for(let x = 0; x <= W; x += 14){ c.moveTo(x + .5, 0); c.lineTo(x + .5, H); }
     for(let y = 0; y <= H; y += 14){ c.moveTo(0, y + .5); c.lineTo(W, y + .5); }
     c.stroke();
+    c.strokeStyle = pal.c('grid');
     c.beginPath();                                   // крупная, поверх мелкой
     for(let x = 0; x <= W; x += 70){ c.moveTo(x + .5, 0); c.lineTo(x + .5, H); }
     for(let y = 0; y <= H; y += 70){ c.moveTo(0, y + .5); c.lineTo(W, y + .5); }
@@ -1075,7 +1090,7 @@ export function mountFlow(canvas, opts = {}){
     if(u >= 0) return pal.c('blue', 0.05 + 0.55 * Math.pow(clamp(u / s, 0, 1), 0.85));
     /* Возвратное течение всегда на порядок медленнее основного — у него своя
        шкала, иначе зона отрыва оказалась бы невидимой. */
-    return pal.c('sig', 0.18 + 0.40 * clamp(-u / (0.2 * s), 0, 1));
+    return pal.c('bad', 0.18 + 0.40 * clamp(-u / (0.2 * s), 0, 1));
   }
   function drawField(c, path){
     const T = path.T, N = T.n;
@@ -1164,7 +1179,7 @@ export function mountFlow(canvas, opts = {}){
         const m = Math.hypot(vx, vy); if(m < 1e-4) continue;
         const len = L * clamp(m / model.uScale, 0.08, 1);
         const X = SX(pt[0]), Y = SY(pt[1]), ux = vx / m, uy = vy / m;
-        c.strokeStyle = sv[0] < 0 ? pal.c('sigInk', 0.8) : pal.c('ink3', 0.75);
+        c.strokeStyle = sv[0] < 0 ? pal.c('badInk', 0.8) : pal.c('ink3', 0.75);
         c.lineWidth = 1;
         c.beginPath();
         c.moveTo(X - ux * len / 2, Y - uy * len / 2);
@@ -1182,15 +1197,19 @@ export function mountFlow(canvas, opts = {}){
     c.font = `500 11px ${pal.fUi}`;
     model.geo.annos.forEach(a => {
       if(a.t === 'note'){
-        const X = SX(a.x), Y = SY(a.y), X2 = SX(a.x + a.dx), Y2 = SY(a.y + a.dy);
+        const X = SX(a.x), Y = SY(a.y), Y2 = SY(a.y + a.dy);
+        let X2 = SX(a.x + a.dx);
+        const right = X2 >= X, w = c.measureText(a.text).width;
+        /* Подпись обязана остаться внутри холста. На узком экране полка выноски
+           уходит за обрез, и вместо пояснения получается обрубок слова —
+           поэтому двигаем конец полки, а не обрезаем текст. */
+        X2 = right ? clamp(X2, view.ax + 4, W - w - 8) : clamp(X2, w + 8, W - 4);
         c.strokeStyle = pal.c('ink4'); c.lineWidth = 1;
         c.beginPath(); c.moveTo(X, Y); c.lineTo(X2, Y2); c.stroke();
         c.beginPath(); c.arc(X, Y, 2, 0, Math.PI * 2); c.fillStyle = pal.c('ink3'); c.fill();
-        const right = X2 >= X;
         c.textAlign = right ? 'left' : 'right';
         c.textBaseline = Y2 < Y ? 'bottom' : 'top';
         const tx = X2 + (right ? 4 : -4), ty = Y2 + (Y2 < Y ? -3 : 3);
-        const w = c.measureText(a.text).width;
         c.fillStyle = pal.c('sheet', 0.85);
         c.fillRect(right ? tx - 2 : tx - w - 2, ty - (Y2 < Y ? 13 : 1), w + 4, 14);
         c.fillStyle = pal.c('ink2'); c.fillText(a.text, tx, ty);
@@ -1203,8 +1222,9 @@ export function mountFlow(canvas, opts = {}){
         c.moveTo(X2, Y2 - 4); c.lineTo(X2, Y2 + 4); c.stroke();
         c.textAlign = 'center'; c.textBaseline = 'bottom';
         c.font = `500 11px ${pal.fNum}`;
-        const mx = (X1 + X2) / 2, my = (Y1 + Y2) / 2 - 4;
         const w = c.measureText(a.text).width;
+        /* Подпись размера — тоже внутрь холста, по тому же правилу. */
+        const mx = clamp((X1 + X2) / 2, w / 2 + 4, W - w / 2 - 4), my = (Y1 + Y2) / 2 - 4;
         c.fillStyle = pal.c('sheet', 0.9); c.fillRect(mx - w / 2 - 3, my - 12, w + 6, 13);
         c.fillStyle = pal.c('blueInk'); c.fillText(a.text, mx, my);
         c.font = `500 11px ${pal.fUi}`;
@@ -1259,13 +1279,17 @@ export function mountFlow(canvas, opts = {}){
     c.strokeStyle = pal.c('rule'); c.lineWidth = 1; c.strokeRect(x + .5, y + .5, w, h);
     c.font = `500 10px ${pal.fNum}`; c.fillStyle = pal.c('ink3'); c.textBaseline = 'top';
     c.textAlign = 'left';   c.fillText('0', x, y + h + 3);
-    c.textAlign = 'center'; c.fillText(nf(model.uScale / 2, 1), x + w / 2, y + h + 3);
+    /* На узком холсте шкала короче подписей: середина налезает на верх шкалы.
+       Лучше две честные подписи по краям, чем три налезающие друг на друга. */
+    if(w >= 130){
+      c.textAlign = 'center'; c.fillText(nf(model.uScale / 2, 1), x + w / 2, y + h + 3);
+    }
     c.textAlign = 'right';  c.fillText(nf(model.uScale, 1) + ' м/с', x + w, y + h + 3);
     /* образец возвратного течения */
     const rx = x + w + 14;
     c.fillStyle = fieldColor(-model.uScale); c.fillRect(rx, y, 15, h);
     c.strokeStyle = pal.c('rule'); c.strokeRect(rx + .5, y + .5, 15, h);
-    c.textAlign = 'left'; c.font = `500 10px ${pal.fUi}`; c.fillStyle = pal.c('sigInk');
+    c.textAlign = 'left'; c.font = `500 10px ${pal.fUi}`; c.fillStyle = pal.c('badInk');
     c.fillText('возврат', rx + 19, y + h + 3);
     c.fillStyle = pal.c('ink3');
     c.fillText('поле скорости, м/с', x, y - 12);
@@ -1286,7 +1310,8 @@ export function mountFlow(canvas, opts = {}){
     c.strokeStyle = pal.c('ruleHard'); c.lineWidth = 1; c.strokeRect(x + .5, y + .5, bw, bh);
     c.textAlign = 'left'; c.textBaseline = 'top';
     lines.forEach((t, i) => {
-      c.fillStyle = i === (o.compact ? 0 : 1) ? pal.c('sigInk') : pal.c('ink3');
+      /* Строка «не CFD» — оговорка, а не действие: цвет предупреждения. */
+      c.fillStyle = i === (o.compact ? 0 : 1) ? pal.c('warnInk') : pal.c('ink3');
       c.fillText(t, x + pad, y + pad + i * lh);
     });
   }
@@ -1330,7 +1355,7 @@ export function mountFlow(canvas, opts = {}){
       ctx.stroke(); ctx.lineCap = 'butt';
     };
     stroke(fwd, pal.c('ink', 0.62));
-    stroke(rev, pal.c('sigInk', 0.85));
+    stroke(rev, pal.c('badInk', 0.85));
   }
 
   /* Линейка-зонд и эпюра u(r) в выбранном сечении. */
@@ -1371,7 +1396,10 @@ export function mountFlow(canvas, opts = {}){
       /* подписи держим внутри холста, иначе на узком экране их срежет */
       const tx = clamp(SX(pt[0]), view.ax + tw / 2 + 4, W - tw / 2 - 8);
       const ty = Math.max(46, SY(pt[1]) - 12);
-      ctx.fillStyle = pal.c('sheet', 0.92);
+      /* Подложка непрозрачная: зонд ходит по холсту и рано или поздно встаёт
+         поверх выноски. Живое показание важнее статической подписи — пусть
+         накрывает её чисто, а не смешивается с ней в нечитаемую кашу. */
+      ctx.fillStyle = pal.c('sheet');
       ctx.fillRect(tx - tw / 2 - 4, ty - 13, tw + 8, 15);
       ctx.fillStyle = pal.c('blueInk');
       ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
@@ -1530,3 +1558,10 @@ export function mountFlow(canvas, opts = {}){
   invalidate(true);
   return api;
 }
+
+/* ═══ 9. Экспорт ══════════════════════════════════════════════════════════
+   Те же функции, что раньше отдавал ES-модуль: страница считает свои числа
+   ровно тем же кодом, что и картинка, — расхождению взяться неоткуда. */
+root.VPFLOW = { mountFlow, ELEMENTS, elementByKey, sectionOf, stateOf,
+                elementLoss, nOf, coreRatio, lambdaOf, pDyn, AIR, nf };
+})(window);
