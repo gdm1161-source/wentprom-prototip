@@ -272,6 +272,31 @@ table.data tbody tr:hover td{background:var(--blue-wash)}
 .st[data-s="wait"]{background:var(--warn-pale)}
 .st[data-s="stop"]{background:var(--stop-pale)}
 
+/* ═══ Остатки «Чертежа» в локальных стилях страницы каталога ════════
+   Эти пять правил живут не в системе (vp.css / cat.css), а в собственном
+   <style> самой страницы, поэтому общая замена --f-draw их не достаёт:
+   text-transform и letter-spacing там прописаны буквально. Тема грузится
+   после <style> страницы и при равной специфичности перебивает их —
+   иначе на новом сайте остаются кнопка «ОЧИСТИТЬ» и подписи подсказок
+   поиска чертёжными прописными вразрядку посреди обычного набора. */
+.find .fx,.findlist .kd,.findlist .mk,.stubnote b,.often h2{
+  font-family:var(--f-ui);
+  text-transform:none;
+  letter-spacing:normal;
+}
+.find .fx{font-size:12.5px;font-weight:600;border-radius:var(--r-sm)}
+.findlist .kd{font-size:11.5px}
+.findlist .mk{font-weight:700}
+.stubnote b{font-weight:700}
+.often h2{font-weight:700;font-size:13px}
+
+/* Название раздела — главный текст сетки каталога: тринадцать названий
+   и есть содержание страницы. На 12.5px оно стояло вровень со счётчиком
+   и служебными подписями; поднимаем, чтобы иерархия была настоящей,
+   а не декларируемой. Высоту плитки контракт держит в 1366×768 — рост
+   кегля компенсируем чуть более плотным межстрочным. */
+.tiles--cat .tile .nm{font-size:15px;line-height:1.2}
+
 /* ═══ Подвал: та же тёмная рамка, что и шапка ═══════════════════════ */
 footer{background:var(--dark-frame);border-top:0;color:var(--dark-frame-ink-2)}
 footer h4{color:var(--dark-frame-ink)}
