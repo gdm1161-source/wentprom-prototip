@@ -1,0 +1,1158 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Серия · Каталог · Вентпром</title>
+<meta name="description" id="metaDesc" content="Экран серии каталога: паспорт серии, плашка достоверности данных, фасетный отбор и спец-таблица типоразмеров с набором столбцов по типу агрегата.">
+<link rel="stylesheet" href="assets/vp.css">
+<link rel="stylesheet" href="assets/cat.css">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   Локальный слой ЭКРАНА СЕРИИ. Только то, чего нет в vp.css и cat.css.
+   Ни одного нового цвета: всё токенами системы.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+#page{padding-top:26px;padding-bottom:34px}
+
+/* Ступень «Раздел» пройдена и потому ссылка, а не кнопка: средний клик
+   должен открывать её в новой вкладке. Компонент .stage из cat.css
+   подчёркивания не снимает — снимаем здесь. */
+a.stage{text-decoration:none}
+
+/* Кнопка сортировки в шапке таблицы. Система рисует стрелку .ar и курсор
+   на th[data-k], но самой кнопки-обёртки в ней нет. */
+.sortb{display:inline-flex;align-items:center;justify-content:flex-end;width:100%;
+  padding:0;background:none;border:0;font:inherit;color:inherit;cursor:pointer;
+  text-transform:inherit;letter-spacing:inherit}
+th.l .sortb{justify-content:flex-start}
+.sortb:hover{color:var(--blue)}
+
+/* Полоса выбранных фасетов в системе приклеена снизу к шапке блока
+   (border-top:0). Здесь она стоит самостоятельно — возвращаем верхнюю линию. */
+.picked{border-top:1px solid var(--rule-ink)}
+
+/* ── ПЛАШКА ДОСТОВЕРНОСТИ ДАННЫХ ──────────────────────────────────────
+   Своего компонента у системы нет: .st — строчная помета, .warn — только
+   охряная полоса, а состояний здесь три и звучать они обязаны по-разному.
+   Громкость нарастает: сверено — тихая бумага с зелёной кромкой,
+   частично — охра, дубль — красный лист, который нельзя не заметить. */
+.trust{display:grid;grid-template-columns:6px minmax(0,1fr);
+  border:1px solid var(--rule-ink);background:var(--paper-hi)}
+.trust .bar{background:var(--ink-4)}
+.trust .in{padding:14px 18px;min-width:0}
+.trust h2{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px;font-size:13px;letter-spacing:.14em}
+/* Пояснение состояния — связная фраза, а не надпись чертежа: прописные
+   заголовка на неё не распространяются. */
+.trust h2 .mk{font-size:12px;letter-spacing:.06em;color:var(--ink-3);text-transform:none}
+.trust p{margin:8px 0 0;font-size:13.5px;line-height:1.5;color:var(--ink-2);max-width:96ch}
+.trust p:last-child{margin-bottom:0}
+.trust[data-s="ok"]{border-color:var(--ok)}
+.trust[data-s="ok"] .bar{background:var(--ok)}
+.trust[data-s="ok"] h2{color:var(--ok)}
+.trust[data-s="wait"]{border-color:var(--warn-line);background:var(--warn-pale)}
+.trust[data-s="wait"] .bar{background:var(--warn)}
+.trust[data-s="wait"] h2{color:var(--warn-ink)}
+.trust[data-s="wait"] p{color:var(--warn-ink)}
+.trust[data-s="stop"]{border-color:var(--stop);background:var(--stop-pale)}
+.trust[data-s="stop"] .bar{background:var(--stop)}
+.trust[data-s="stop"] h2{color:var(--stop)}
+.trust[data-s="stop"] h2 .mk{color:var(--stop)}
+
+/* Журнал правки числовой аномалии: было → стало → почему */
+.fixl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;
+  margin:12px 0 0;padding:11px 0 0;border-top:1px solid var(--rule)}
+.fixl dt{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.13em;
+  font-size:10px;color:var(--ink-3);padding-top:2px}
+.fixl dd{margin:0;font-size:13px;line-height:1.45;color:var(--ink-2)}
+.fixl dd.was{font-family:var(--f-num);font-size:12.5px}
+.fixl dd.now{font-family:var(--f-num);font-size:12.5px;color:var(--ink)}
+
+/* ── Паспорт: подпись под силуэтом и мелочи внутри .pc ────────────────── */
+/* Регистр марки — часть обозначения: ВРм ДУ и ВРз ДУ отличаются от ВРМ и ВРЗ
+   строчной буквой модификации. Прописные надписи чертежа её бы уничтожили,
+   поэтому там, где стоит МАРКА, регистр остаётся заводским. */
+.pc-pass h1.mk,.stamp dd.mk,.gone .all a{text-transform:none}
+.figcap{margin:10px 0 0;font-size:11.5px;line-height:1.45;color:var(--ink-3)}
+.pc-pass .specs dd .none{font-family:var(--f-ui);font-size:12px;color:var(--ink-3)}
+.pc-pass .trustline{display:flex;align-items:center;gap:8px;margin:14px 0 0;
+  padding-top:12px;border-top:1px solid var(--rule-ink);font-size:12.5px}
+.pc-pass .trustline a{margin-left:auto;font-size:12px}
+
+/* ── Таблица типоразмеров ─────────────────────────────────────────────── */
+.tbar{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;margin:0 0 10px}
+.tbar .n{font-family:var(--f-num);font-size:12.5px;color:var(--ink-2)}
+.tbar .tip{font-size:12.5px;color:var(--ink-2)}
+table.data tbody tr[data-id]{cursor:pointer}
+table.data td .szl{color:var(--blue);text-underline-offset:3px}
+table.data td .szl.none{font-family:var(--f-ui);font-size:12.5px}
+table.data td .rown{display:block;font-family:var(--f-num);font-size:11px;color:var(--ink-4)}
+/* Столбец, объявленный картой полей боевого сайта, но без значений: он
+   показан, а не спрятан, — иначе пропажа данных остаётся незамеченной. */
+table.data thead th[data-none="1"]{color:var(--ink-4)}
+table.data td[data-none="1"]{color:var(--ink-4)}
+td.acts .btn{white-space:nowrap}
+/* Набор столбцов у пылевых, высокого давления и индустриальных шире, чем
+   колонка листа даже на 1366 px, и таблица распирала бы страницу. Система
+   включает контейнер прокрутки по ширине окна (≤1279); здесь условие не
+   ширина окна, а ЧИСЛО СТОЛБЦОВ, поэтому контейнер включается замером.
+   Как и в системе, липкая шапка при этом переводится на нулевое смещение —
+   иначе она уедет вниз внутри контейнера и накроет первую строку. */
+.tbl-scroll[data-x="1"]{overflow-x:auto}
+.tbl-scroll[data-x="1"] table.data thead th{top:0}
+.colnote{margin:10px 0 0;font-size:12.5px;line-height:1.5;color:var(--ink-3);max-width:96ch}
+.colnote b{color:var(--ink-2);font-weight:600}
+.empty[hidden]{display:none}
+.empty h3{margin-bottom:8px}
+.empty p{max-width:76ch;color:var(--ink-2)}
+
+/* ── Сравнение ────────────────────────────────────────────────────────── */
+#cmpSec[hidden]{display:none}
+.cmp thead th{text-align:left}
+.cmp thead th .x{display:inline-grid;place-items:center;margin-left:8px;padding:2px;
+  background:none;border:0;color:var(--ink-3);cursor:pointer;vertical-align:middle}
+.cmp thead th .x:hover{color:var(--stop)}
+.cmp thead th .x svg{width:13px;height:11px}
+.cmp td{text-align:left}
+.cmp td.k{font-family:var(--f-ui);color:var(--ink-2);white-space:normal}
+
+/* Ячейка рейки соседних серий собрана на b и i — возвращаем им нейтральное
+   начертание, всё остальное делает .neigh из cat.css. */
+.neigh b.sz{font-weight:700}
+.neigh i.q{font-style:normal}
+
+/* ── Серия не найдена ─────────────────────────────────────────────────── */
+.gone{max-width:84ch}
+.gone .res{margin:12px 0 0;padding:0;list-style:none;border-top:1px solid var(--rule)}
+.gone .res li{border-bottom:1px solid var(--rule-fine)}
+.gone .res a{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;
+  padding:8px 0;text-decoration:none;color:var(--ink-2)}
+.gone .res a:hover{color:var(--blue)}
+.gone .res .mk{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.07em;
+  font-size:14.5px;color:var(--ink)}
+.gone .res .gr{margin-left:auto;font-family:var(--f-num);font-size:11.5px;color:var(--ink-3)}
+.gone .all{margin:14px 0 18px;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
+.gone .all a{display:block;border:1px solid var(--rule-ink);padding:5px 11px;text-decoration:none;
+  font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.07em;font-size:13px;color:var(--ink)}
+.gone .all a:hover{border-color:var(--blue);color:var(--blue)}
+
+@media (max-width:620px){
+  /* Размерная линия системы не переносится: на узком листе разрешаем
+     перенос, иначе длинный заголовок распирает страницу. Токены не трогаем. */
+  .dim{flex-wrap:wrap;gap:8px 12px}
+  .dim h1,.dim h2{flex:0 1 auto;min-width:0}
+  .dim .line{min-width:40px;margin-right:2px}
+  .stamp{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stamp div:nth-child(-n+2){border-bottom:1px solid var(--rule)}
+  .stamp div:nth-child(2n){border-right:0}
+  .trust .in{padding:12px 14px}
+}
+</style>
+</head>
+<body>
+<!--
+IMPECCABLE DIRECTION CONTRACT · мир «Чертёж»
+THESIS: Экран серии — терминальная страница каталога: паспорт, честная плашка
+достоверности и спец-таблица типоразмеров, набор столбцов которой задан типом
+агрегата, а не общим шаблоном.
+OWN-WORLD: бумага с миллиметровкой, волосяная линовка вместо теней, приборный
+синий на структуре, сигнальный оранжевый только на действии, основная надпись
+по ГОСТ 2.104 внизу листа.
+FORM: «Чертёж» закреплён распоряжением заказчика; раунд направления не проводился.
+-->
+
+<div id="vp-head"></div>
+
+<main>
+  <div class="wrap" id="page"></div>
+</main>
+
+<div id="vp-foot"></div>
+
+<script src="assets/data.vp.js"></script>
+<script src="assets/catalog.vp.js"></script>
+<script src="assets/silh.js"></script>
+<script src="assets/vp.js"></script>
+<script>
+(() => {
+'use strict';
+const {$, $$, ICON, store} = VP;
+const C = VPCAT;
+
+/* ═══ 0. Мелкий инструмент ═══════════════════════════════════════════ */
+const esc = s => String(s === null || s === undefined ? '' : s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+const plural = (n, a, b, c) => {
+  const m = n % 100, k = n % 10;
+  return n + ' ' + (m >= 11 && m <= 14 ? c : k === 1 ? a : k >= 2 && k <= 4 ? b : c);
+};
+
+/* Число или честный прочерк. Ноль и NaN на экран не попадают никогда. */
+const fmt = v => (v === null || v === undefined || Number.isNaN(v)) ? '—' : C.fmt(v);
+const dnum = v => (v === null || v === undefined || Number.isNaN(v)) ? '—' : C.dec(v);
+const rng = (pair, f) => pair ? f(pair[0]) + ' … ' + f(pair[1]) : null;
+
+/* Силуэт агрегата. Порядок поиска задан каркасом страницы; если крупного
+   силуэта под артикул ещё не нарисовано, берём силуэт БЛИЗКОЙ ФОРМЫ —
+   тягодутьевая машина и пылевой это радиальные агрегаты, шахтный и
+   осевой подпора — осевые. Пустое место вместо изделия недопустимо. */
+const ARTFALL = {
+  dust:'scroll5', hp:'scrollmp', heavy:'scroll5', smoke:'scroll5',
+  mine:'axial', fire:'scroll1', fireroof:'roof', fireax:'axial',
+  ductround:'ductk',
+};
+function silh(art) {
+  const pick = k => (window.VPSILH && VPSILH[k]) || VP.BIG[k] || '';
+  return pick(art) || pick(ARTFALL[art] || '') || VP.ICON[art] || '';
+}
+/* Силуэт нарисован не с чертежа этой серии, и это сказано вслух */
+const isOwnArt = art => !!((window.VPSILH && VPSILH[art]) || VP.BIG[art]);
+
+/* ═══ 1. Кого открыли ════════════════════════════════════════════════
+   Штатный адрес — марка: series.html?s=ВР 80-75.
+   Терпим также к адресу нового сайта (vr-80-75) и к id позиции (vp137):
+   на страницу приходят и из шапки, и из ленты просмотренного. */
+const P0 = new URLSearchParams(location.search);
+const raw = (P0.get('s') || '').trim();
+
+function resolveSeries(q) {
+  if (!q) return null;
+  let s = C.seriesOf(q);
+  if (s) return s;
+  const n = C.norm(q);
+  s = C.SERIES.filter(x => C.norm(x.mk) === n)[0];
+  if (s) return s;
+  const sl = q.toLowerCase();
+  s = C.SERIES.filter(x => C.slug(x.mk) === sl)[0];
+  if (s) return s;
+  const r = C.sku(q);
+  return r ? C.seriesOf(r.mk) : null;
+}
+const S = resolveSeries(raw);
+
+/* ═══ 2. Серия не найдена ════════════════════════════════════════════
+   Не белый экран: живой поиск по всему каталогу и полный перечень серий. */
+function renderGone() {
+  document.title = 'Серия не найдена · Каталог · Вентпром';
+  $('#page').innerHTML =
+    '<nav class="crumbs" aria-label="Хлебные крошки">' +
+      '<a href="catalog.html">Каталог</a><i>›</i>' +
+      '<b aria-current="page">серия не найдена</b>' +
+    '</nav>' +
+    '<div class="sheet sheet--pad gone">' +
+      '<h2 style="margin-bottom:10px">Такой серии в каталоге нет</h2>' +
+      '<p style="color:var(--ink-2)">' + (raw
+        ? 'Адрес открыт с параметром <span class="num">s=' + esc(raw) + '</span>, ' +
+          'но под этим обозначением в каталоге ничего не лежит.'
+        : 'Экран серии открывается с обозначением в адресе, например ' +
+          '<span class="num">series.html?s=ВР 80-75</span>. Параметра нет — показывать нечего.') +
+      '</p>' +
+      '<label class="fld" style="max-width:420px"><span>Найти серию или типоразмер</span>' +
+        '<input type="search" id="goneQ" placeholder="вр 80-75, дн, 8000" autocomplete="off"></label>' +
+      '<ul class="res" id="goneRes"></ul>' +
+      '<p class="small" style="margin:16px 0 6px">Все серии каталога — ' +
+        plural(C.SERIES.length, 'штука', 'штуки', 'штук') + ':</p>' +
+      '<ul class="all">' + C.SERIES.map(s =>
+        '<li><a href="series.html?s=' + encodeURIComponent(s.mk) + '">' + esc(s.mk) + '</a></li>').join('') +
+      '</ul>' +
+      '<a class="btn" href="catalog.html">Вернуться в каталог</a>' +
+    '</div>';
+
+  const box = $('#goneRes'), inp = $('#goneQ');
+  const paint = () => {
+    const q = inp.value.trim();
+    if (!q) { box.innerHTML = ''; return; }
+    const hits = C.search(q, 10);
+    box.innerHTML = hits.length
+      ? hits.map(r =>
+          '<li><a href="product.html?p=' + encodeURIComponent(r.id) + '">' +
+            '<span class="mk">' + esc(r.mk) + '</span>' +
+            '<span>' + esc(C.szl(r)) + '</span>' +
+            '<span class="gr">' + (r.q === null ? 'расход не опубликован' : fmt(r.q) + ' м³/ч') + '</span>' +
+          '</a></li>').join('')
+      : '<li><a href="catalog.html"><span>Ничего не нашлось. Открыть каталог целиком</span></a></li>';
+  };
+  inp.addEventListener('input', paint);
+}
+
+/* ═══ 3. Экран серии ═════════════════════════════════════════════════ */
+function renderSeries() {
+
+const SB = C.subOf(S.sub) || {id:'', name:'Подраздел', short:'', series:[]};
+const RZ = C.razdelOf(SB.razdel) || {id:'', name:'Раздел', short:''};
+const ROWS = C.SKU.filter(r => r.mk === S.mk);
+const ORD = new Map(ROWS.map((r, i) => [r.id, i]));
+const DT = C.DATA[S.data] || C.DATA.part;
+const FIX = C.FIXES.filter(f => f.mk === S.mk ||
+  f.mk.split('/').map(x => x.trim()).indexOf(S.mk) >= 0);
+const razdelHref = 'razdel.html?r=' + encodeURIComponent(RZ.id);
+const subHref = razdelHref + '&s=' + encodeURIComponent(SB.id);
+/* Обозначения типоразмеров опубликованы не у всех серий: у ВМЭ и ВКРФ ДУ
+   в модуле sizes:[] и szn — номера завод не назвал, выдумывать их нельзя. */
+const NAMED = ROWS.some(r => r.size !== null && r.size !== undefined);
+
+document.title = S.mk + ' · ' + SB.name + ' · Вентпром';
+const md = $('#metaDesc');
+if (md) md.setAttribute('content', S.mk + ' — ' + S.appl + '. Паспортные диапазоны, ' +
+  plural(ROWS.length, 'типоразмер', 'типоразмера', 'типоразмеров') + ', достоверность данных.');
+
+/* ── 3.1 Состояние страницы, оно же состояние адреса ───────────────── */
+const F  = {q0:null, q1:null, p0:null, p1:null, sz:new Set(), isp:new Set(), sch:new Set()};
+const UI = {sort:null, dir:1};
+const CMP = [];                       /* сравнение: не более четырёх позиций */
+const CMPMAX = 4;
+
+const sizeKey = r => (r.size === null || r.size === undefined) ? r.id : String(r.size);
+const sizeLbl = r => C.szl(r);
+const hrefOf  = id => 'product.html?p=' + encodeURIComponent(id) +
+  (F.isp.size === 1 ? '&isp=' + encodeURIComponent([...F.isp][0]) : '');
+
+function readURL() {
+  const g = k => { const v = P0.get(k); return v === null || v.trim() === '' || !Number.isFinite(+v) ? null : +v; };
+  F.q0 = g('q0'); F.q1 = g('q1'); F.p0 = g('p0'); F.p1 = g('p1');
+  const put = (k, set) => {
+    const v = P0.get(k);
+    if (v) v.split(',').forEach(x => { if (x) set.add(x); });
+  };
+  put('sz', F.sz); put('isp', F.isp); put('sch', F.sch);
+  const s = P0.get('sort');
+  if (s) { UI.dir = s.charAt(0) === '-' ? -1 : 1; UI.sort = s.replace(/^-/, ''); }
+}
+function writeURL() {
+  const u = new URLSearchParams();
+  u.set('s', S.mk);
+  if (F.q0 !== null) u.set('q0', F.q0);
+  if (F.q1 !== null) u.set('q1', F.q1);
+  if (F.p0 !== null) u.set('p0', F.p0);
+  if (F.p1 !== null) u.set('p1', F.p1);
+  if (F.sz.size)  u.set('sz',  [...F.sz].join(','));
+  if (F.isp.size) u.set('isp', [...F.isp].join(','));
+  if (F.sch.size) u.set('sch', [...F.sch].join(','));
+  if (UI.sort) u.set('sort', (UI.dir < 0 ? '-' : '') + UI.sort);
+  /* Адрес переписывается, а не добавляется в историю: иначе «назад» стал бы
+     отменять по одному нажатию клавиши в поле диапазона. Возврат со
+     следующей ступени приводит ровно к этому состоянию. */
+  try { history.replaceState(null, '', 'series.html?' + u.toString()); } catch (e) { /* file:// */ }
+  lastSearch = location.search;
+}
+let lastSearch = location.search;
+readURL();
+
+/* ── 3.2 Столбцы: набор задаётся ТИПОМ АГРЕГАТА ────────────────────────
+   Источник набора — карта полей боевого сайта FIELDS/FIELDSET из модуля
+   каталога. Поле, объявленное картой, но не заполненное заводом, остаётся
+   столбцом с прочерком: спрятать его — значит скрыть пробел в данных. */
+const SETK = C.FIELDSET[S.type] || null;
+const FSET = SETK ? C.FIELDS[SETK] : null;
+const flab = k => {
+  if (!FSET) return '';
+  const r = FSET.rows.filter(x => x.k === k)[0];
+  return r ? r.l : '';
+};
+
+const WHY = {
+  amp :'поле «номинальный ток» есть в карточке боевого сайта, значений завод не передал',
+  qmin:'границы рабочей области на страницах серий не опубликованы',
+  qmax:'границы рабочей области на страницах серий не опубликованы',
+  uf  :'электрические поля канальных есть в карточке боевого сайта, значений завод не передал',
+  ph  :'электрические поля канальных есть в карточке боевого сайта, значений завод не передал',
+  ip  :'электрические поля канальных есть в карточке боевого сайта, значений завод не передал',
+  cap :'электрические поля канальных есть в карточке боевого сайта, значений завод не передал',
+  q   :'аэродинамическую таблицу этой серии завод не публикует',
+  p   :'колонки давления на странице серии нет',
+  rpm :'колонки частоты вращения на странице серии нет',
+  mass:'масса считается от номера типоразмера, а номера у этой серии не опубликованы',
+  dia :'диаметр колеса равен номеру, а номера у этой серии не опубликованы',
+  fire:'предел огнестойкости для этого изделия завод не заявляет',
+  vmax:'предельная скорость среды на странице не указана',
+  t   :'температура среды на странице серии не указана',
+};
+
+const COLS = (() => {
+  const c = {
+    t   :{k:'t',   t:'t среды, °C', ttl:flab('t') || 'Температура перемещаемой среды',
+          get:r => r.t,    val:r => r.t === null ? '—' : 'до ' + C.dec(r.t)},
+    size:{k:'size', t:'№', cls:'l', ttl:'Обозначение типоразмера',
+          get:r => szNum(r), val:r => sizeLbl(r), cell:sizeCell},
+    q   :{k:'q',   t:'Q, м³/ч',  ttl:flab('q') || 'Производительность',
+          get:r => r.q,    val:r => fmt(r.q)},
+    qmin:{k:'qmin', t:'Q min, м³/ч', ttl:flab('qmin') || 'Q min', get:() => null, val:() => '—'},
+    qmax:{k:'qmax', t:'Q max, м³/ч', ttl:flab('qmax') || 'Q max', get:() => null, val:() => '—'},
+    p   :{k:'p',   t:'Pv, Па',   ttl:flab('p') || 'Полное давление',
+          get:r => r.p,    val:r => fmt(r.p)},
+    n   :{k:'n',   t:'N, кВт',   ttl:flab('n') || 'Установленная мощность',
+          get:r => r.n,    val:r => dnum(r.n)},
+    amp :{k:'amp', t:'I ном., А', ttl:flab('amp') || 'Номинальный ток при 380 В (50 Гц)',
+          get:() => null,  val:() => '—'},
+    rpm :{k:'rpm', t:'n, об/мин', ttl:flab('rpm') || 'Частота вращения',
+          get:r => r.rpm,  val:r => fmt(r.rpm)},
+    mass:{k:'mass', t:'Масса, кг', ttl:flab('mass') || 'Масса',
+          get:r => r.mass, val:r => fmt(r.mass)},
+    dia :{k:'dia', t:'Ø колеса, мм', ttl:'Диаметр рабочего колеса: номер вентилятора в дециметрах',
+          get:r => r.dia,  val:r => fmt(r.dia)},
+    uf  :{k:'uf',  t:'U/f, В/Гц', ttl:flab('uf') || 'Напряжение/частота', get:() => null, val:() => '—'},
+    ph  :{k:'ph',  t:'Фазность',  ttl:flab('ph') || 'Фазность',          get:() => null, val:() => '—'},
+    ip  :{k:'ip',  t:'IP',        ttl:flab('ip') || 'Класс защиты двигателя', get:() => null, val:() => '—'},
+    cap :{k:'cap', t:'C, мкФ',    ttl:flab('cap') || 'Ёмкость конденсатора',  get:() => null, val:() => '—'},
+    fire:{k:'fire', t:'Огнестойкость', cls:'l', ttl:'Предел огнестойкости, заявленный заводом',
+          get:r => (r.fire ? 1 : null), val:r => r.fire ? esc(r.fire) : '—', nosort:true},
+    vmax:{k:'vmax', t:'v среды, м/с', ttl:'Предельная скорость перемещаемой среды',
+          get:() => (S.vmax || null), val:() => S.vmax ? '≤ ' + C.dec(S.vmax) : '—'},
+    ind :{k:'ind', t:'Исполнения', cls:'l', ttl:'Индексы исполнений серии',
+          get:() => null, val:r => indCell(r), wide:r => indFull(r), nosort:true, keep:true},
+  };
+  /* Тягодутьевые: температура среды идёт ПЕРВОЙ колонкой — так на заводском
+     сайте. Пылевые и высокого давления получают ток и границы рабочей
+     области. Канальные — электрику. Клапаны своей таблицы не имеют вовсе. */
+  if (S.type === 'klap') return [c.size, c.fire, c.vmax, c.t, c.ind];
+  if (SETK === 'tyaga')  return [c.t, c.size, c.q, c.p, c.n, c.rpm, c.mass, c.dia, c.ind];
+  if (SETK === 'pyl')    return [c.size, c.q, c.qmin, c.qmax, c.p, c.n, c.amp, c.rpm, c.mass, c.dia, c.ind];
+  if (SETK === 'kan')    return [c.size, c.q, c.p, c.n, c.uf, c.ph, c.ip, c.cap, c.rpm, c.mass, c.ind];
+  return [c.size, c.q, c.p, c.n, c.rpm, c.mass, c.dia, c.ind];
+})();
+
+function szNum(r) {
+  if (typeof r.size === 'number') return r.size;
+  if (r.size === null || r.size === undefined) return ORD.get(r.id);
+  const m = String(r.size).replace(/[^\d.,]/g, '').replace(',', '.');
+  return parseFloat(m) || 0;
+}
+function sizeCell(r) {
+  const named = r.size !== null && r.size !== undefined;
+  return '<a class="szl' + (named ? '' : ' none') + '" href="' + hrefOf(r.id) + '">' +
+    esc(sizeLbl(r)) + '</a>' +
+    (named ? '' : '<span class="rown">строка ' + (ORD.get(r.id) + 1) + ' из ' + ROWS.length + '</span>');
+}
+/* «—» в этом столбце означал бы «нет данных», как в остальных: индекс
+   общепромышленного исполнения пишем словом. Перечень серии одинаков во
+   всех строках, поэтому в таблице он подрезан до трёх — полный список
+   лежит в паспорте, в подсказке и в сравнении. */
+const indShort = v => v === '-' ? 'общепром.' : v;
+const indTitle = r => esc(r.ind.map(v => C.indLabel(v, r.mk)).join('; '));
+function indCell(r) {
+  const head = r.ind.slice(0, 3).map(indShort).join(' ');
+  const tail = r.ind.length > 3 ? ' +' + (r.ind.length - 3) : '';
+  return '<span title="' + indTitle(r) + '">' + head + tail + '</span>';
+}
+function indFull(r) {
+  return '<span title="' + indTitle(r) + '">' + r.ind.map(indShort).join(' ') + '</span>';
+}
+/* Столбец, у которого НИ ОДНОГО значения: он остаётся на месте, но гасится
+   и попадает в объяснение под таблицей. */
+const isEmptyCol = c => !c.keep && ROWS.every(r => c.get(r) === null || c.get(r) === undefined);
+const SHOWN = COLS.filter(c => !(c.k === 'dia' && isEmptyCol(c)));
+const EMPTY = SHOWN.filter(isEmptyCol);
+
+/* ── 3.3 Отбор ─────────────────────────────────────────────────────── */
+const hasQ = ROWS.some(r => r.q !== null);
+const hasP = ROWS.some(r => r.p !== null);
+
+function pass(r, skip) {
+  if (skip !== 'q') {
+    if (F.q0 !== null && (r.q === null || r.q < F.q0)) return false;
+    if (F.q1 !== null && (r.q === null || r.q > F.q1)) return false;
+  }
+  if (skip !== 'p') {
+    if (F.p0 !== null && (r.p === null || r.p < F.p0)) return false;
+    if (F.p1 !== null && (r.p === null || r.p > F.p1)) return false;
+  }
+  if (skip !== 'sz' && F.sz.size && !F.sz.has(sizeKey(r))) return false;
+  if (skip !== 'isp' && F.isp.size && !r.ind.some(v => F.isp.has(v))) return false;
+  if (skip !== 'sch' && F.sch.size && !r.sch.some(v => F.sch.has(v))) return false;
+  return true;
+}
+const view = () => ROWS.filter(r => pass(r, null));
+const anyFilter = () => !!(F.q0 !== null || F.q1 !== null || F.p0 !== null || F.p1 !== null ||
+  F.sz.size || F.isp.size || F.sch.size);
+
+/* Фасеты-переключатели. Опции индексов и схем берутся из ПОЛНЫХ словарей
+   системы, а не из перечня серии: значение, которого у серии нет, обязано
+   показать 0 и погаснуть — это и есть закон «ни один фасет не ведёт в пустоту». */
+const FACETS = [
+  {k:'sz',  t:'Типоразмер',
+   /* Обозначений нет — отбирать не по чему; вместо ряда одинаковых
+      «типоразмер не опубликован» в рейке остаётся честная строка. */
+   opts:() => NAMED ? ROWS.map(r => ({v:sizeKey(r), l:sizeLbl(r)})) : [],
+   test:(r, v) => sizeKey(r) === v},
+  {k:'isp', t:'Исполнение',
+   opts:() => Object.keys(C.IND).map(v => ({v:v, l:C.indLabel(v, S.mk)})),
+   test:(r, v) => r.ind.indexOf(v) >= 0},
+  {k:'sch', t:'Схема привода',
+   opts:() => Object.keys(C.SCH).map(v => ({v:v, l:'Схема №' + v})),
+   test:(r, v) => r.sch.indexOf(v) >= 0},
+];
+
+/* ── 3.4 Разметка листа ────────────────────────────────────────────── */
+const trustNote = () => {
+  const parts = [];
+  if (S.data === 'dup') {
+    parts.push('<p><b>Под этой маркой на действующем сайте завода лежит таблица другой серии.</b> ' +
+      'Показывать её как собственную нельзя, поэтому строки ниже остаются помеченными ' +
+      'постоянно — это не заглушка до починки, а разметка, по которой сам завод решит: ' +
+      'заменить показанные числа собственными или оставить как есть.</p>');
+  }
+  if (S.note) parts.push('<p>' + esc(S.note) + '</p>');
+  if (FIX.length) {
+    parts.push(FIX.map(f =>
+      '<dl class="fixl">' +
+        '<dt>Было</dt><dd class="was">' + esc(f.was) + '</dd>' +
+        '<dt>Стало</dt><dd class="now">' + esc(f.now) + '</dd>' +
+        '<dt>Почему</dt><dd>' + esc(f.why) + '</dd>' +
+      '</dl>').join(''));
+  }
+  return parts.join('');
+};
+
+const specRow = (label, value, tip) =>
+  '<dt' + (tip ? ' data-tip="1" title="' + esc(tip) + '"><span>' + esc(label) + '</span>' : '>' + esc(label)) +
+  '</dt><dd>' + value + '</dd>';
+
+const noneVal = txt => '<span class="none">' + esc(txt) + '</span>';
+
+$('#page').innerHTML =
+  /* Крошки полного пути */
+  '<nav class="crumbs" aria-label="Хлебные крошки">' +
+    '<a href="catalog.html">Каталог</a><i>›</i>' +
+    '<a href="' + razdelHref + '">' + esc(RZ.name) + '</a><i>›</i>' +
+    '<a href="' + subHref + '">' + esc(SB.name) + '</a><i>›</i>' +
+    '<b aria-current="page">' + esc(S.mk) + '</b>' +
+    '<span class="cn">' + plural(ROWS.length, 'типоразмер', 'типоразмера', 'типоразмеров') + '</span>' +
+  '</nav>' +
+
+  /* Полоса стадий */
+  '<nav class="stages" id="stages" aria-label="Ступени каталога">' +
+    '<a class="stage" data-on="1" href="' + subHref + '">' +
+      '<span class="k">1 · Раздел</span><em>' + esc((RZ.short || RZ.name) + ' · ' +
+        (SB.short || SB.name)) + '</em></a>' +
+    '<span class="sep" aria-hidden="true"></span>' +
+    '<button class="stage" type="button" data-on="1" data-go="#passport" aria-current="step">' +
+      '<span class="k">2 · Серия</span><em>' + esc(S.mk) + '</em></button>' +
+    '<span class="sep" aria-hidden="true"></span>' +
+    '<button class="stage" type="button" data-go="#secTable">' +
+      '<span class="k">3 · Типоразмер</span><em>выбирается в таблице</em></button>' +
+    '<span class="sep" aria-hidden="true"></span>' +
+    '<button class="stage" type="button" id="stIsp" disabled>' +
+      '<span class="k">4 · Исполнение</span><em>после типоразмера</em></button>' +
+  '</nav>' +
+
+  /* ПАСПОРТ СЕРИИ */
+  '<section id="passport" tabindex="-1" style="margin-top:22px">' +
+    '<div class="pc">' +
+      '<div class="pc-view">' +
+        '<div class="pc-fig">' +
+          '<span class="vlbl">Общий вид</span>' + silh(S.art) +
+        '</div>' +
+        '<p class="figcap">' +
+          (S.type === 'klap'
+            ? 'Схема клапана: корпус, поворотная заслонка на оси, привод, фланцы.'
+            : 'Схема агрегата целиком: корпус, всасывающий и нагнетательный патрубки, ' +
+              'колесо, вал, двигатель, станина.') +
+          (isOwnArt(S.art) ? '' : ' Контур показан по типу агрегата.') +
+          ' Габаритный чертёж завод не передал.' +
+        '</p>' +
+        '<div class="isp">' +
+          '<h4>Индексы исполнений</h4>' +
+          '<div class="row" id="ispRow" role="group" aria-label="Индексы исполнений серии"></div>' +
+          '<p class="expl" id="ispExpl"></p>' +
+        '</div>' +
+        (S.sch.length ? '<div class="isp">' +
+          '<h4>Схемы привода</h4>' +
+          '<div class="row" id="schRow" role="group" aria-label="Схемы привода серии"></div>' +
+          '<p class="expl" id="schExpl"></p>' +
+        '</div>' : '') +
+      '</div>' +
+
+      '<div class="pc-pass">' +
+        '<h1 class="mk">' + esc(S.mk) + '</h1>' +
+        '<p class="sub">' + esc(C.TYPE[S.type] || '') + ' · ' + esc(S.appl) + '</p>' +
+        '<dl class="specs">' +
+          specRow('Q, м³/ч', rng(S.qr, fmt) || noneVal('не опубликовано')) +
+          specRow('Pv, Па',  rng(S.pr, fmt) || noneVal('не опубликовано')) +
+          specRow('N, кВт',  rng(S.nr, dnum) || noneVal('не опубликовано')) +
+          specRow('n, об/мин', rng(S.rpmr, fmt) || noneVal('колонки нет на сайте')) +
+          specRow('t среды, °C', 'до ' + C.dec(S.t)) +
+          (S.tmax && S.tmax !== S.t
+            ? specRow('t предел, °C', 'до ' + C.dec(S.tmax),
+                'Верхний температурный предел, названный на странице серии. Условия его ' +
+                'достижения — исполнение и время — завод не расшифровывает.')
+            : '') +
+          (S.tmin ? specRow('низ, °C', C.dec(S.tmin)) : '') +
+          (S.fire ? specRow('огнестойкость', '<span style="font-size:12px">' + esc(S.fire) + '</span>') : '') +
+          (S.vmax ? specRow('v среды, м/с', '≤ ' + C.dec(S.vmax)) : '') +
+          specRow('типоразмеров', String(ROWS.length)) +
+          specRow('ТУ / ГОСТ', S.tu
+            ? '<span style="font-size:12px">' + esc(S.tu) + '</span>'
+            : noneVal('на сайте завода не назван')) +
+        '</dl>' +
+        '<p class="trustline"><span class="st" data-s="' + DT.s + '">' + esc(DT.short) + '</span>' +
+          '<a href="#trust">достоверность данных</a></p>' +
+        '<div class="pc-acts">' +
+          '<a class="btn" href="podbor.html#survey">В опросный лист</a>' +
+          '<button class="btn btn--ghost" type="button" data-go="#secTable">К таблице</button>' +
+        '</div>' +
+        '<p class="pc-note">Диапазоны сняты со страницы серии на сайте завода. ' +
+          'Цены появятся из 1С ERP через административную панель — здесь их ' +
+          'пока нет. Гарантия — по закону минимум на каждый товар, у части ' +
+          'оборудования 3 или 5 лет; точные сроки по маркам не переданы. ' +
+          'Сроков изготовления тоже нет.</p>' +
+      '</div>' +
+    '</div>' +
+  '</section>' +
+
+  /* ПЛАШКА ДОСТОВЕРНОСТИ */
+  '<section id="trust" tabindex="-1" style="margin-top:20px">' +
+    '<div class="trust" data-s="' + DT.s + '">' +
+      '<div class="bar" aria-hidden="true"></div>' +
+      '<div class="in">' +
+        '<h2>Достоверность данных: ' + esc(DT.short) +
+          '<span class="mk">' + esc(DT.t) + '</span></h2>' +
+        trustNote() +
+      '</div>' +
+    '</div>' +
+  '</section>' +
+
+  /* Полоса о интерполяции ряда */
+  '<details class="warn" style="margin-top:16px">' +
+    '<summary><b>Строки ряда рассчитаны.</b>' +
+      '<span class="lead2">Крайние типоразмеры сняты с сайта завода, промежуточные ' +
+        'интерполированы и показаны приглушённо.</span></summary>' +
+    '<div class="full">' +
+      '<p style="margin:0 0 8px">Заводом опубликованы только края ряда и число позиций. ' +
+        'Q, Pv, N и обороты промежуточных строк получены геометрической интерполяцией ' +
+        'между краями, масса — степенной аппроксимацией по номеру. Подбирать ' +
+        'оборудование по этим числам нельзя: они существуют, чтобы каталог имел ' +
+        'реальную структуру и плотность, и подлежат замене заводскими таблицами.</p>' +
+      '<p style="margin:0">Крайние строки помечены обычным начертанием, ' +
+        'расчётные — приглушённым.</p>' +
+    '</div>' +
+  '</details>' +
+
+  /* КАРКАС: рейка фасетов + таблица */
+  '<div class="lay lay--wide" style="margin-top:22px">' +
+    '<aside>' +
+      '<details class="rail" id="rail" open>' +
+        '<summary>Отбор<span class="n" id="railN"></span></summary>' +
+        '<div class="top"><h2>Отбор</h2><span class="n" id="railN2"></span></div>' +
+
+        '<details class="fgrp" open><summary>Диапазон Q</summary><div class="body">' +
+          '<div class="rng">' +
+            '<label class="fld"><span>Q от</span>' +
+              '<input type="number" id="q0" inputmode="numeric" min="0"' + (hasQ ? '' : ' disabled') + '></label>' +
+            '<label class="fld"><span>Q до</span>' +
+              '<input type="number" id="q1" inputmode="numeric" min="0"' + (hasQ ? '' : ' disabled') + '></label>' +
+          '</div>' +
+          '<span class="hint" id="qHint"></span>' +
+        '</div></details>' +
+
+        '<details class="fgrp" open><summary>Диапазон Pv</summary><div class="body">' +
+          '<div class="rng">' +
+            '<label class="fld"><span>P от</span>' +
+              '<input type="number" id="p0" inputmode="numeric" min="0"' + (hasP ? '' : ' disabled') + '></label>' +
+            '<label class="fld"><span>P до</span>' +
+              '<input type="number" id="p1" inputmode="numeric" min="0"' + (hasP ? '' : ' disabled') + '></label>' +
+          '</div>' +
+          '<span class="hint" id="pHint"></span>' +
+        '</div></details>' +
+
+        '<details class="fgrp" open><summary>Типоразмер</summary>' +
+          '<div class="body" data-facet="sz">' + (NAMED ? '' :
+            '<span class="hint">Обозначения типоразмеров этой серии завод не публикует — ' +
+            'отбирать по ним нечем.</span>') + '</div></details>' +
+
+        '<details class="fgrp" open><summary>Исполнение</summary>' +
+          '<div class="body" data-facet="isp"></div></details>' +
+
+        '<details class="fgrp" open><summary>Схема привода</summary>' +
+          '<div class="body" data-facet="sch"></div></details>' +
+
+        '<button class="btn btn--ghost btn--sm reset" type="button" id="reset" disabled>' +
+          'Сбросить отбор</button>' +
+      '</details>' +
+    '</aside>' +
+
+    '<div>' +
+      '<section id="secTable" tabindex="-1">' +
+        '<div class="dim"><h2>Типоразмеры</h2><i class="line"></i>' +
+          '<span class="val" id="tabVal"></span></div>' +
+        '<div class="tbar" style="margin-top:12px">' +
+          '<span class="n" id="shown" role="status" aria-live="polite"></span>' +
+          '<span class="tip">Строка — позиция: открывается карточкой, ' +
+            'заголовки столбцов сортируют.</span>' +
+        '</div>' +
+        '<div class="picked" id="picked" hidden>' +
+          '<span class="lbl">Отобрано</span>' +
+          '<span id="pickedChips"></span>' +
+          '<button class="btn btn--ghost btn--sm reset" type="button" id="reset2">Сбросить</button>' +
+        '</div>' +
+        '<div class="tbl-scroll">' +
+          '<table class="data" id="tbl">' +
+            '<caption class="vh">Типоразмеры серии ' + esc(S.mk) + '</caption>' +
+            '<thead id="thead"></thead><tbody id="tbody"></tbody>' +
+          '</table>' +
+        '</div>' +
+        '<p class="colnote" id="colnote"></p>' +
+        '<div class="sheet sheet--pad empty" id="empty" hidden>' +
+          '<h3>Под условия не проходит ни одна строка</h3>' +
+          '<p id="emptyWhy"></p>' +
+          '<button class="btn btn--ghost" type="button" id="emptyReset">Сбросить отбор</button>' +
+        '</div>' +
+      '</section>' +
+
+      '<section id="cmpSec" style="margin-top:30px" hidden>' +
+        '<div class="dim"><h2>Сравнение</h2><i class="line"></i>' +
+          '<span class="val" id="cmpVal"></span></div>' +
+        '<div class="tbl-scroll" style="margin-top:12px">' +
+          '<table class="data cmp" id="cmpTbl">' +
+            '<caption class="vh">Сравнение выбранных типоразмеров</caption>' +
+            '<thead id="cmpHead"></thead><tbody id="cmpBody"></tbody>' +
+          '</table>' +
+        '</div>' +
+        '<p class="small" style="margin:10px 0 0">В сравнение помещается до четырёх ' +
+          'позиций; дальше кнопка в строке гаснет. Состав сравнения живёт в этой ' +
+          'вкладке и в адрес не уходит.</p>' +
+      '</section>' +
+    '</div>' +
+  '</div>' +
+
+  /* СОСЕДНИЕ СЕРИИ */
+  '<section style="margin-top:32px">' +
+    '<div class="dim"><h2>Соседние серии подраздела</h2><i class="line"></i>' +
+      '<span class="val">' + esc(SB.short || SB.name) + '</span></div>' +
+    '<nav class="neigh" style="margin-top:14px" aria-label="Серии подраздела">' +
+      SB.series.map(mk => {
+        const cnt = C.SKU.reduce((a, r) => a + (r.mk === mk ? 1 : 0), 0);
+        const s2 = C.seriesOf(mk);
+        const cur = mk === S.mk;
+        /* Не span: в системе .neigh a,.neigh span — это ОДНОРОДНЫЕ ячейки рейки,
+           и правило кроет любой вложенный span своей бумажной подложкой,
+           пряча синюю заливку текущей серии. Берём b и i. */
+        return '<a href="series.html?s=' + encodeURIComponent(mk) + '"' +
+          (cur ? ' aria-current="page"' : '') + '>' +
+          '<b class="sz">' + esc(mk) + '</b>' +
+          '<i class="q">' + (s2 ? esc(C.TYPE[s2.type] || '') + ' · ' : '') + cnt + '</i></a>';
+      }).join('') +
+    '</nav>' +
+    '<p class="small" style="margin:10px 0 0">Уйти вбок можно, не возвращаясь в ' +
+      '<a href="' + subHref + '">' + esc(SB.name.toLowerCase()) + '</a>.</p>' +
+  '</section>' +
+
+  /* Основная надпись по ГОСТ 2.104 */
+  '<dl class="stamp" style="margin-top:30px">' +
+    '<div><dt>Раздел</dt><dd>' + esc(RZ.short || RZ.name) + '</dd></div>' +
+    '<div><dt>Подраздел</dt><dd>' + esc(SB.short || SB.name) + '</dd></div>' +
+    '<div><dt>Серия</dt><dd class="mk">' + esc(S.mk) + '</dd></div>' +
+    '<div><dt>Типоразмеров</dt><dd>' + ROWS.length + '</dd></div>' +
+  '</dl>';
+
+$$('.stages .sep').forEach(s => { s.innerHTML = ICON.arrow; });
+
+/* ── 3.5 Шапка таблицы ─────────────────────────────────────────────── */
+$('#thead').innerHTML = '<tr>' + SHOWN.map(c => {
+  const none = isEmptyCol(c) ? ' data-none="1"' : '';
+  const ttl  = c.ttl ? ' title="' + esc(c.ttl) + '"' : '';
+  return c.nosort
+    ? '<th class="' + (c.cls || '') + '" scope="col"' + none + ttl + '>' + esc(c.t) + '</th>'
+    : '<th class="' + (c.cls || '') + '" data-k="' + c.k + '" scope="col"' + none + ttl + '>' +
+        '<button class="sortb" type="button">' + esc(c.t) + '<i class="ar"></i></button></th>';
+}).join('') + '<th class="acts l" scope="col">Действия</th></tr>';
+
+/* ── 3.6 Тело таблицы ──────────────────────────────────────────────── */
+function sorted() {
+  const rows = view();
+  if (!UI.sort) return rows;
+  const c = SHOWN.filter(x => x.k === UI.sort)[0];
+  if (!c) return rows;
+  return rows.slice().sort((a, b) => {
+    const x = c.get(a), y = c.get(b);
+    /* Позиции без значения всегда внизу — независимо от направления */
+    if (x === null || x === undefined) return (y === null || y === undefined) ? ORD.get(a.id) - ORD.get(b.id) : 1;
+    if (y === null || y === undefined) return -1;
+    const d = typeof x === 'string' ? x.localeCompare(y, 'ru') : x - y;
+    return (d * UI.dir) || (ORD.get(a.id) - ORD.get(b.id));
+  });
+}
+
+function renderTable() {
+  const rows = sorted();
+  const picked = new Set(store.pick);
+  $('#tbody').innerHTML = rows.map(r => {
+    const dm = r.edge ? '' : ' dim2';
+    const on = picked.has(r.id);
+    const inC = CMP.indexOf(r.id) >= 0;
+    const full = CMP.length >= CMPMAX && !inC;
+    const t = r.edge
+      ? 'Крайняя строка ряда: значения сняты с сайта завода.'
+      : 'Промежуточная строка: значения интерполированы между опубликованными краями ряда.';
+    return '<tr data-id="' + r.id + '" title="' + t + '"' + (on ? ' data-picked="1"' : '') + '>' +
+      SHOWN.map(c => '<td class="' + (c.cls || '') + dm + '"' +
+        (isEmptyCol(c) ? ' data-none="1"' : '') + '>' +
+        (c.cell ? c.cell(r) : c.val(r)) + '</td>').join('') +
+      '<td class="acts' + dm + '"><span>' +
+        '<button class="btn btn--ghost btn--sm" type="button" data-act="pick" data-id="' + r.id + '"' +
+          ' aria-pressed="' + on + '"' +
+          ' aria-label="' + (on ? 'Убрать из запроса' : 'В запрос') + ': ' + esc(S.mk + ' ' + sizeLbl(r)) + '">' +
+          (on ? 'В запросе ✓' : 'В запрос') + '</button>' +
+        '<button class="btn btn--ghost btn--sm" type="button" data-act="cmp" data-id="' + r.id + '"' +
+          ' aria-pressed="' + inC + '"' + (full ? ' disabled title="В сравнении уже четыре позиции"' : '') +
+          ' aria-label="' + (inC ? 'Убрать из сравнения' : 'Сравнить') + ': ' + esc(S.mk + ' ' + sizeLbl(r)) + '">' +
+          (inC ? 'В сравнении' : 'Сравнить') + '</button>' +
+      '</span></td></tr>';
+  }).join('');
+
+  const n = rows.length;
+  $('#tbl').hidden = n === 0;
+  $('#empty').hidden = n !== 0;
+  if (!n) $('#emptyWhy').innerHTML = why();
+  $('#shown').textContent = 'показано ' + n + ' из ' + ROWS.length;
+  $('#tabVal').textContent = n === ROWS.length
+    ? plural(ROWS.length, 'строка', 'строки', 'строк')
+    : n + ' из ' + ROWS.length;
+  $('#railN').textContent  = n + ' из ' + ROWS.length;
+  $('#railN2').textContent = n + ' из ' + ROWS.length;
+
+  for (const th of $$('#thead th[data-k]')) {
+    if (th.dataset.k === UI.sort) th.setAttribute('aria-sort', UI.dir > 0 ? 'ascending' : 'descending');
+    else th.removeAttribute('aria-sort');
+  }
+  fitTable();
+}
+
+/* Влезает ли таблица в колонку листа. Не влезает — включаем боковую
+   прокрутку внутри контейнера, чтобы страница не ехала целиком. */
+function fitTable() {
+  const box = $('.tbl-scroll'), t = $('#tbl');
+  if (!box || !t) return;
+  box.dataset.x = '0';
+  const wide = Math.max(t.scrollWidth, $('#thead tr') ? $('#thead tr').scrollWidth : 0);
+  if (wide > box.clientWidth + 1) box.dataset.x = '1';
+}
+let rtm = 0;
+addEventListener('resize', () => { clearTimeout(rtm); rtm = setTimeout(fitTable, 120); }, {passive:true});
+
+/* Какое условие перекрыло выдачу: снимаем по одному и смотрим, что откроется */
+function why() {
+  const act = [];
+  if (F.q0 !== null || F.q1 !== null) act.push(['q', 'диапазон расхода Q']);
+  if (F.p0 !== null || F.p1 !== null) act.push(['p', 'диапазон давления Pv']);
+  if (F.sz.size)  act.push(['sz',  'отбор по типоразмеру']);
+  if (F.isp.size) act.push(['isp', 'отбор по исполнению']);
+  if (F.sch.size) act.push(['sch', 'отбор по схеме привода']);
+  if (!act.length) return 'Отбор пуст, а строк нет — это сбой данных, а не условий.';
+  const open = act.filter(a => ROWS.some(r => pass(r, a[0])));
+  if (open.length) {
+    return 'Условия перекрыли друг друга. Достаточно снять одно: ' +
+      open.map(a => '<b>' + a[1] + '</b>').join(' или ') + '.';
+  }
+  return 'Наложено ' + plural(act.length, 'условие', 'условия', 'условий') + ' — ' +
+    act.map(a => a[1]).join(', ') + '. Снятия одного мало: нужен полный сброс.';
+}
+
+/* ── 3.7 Объяснение пустых столбцов ────────────────────────────────── */
+function renderColNote() {
+  const head = FSET
+    ? 'Набор столбцов взят по типу агрегата из карты полей боевого сайта: <b>' +
+      esc(FSET.name) + '</b>.'
+    : '<b>Таблицы характеристик у клапанов на сайте завода нет</b> — ни аэродинамики, ' +
+      'ни перечня сечений. В строке стоит только то, что завод действительно заявил: ' +
+      'предел огнестойкости, предельная скорость среды и температура.';
+  if (!EMPTY.length) { $('#colnote').innerHTML = head; return; }
+  /* Столбцы с одной и той же причиной собираются в одну фразу: четыре
+     одинаковых объяснения подряд читать невозможно. */
+  const order = [], by = new Map();
+  for (const c of EMPTY) {
+    const w = WHY[c.k] || 'значений завод не опубликовал';
+    if (!by.has(w)) { by.set(w, []); order.push(w); }
+    by.get(w).push(c.t);
+  }
+  const list = order.map(w =>
+    by.get(w).map(t => '<b>' + esc(t) + '</b>').join(', ') + ' — ' + esc(w)).join('; ');
+  $('#colnote').innerHTML = head + ' Столбцы без значений оставлены на месте и помечены ' +
+    'прочерком: ' + list + '.';
+}
+
+/* ── 3.8 Фасеты ────────────────────────────────────────────────────── */
+function buildFacets() {
+  for (const f of FACETS) {
+    const host = $('[data-facet="' + f.k + '"]');
+    const opts = f.opts();
+    if (!opts.length) continue;
+    host.innerHTML = opts.map(o =>
+      '<label class="opt" data-o="' + esc(o.v) + '">' +
+        '<input type="checkbox" data-f="' + f.k + '" value="' + esc(o.v) + '">' +
+        '<span class="lb">' + esc(o.l) + '</span><span class="n">0</span>' +
+      '</label>').join('');
+  }
+}
+/* Счётчики правятся на месте: пересборка разметки увела бы фокус с клавиатуры
+   прямо во время отбора. */
+function syncFacets() {
+  for (const f of FACETS) {
+    for (const lab of $$('[data-facet="' + f.k + '"] .opt')) {
+      const v = lab.dataset.o, inp = $('input', lab);
+      const n = ROWS.reduce((s, r) => s + (pass(r, f.k) && f.test(r, v) ? 1 : 0), 0);
+      $('.n', lab).textContent = n;
+      const on = F[f.k].has(v);
+      inp.checked = on;
+      if (n === 0 && !on) { lab.dataset.empty = '1'; inp.disabled = true; }
+      else { delete lab.dataset.empty; inp.disabled = false; }
+    }
+  }
+  const n = view().length;
+  $('#qHint').innerHTML = hasQ
+    ? 'Опубликовано ' + fmt(S.qr[0]) + ' … ' + fmt(S.qr[1]) + ' м³/ч. Проходит ' + n + ' из ' + ROWS.length + '.'
+    : 'Расход этой серии завод не публикует — отбирать не по чему.';
+  $('#pHint').innerHTML = hasP
+    ? 'Опубликовано ' + fmt(S.pr[0]) + ' … ' + fmt(S.pr[1]) + ' Па. Проходит ' + n + ' из ' + ROWS.length + '.'
+    : 'Давление этой серии завод не публикует — отбирать не по чему.';
+}
+
+/* Полоса выбранного: каждый фасет снимается поштучно */
+function renderPicked() {
+  const chips = [];
+  const chip = (key, val, text) =>
+    '<span class="chipx">' + esc(text) +
+      '<button type="button" data-un="' + key + '" data-v="' + esc(val) + '"' +
+      ' aria-label="Снять условие: ' + esc(text) + '">' + ICON.close + '</button></span>';
+  if (F.q0 !== null) chips.push(chip('q0', '', 'Q от ' + fmt(F.q0)));
+  if (F.q1 !== null) chips.push(chip('q1', '', 'Q до ' + fmt(F.q1)));
+  if (F.p0 !== null) chips.push(chip('p0', '', 'Pv от ' + fmt(F.p0)));
+  if (F.p1 !== null) chips.push(chip('p1', '', 'Pv до ' + fmt(F.p1)));
+  for (const v of F.sz)  chips.push(chip('sz', v, C.szl({size:isNaN(+v) ? v : +v})));
+  for (const v of F.isp) chips.push(chip('isp', v, C.indLabel(v, S.mk)));
+  for (const v of F.sch) chips.push(chip('sch', v, 'Схема №' + v));
+  $('#pickedChips').innerHTML = chips.join(' ');
+  $('#picked').hidden = chips.length === 0;
+}
+
+/* Плитки исполнений и схем в паспорте — тот же отбор, вид сбоку */
+function renderChips() {
+  $('#ispRow').innerHTML = S.ind.map(v =>
+    '<button class="chip" type="button" data-f="isp" data-v="' + esc(v) + '"' +
+      ' aria-pressed="' + F.isp.has(v) + '" title="' + esc(C.indLabel(v, S.mk)) + '">' +
+      (v === '-' ? '—' : esc(v)) + '</button>').join('');
+  const one = [...F.isp][0];
+  $('#ispExpl').textContent = F.isp.size
+    ? (F.isp.size === 1
+        ? C.indLabel(one, S.mk) + '. Индекс уходит в адрес карточки позиции.'
+        : 'Выбрано индексов: ' + F.isp.size + '.')
+    : 'Условия применения каждого исполнения завод не публикует и здесь не выдуманы.';
+  if (S.sch.length) {
+    $('#schRow').innerHTML = S.sch.map(v =>
+      '<button class="chip" type="button" data-f="sch" data-v="' + esc(v) + '"' +
+        ' aria-pressed="' + F.sch.has(v) + '" title="' + esc(C.SCH[v] || v) + '">' +
+        '№' + esc(v) + '</button>').join('');
+    const s1 = [...F.sch][0];
+    $('#schExpl').textContent = F.sch.size === 1 ? (C.SCH[s1] || s1)
+      : S.sch.map(v => C.SCH[v]).join(' · ');
+  }
+  const st = $('#stIsp');
+  st.disabled = F.isp.size !== 1;
+  st.dataset.on = F.isp.size === 1 ? '1' : '0';
+  $('em', st).textContent = F.isp.size === 1 ? C.indLabel(one, S.mk) : 'после типоразмера';
+}
+
+/* ── 3.9 Сравнение ─────────────────────────────────────────────────── */
+/* Состав сравнения меняет только кнопки строк: пересборка таблицы целиком
+   выбила бы фокус из-под пальца ровно в момент нажатия. */
+function syncCmp() {
+  for (const b of $$('#tbody [data-act="cmp"]')) {
+    const id = b.dataset.id, on = CMP.indexOf(id) >= 0;
+    const r = ROWS.filter(x => x.id === id)[0];
+    const full = CMP.length >= CMPMAX && !on;
+    b.setAttribute('aria-pressed', String(on));
+    b.textContent = on ? 'В сравнении' : 'Сравнить';
+    b.disabled = full;
+    if (full) b.title = 'В сравнении уже четыре позиции'; else b.removeAttribute('title');
+    b.setAttribute('aria-label', (on ? 'Убрать из сравнения' : 'Сравнить') + ': ' + S.mk + ' ' + sizeLbl(r));
+  }
+  renderCmp();
+}
+function renderCmp() {
+  const sec = $('#cmpSec');
+  sec.hidden = CMP.length === 0;
+  if (!CMP.length) return;
+  const items = CMP.map(id => ROWS.filter(r => r.id === id)[0]).filter(Boolean);
+  $('#cmpVal').textContent = items.length + ' из ' + CMPMAX;
+  $('#cmpHead').innerHTML = '<tr><th class="l" scope="col">Характеристика</th>' +
+    items.map(r => '<th class="l" scope="col">' + esc(S.mk + ' ' + sizeLbl(r)) +
+      '<button class="x" type="button" data-act="uncmp" data-id="' + r.id + '"' +
+      ' aria-label="Убрать из сравнения: ' + esc(sizeLbl(r)) + '">' + ICON.close + '</button></th>').join('') +
+    '</tr>';
+  const lines = SHOWN.filter(c => c.k !== 'size');
+  $('#cmpBody').innerHTML = lines.map(c =>
+    '<tr><td class="l k">' + esc(c.t) + '</td>' +
+      items.map(r => '<td class="l">' + (c.wide ? c.wide(r) : c.val(r)) + '</td>').join('') +
+    '</tr>').join('') +
+    '<tr><td class="l k">Карточка</td>' + items.map(r =>
+      '<td class="l"><a href="' + hrefOf(r.id) + '">' + esc(sizeLbl(r)) + ' →</a></td>').join('') + '</tr>';
+}
+
+/* ── 3.10 Пересчёт всего ───────────────────────────────────────────── */
+function update() {
+  syncFacets();
+  renderPicked();
+  renderChips();
+  renderTable();
+  renderCmp();
+  $('#reset').disabled = !anyFilter();
+  writeURL();
+}
+
+/* ── 3.11 События ──────────────────────────────────────────────────── */
+$('#rail').addEventListener('change', e => {
+  const inp = e.target.closest('input[data-f]');
+  if (!inp) return;
+  const set = F[inp.dataset.f];
+  if (inp.checked) set.add(inp.value); else set.delete(inp.value);
+  update();
+});
+
+let tm = 0;
+const readRange = () => {
+  const g = id => {
+    const el = $('#' + id), v = el.value.trim();
+    return v === '' || !Number.isFinite(+v) ? null : +v;
+  };
+  F.q0 = g('q0'); F.q1 = g('q1'); F.p0 = g('p0'); F.p1 = g('p1');
+};
+for (const id of ['q0', 'q1', 'p0', 'p1']) {
+  $('#' + id).addEventListener('input', () => {
+    clearTimeout(tm);
+    tm = setTimeout(() => { readRange(); update(); }, 180);
+  });
+}
+
+function resetAll() {
+  F.q0 = F.q1 = F.p0 = F.p1 = null;
+  F.sz.clear(); F.isp.clear(); F.sch.clear();
+  for (const id of ['q0', 'q1', 'p0', 'p1']) $('#' + id).value = '';
+  update();
+}
+$('#reset').addEventListener('click', resetAll);
+$('#reset2').addEventListener('click', resetAll);
+$('#emptyReset').addEventListener('click', () => { resetAll(); $('#secTable').focus(); });
+
+/* Снятие условия поштучно */
+$('#pickedChips').addEventListener('click', e => {
+  const b = e.target.closest('[data-un]');
+  if (!b) return;
+  const k = b.dataset.un;
+  if (k === 'q0' || k === 'q1' || k === 'p0' || k === 'p1') { F[k] = null; $('#' + k).value = ''; }
+  else F[k].delete(b.dataset.v);
+  update();
+});
+
+/* Плитки паспорта = те же фасеты */
+$('#passport').addEventListener('click', e => {
+  const c = e.target.closest('.chip[data-f]');
+  if (c) {
+    const set = F[c.dataset.f], v = c.dataset.v;
+    if (set.has(v)) set.delete(v); else set.add(v);
+    update();
+    return;
+  }
+  const g = e.target.closest('[data-go]');
+  if (g) goTo(g.dataset.go);
+});
+
+/* Сортировка */
+$('#thead').addEventListener('click', e => {
+  const b = e.target.closest('.sortb');
+  if (!b) return;
+  const k = b.closest('th').dataset.k;
+  if (UI.sort === k) UI.dir = -UI.dir; else { UI.sort = k; UI.dir = 1; }
+  renderTable();
+  writeURL();
+});
+
+/* Действия строки; клик по самой строке углубляет в карточку */
+$('#tbody').addEventListener('click', e => {
+  const pk = e.target.closest('[data-act="pick"]');
+  if (pk) { store.togglePick(pk.dataset.id); return; }
+  const cm = e.target.closest('[data-act="cmp"]');
+  if (cm) {
+    const id = cm.dataset.id, i = CMP.indexOf(id);
+    if (i >= 0) CMP.splice(i, 1);
+    else if (CMP.length < CMPMAX) CMP.push(id);
+    syncCmp();
+    return;
+  }
+  if (e.target.closest('a') || e.target.closest('button')) return;
+  const tr = e.target.closest('tr[data-id]');
+  if (tr) location.href = hrefOf(tr.dataset.id);
+});
+
+$('#cmpHead').addEventListener('click', e => {
+  const b = e.target.closest('[data-act="uncmp"]');
+  if (!b) return;
+  const i = CMP.indexOf(b.dataset.id);
+  if (i >= 0) CMP.splice(i, 1);
+  syncCmp();
+});
+
+/* Подбор изменился где угодно — перерисовываем только отметки строк:
+   полная пересборка таблицы увела бы фокус с кнопки. */
+addEventListener('vp:store', () => {
+  const picked = new Set(store.pick);
+  for (const tr of $$('#tbody tr[data-id]')) {
+    const id = tr.dataset.id, on = picked.has(id);
+    if (on) tr.dataset.picked = '1'; else delete tr.dataset.picked;
+    const b = $('[data-act="pick"]', tr);
+    if (!b) continue;
+    const r = ROWS.filter(x => x.id === id)[0];
+    b.setAttribute('aria-pressed', String(on));
+    b.textContent = on ? 'В запросе ✓' : 'В запрос';
+    b.setAttribute('aria-label', (on ? 'Убрать из запроса' : 'В запрос') + ': ' + S.mk + ' ' + sizeLbl(r));
+  }
+});
+
+/* Стадии и внутренние переходы */
+function goTo(sel) {
+  const el = $(sel);
+  if (!el) return;
+  scrollTo({top:el.getBoundingClientRect().top + scrollY - 86,
+            behavior:VP.reduced.matches ? 'auto' : 'smooth'});
+  if (el.tabIndex === -1) el.focus({preventScroll:true});
+}
+$('#stages').addEventListener('click', e => {
+  const b = e.target.closest('button.stage');
+  if (!b || b.disabled) return;
+  if (b.id === 'stIsp') { goTo('#passport'); const c = $('#ispRow .chip[aria-pressed="true"]'); if (c) c.focus(); return; }
+  goTo(b.dataset.go);
+});
+
+/* Рейка: на широком листе стоит открытой, на узком складывается */
+const wide = matchMedia('(min-width:961px)');
+const syncRail = () => { $('#rail').open = wide.matches; };
+wide.addEventListener('change', syncRail);
+syncRail();
+
+/* ── 3.12 Первый рисунок ───────────────────────────────────────────── */
+buildFacets();
+renderColNote();
+if (hasQ) { $('#q0').placeholder = String(S.qr[0]); $('#q1').placeholder = String(S.qr[1]); }
+if (hasP) { $('#p0').placeholder = String(S.pr[0]); $('#p1').placeholder = String(S.pr[1]); }
+if (F.q0 !== null) $('#q0').value = F.q0;
+if (F.q1 !== null) $('#q1').value = F.q1;
+if (F.p0 !== null) $('#p0').value = F.p0;
+if (F.p1 !== null) $('#p1').value = F.p1;
+update();
+
+/* «Назад» внутри страницы бывает только якорным (переход к плашке), и
+   перерисовывать по нему нечего. Если же в истории лежит ДРУГОЙ отбор —
+   читаем его заново. Возврат со ступени карточки браузер восстанавливает
+   сам: всё состояние лежит в адресе. */
+addEventListener('popstate', () => {
+  if (location.search !== lastSearch) location.reload();
+  lastSearch = location.search;
+});
+}
+
+/* ═══ 4. Запуск ══════════════════════════════════════════════════════ */
+if (S) renderSeries(); else renderGone();
+VP.init('catalog.html');
+})();
+</script>
+</body>
+</html>

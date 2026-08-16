@@ -1,0 +1,364 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   ВЕНТПРОМ 2026 · новый визуальный слой поверх системы «Чертёж»
+   (vp.css + cat.css). Ничего не удаляет: подключается ПОСЛЕДНИМ файлом в
+   <head>, перекрывает те же классы и переменные, на которых стоит вся
+   разметка и весь JS. Структура, данные, поиск, дерево каталога — те же.
+
+   Источник цвета: отчёт «Каталог Серый+Синий» (20 сайтов, 2026-08-16) —
+   синий работает только как акцент действия (5–15% площади), серый несёт
+   иерархию слоями с холодным, синеватым подтоном (а не нейтральным или
+   тёплым — иначе синий акцент спорит с фоном), тёмный блок шапки/подвала
+   держит светлое поле контента как рамка (тот же приём у прямого
+   отраслевого аналога ZIEHL-ABEGG). Красный зарезервирован строго за
+   противопожарной категорией — больше нигде, ровно как на настоящем
+   пожарном оборудовании: красный, который встречается всюду, перестаёт
+   быть сигналом.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* ── Бумага → холодный синевато-серый, без миллиметровки ──────────── */
+  --paper:#F3F5F9;
+  --paper-hi:#FFFFFF;
+  --paper-2:#EDF0F6;
+  --paper-3:#E1E6EE;
+
+  /* ── Линовка: та же холодная семья, не нейтральная ────────────────── */
+  --rule:#DCE2EC;
+  --rule-fine:#E9ECF3;
+  --rule-ink:#B9C3D4;
+  --grid:transparent;
+  --grid-fine:transparent;
+
+  /* ── Тушь: синевато-графитовая, не чёрная ─────────────────────────── */
+  --ink:#131A2A;
+  --ink-2:#3D4A63;
+  --ink-3:#5B6982;
+  --ink-4:#707F99;
+
+  /* ── Фирменный синий: держит ВСЮ кликабельность сайта, ничего больше */
+  --blue:#0B57C7;
+  --blue-2:#0A46A0;
+  --blue-pale:#E6EEFC;
+  --blue-wash:#F1F5FD;
+
+  --signal:#0B57C7;
+  --signal-hi:#0A46A0;
+  --signal-pale:#E6EEFC;
+
+  --ok:#1B7A4D;      --ok-pale:#E1F5EA;
+  --warn:#8A5A0C;    --warn-pale:#FBF0DC;   --warn-line:#E4C583; --warn-ink:#6B4708;
+  --stop:#B02318;    --stop-pale:#FBE7E4;
+
+  --focus:#0B57C7;
+
+  /* ── Сигнальный красный — ТОЛЬКО противопожарная категория. Больше
+        нигде: правило вынесено в отдельный токен, чтобы не расползлось. */
+  --fire:#C7291B;
+  --fire-ink:#7A160D;
+
+  /* ── Шрифты: своя гарнитура связной речи вместо чертёжной узкой ───── */
+  --f-draw:var(--f-ui);
+  --f-num:"PT Mono","Consolas",monospace;
+
+  --r-sm:6px; --r-md:10px; --r-lg:14px; --r-pill:999px;
+  --shadow-sm:0 1px 2px rgba(19,26,42,.07), 0 0 1px rgba(19,26,42,.12);
+  --shadow-md:0 6px 20px rgba(19,26,42,.10), 0 0 1px rgba(19,26,42,.14);
+  --shadow-lg:0 22px 48px rgba(19,26,42,.18), 0 2px 6px rgba(19,26,42,.08);
+
+  --dark-frame:#10182B;
+  --dark-frame-2:#182238;
+  --dark-frame-ink:#C7D2E6;
+  --dark-frame-ink-2:#8B98B8;
+}
+
+/* ═══ Бумага: миллиметровка снята — холодная плоская подложка ═════════ */
+body{
+  background-image:none;
+  background-color:var(--paper);
+}
+
+/* ═══ Типографика: обычный регистр, не чертёжные прописные ═══════════ */
+h1,h2,h3,h4,.dw,.crumbs b,.stage .k,.stage em,.fgrp>summary,.facet>summary,
+.tile .nm,.card .mk,.panel h3,footer h4,.logo b,
+table.data thead th,.rail .top h2,.st,.chipx,.chip{
+  font-family:var(--f-ui);
+  text-transform:none;
+  letter-spacing:normal;
+}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.12}
+h2{font-size:clamp(19px,2.1vw,24px);font-weight:800;letter-spacing:-.01em}
+h3{font-size:16px;font-weight:700}
+h4{font-size:12.5px;font-weight:700;color:var(--ink-3)}
+.logo b{font-size:21px;font-weight:800;letter-spacing:-.01em}
+.logo i{font-style:normal;font-family:var(--f-ui);font-weight:600;letter-spacing:0;
+  text-transform:none;font-size:11px;color:var(--dark-frame-ink-2);border-left-color:rgba(255,255,255,.14)}
+
+.dim{gap:12px}
+.dim .line{display:none}
+.dim .val{
+  font-family:var(--f-ui);font-size:12.5px;font-weight:700;color:var(--blue);
+  background:var(--blue-pale);border-radius:var(--r-pill);padding:5px 13px;letter-spacing:0;
+}
+
+/* ═══ Кнопки ════════════════════════════════════════════════════════ */
+.btn{
+  height:44px;border-radius:var(--r-md);
+  font-family:var(--f-ui);text-transform:none;letter-spacing:0;font-weight:700;
+  font-size:14px;border-width:0;box-shadow:var(--shadow-sm);
+  transition:background .15s var(--ease),box-shadow .15s var(--ease),transform .15s var(--ease);
+}
+.btn:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn--ghost{background:var(--paper-hi);color:var(--ink-2);border:1px solid var(--rule-ink);box-shadow:none}
+.btn--ghost:hover{background:var(--blue-wash);border-color:var(--blue);color:var(--blue);box-shadow:none;transform:none}
+.btn--sm{height:34px;padding:0 14px;font-size:12.5px;border-radius:var(--r-pill)}
+
+/* ═══ Шапка: тёмная рамка держит светлое поле (приём ZIEHL-ABEGG) ═════ */
+.util{background:var(--dark-frame-2);border-bottom:0;color:var(--dark-frame-ink);font-weight:500}
+.util a{color:var(--dark-frame-ink-2)}
+.util a:hover{color:#fff}
+.util .tel{color:#fff;font-weight:700}
+.head{
+  background:var(--dark-frame);border-bottom:1px solid rgba(255,255,255,.06);
+  box-shadow:0 8px 24px rgba(8,12,24,.16);position:relative;z-index:70;
+}
+.head .logo b{color:#fff}
+.nav a{border-radius:var(--r-pill);font-weight:600;color:var(--dark-frame-ink)}
+.nav a:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav a[aria-current="page"]{background:rgba(255,255,255,.1);border-color:transparent;color:#fff}
+.hbtn{border-radius:var(--r-pill);border-color:rgba(255,255,255,.18);color:var(--dark-frame-ink);font-weight:600}
+.hbtn:hover{background:rgba(255,255,255,.08);color:#fff}
+.hbtn .cnt{border-radius:var(--r-pill)}
+.panel{border-radius:var(--r-md);border-color:var(--rule);box-shadow:var(--shadow-lg);overflow:hidden}
+.panel h3{background:var(--paper-2);font-weight:700}
+
+/* ═══ Мега-меню и выпадающие панели ═════════════════════════════════
+   Разметку строит assets/vent2026-nav.js из тех же данных VPCAT, что и
+   сама сетка разделов — рассинхрона быть не может, список один. */
+.v26-drop{position:relative}
+.v26-drop>a{display:flex;align-items:center;gap:5px}
+.v26-drop>a::after{
+  content:"";width:7px;height:7px;margin-top:-2px;
+  border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;
+  transform:rotate(45deg);transition:transform .2s var(--ease);opacity:.75;
+}
+.v26-drop[data-open="1"]>a::after{transform:rotate(-135deg) translateY(2px)}
+/* Панель висит на .v26-mega, а фон и рамку несёт .v26-mega-in. Разница
+   принципиальная: внешний слой отдаёт свой верхний padding под «мост»
+   между ссылкой и панелью. Без моста курсор, идущий вниз, пересекает
+   пустоту, выходит из .v26-drop, и меню захлопывается прямо под рукой —
+   классический сбой мега-меню. Видимый зазор остаётся, но он проходим. */
+.v26-mega{
+  position:absolute;top:100%;left:50%;
+  transform:translate(-50%,-8px);transform-origin:top center;
+  width:min(1000px,92vw);z-index:90;padding-top:12px;
+  opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity .18s var(--ease),transform .18s var(--ease),visibility 0s linear .18s;
+}
+.v26-drop[data-open="1"] .v26-mega{
+  opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,0);
+  transition:opacity .18s var(--ease),transform .18s var(--ease),visibility 0s;
+}
+.v26-mega-in{
+  display:grid;grid-template-columns:224px minmax(0,1fr);
+  background:var(--paper-hi);border:1px solid var(--rule);border-radius:var(--r-lg);
+  box-shadow:var(--shadow-lg);overflow:hidden;
+}
+
+/* ── Левая рейка разделов ─────────────────────────────────────────── */
+.v26-rail{
+  display:flex;flex-direction:column;gap:1px;padding:10px;
+  background:var(--paper-2);border-right:1px solid var(--rule);
+  max-height:min(70vh,540px);overflow-y:auto;
+}
+.v26-rail-item{
+  display:block;width:100%;text-align:left;cursor:pointer;
+  padding:8px 11px;border:0;border-radius:var(--r-sm);background:none;
+  font:inherit;color:var(--ink-2);
+  transition:background .12s var(--ease),color .12s var(--ease);
+}
+.v26-rail-item .nm{display:block;font-size:15px;font-weight:600;line-height:1.25}
+.v26-rail-item .cn{display:block;font-size:12.5px;color:var(--ink-3);margin-top:1px}
+.v26-rail-item:hover{background:var(--blue-wash);color:var(--blue)}
+.v26-rail-item[aria-selected="true"]{background:var(--paper-hi);color:var(--blue);
+  box-shadow:inset 2px 0 0 var(--blue)}
+.v26-rail-item[data-empty="1"] .nm{color:var(--ink-3);font-weight:500}
+.v26-rail-item[data-fire="1"] .nm::after{
+  content:"";display:inline-block;width:7px;height:7px;margin-left:6px;
+  border-radius:50%;background:var(--fire);vertical-align:middle;
+}
+
+/* ── Правая панель подразделов ────────────────────────────────────── */
+.v26-panels{padding:18px 20px;max-height:min(70vh,540px);overflow-y:auto}
+.v26-panel[hidden]{display:none}
+.v26-panel-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+.v26-panel-head .ic{
+  flex:0 0 auto;width:38px;height:38px;border-radius:var(--r-md);
+  display:grid;place-items:center;background:var(--paper-2);color:var(--ink-3);
+}
+.v26-panel-head .ic svg{width:21px;height:21px}
+.v26-panel-head .ic[data-fire="1"]{background:var(--fire);color:#fff}
+.v26-panel-head b{display:block;font-size:17px;font-weight:700;line-height:1.25;color:var(--ink)}
+.v26-panel-head span{display:block;font-size:12.5px;color:var(--ink-3);margin-top:2px}
+
+.v26-subs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 12px}
+.v26-sub{
+  display:block;padding:9px 11px;border-radius:var(--r-sm);
+  color:var(--ink-2);text-decoration:none;transition:background .12s var(--ease);
+}
+.v26-sub:hover{background:var(--blue-wash);color:var(--blue)}
+.v26-sub b{display:block;font-size:15px;font-weight:600;line-height:1.3}
+.v26-sub span{display:block;font-size:12.5px;color:var(--ink-3);margin-top:1px}
+.v26-sub[data-empty="1"] b{color:var(--ink-3);font-weight:500}
+
+.v26-panel-foot{
+  margin-top:16px;padding-top:13px;border-top:1px solid var(--rule-fine);
+}
+.v26-panel-foot a{color:var(--blue);text-decoration:none;font-weight:700;font-size:15px}
+.v26-panel-foot a:hover{text-decoration:underline}
+
+/* ── Простой список «Инженеру»: тот же мост, что у мега-меню ───────── */
+.v26-simple{
+  position:absolute;top:100%;left:0;z-index:90;min-width:250px;padding-top:12px;
+  opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-6px);
+  transition:opacity .16s var(--ease),transform .16s var(--ease),visibility 0s linear .16s;
+}
+.v26-drop[data-open="1"] .v26-simple{
+  opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0);
+  transition:opacity .16s var(--ease),transform .16s var(--ease),visibility 0s;
+}
+.v26-simple-in{
+  background:var(--paper-hi);border:1px solid var(--rule);border-radius:var(--r-md);
+  box-shadow:var(--shadow-lg);padding:7px;
+}
+.v26-simple a{
+  display:block;padding:9px 12px;border-radius:var(--r-sm);color:var(--ink-2);
+  text-decoration:none;font-size:15px;font-weight:600;
+}
+.v26-simple a:hover{background:var(--blue-wash);color:var(--blue)}
+
+/* Ниже 1044 px рейка навигации сама уезжает в горизонтальную прокрутку
+   (vp.css), и абсолютная панель шириной в экран там неуместна: раскрытое
+   меню перекрыло бы страницу целиком. Ссылка остаётся обычной ссылкой
+   в каталог — он и так первый экран этого меню. */
+@media (max-width:1044px){
+  .v26-mega,.v26-simple{display:none}
+  .v26-drop>a::after{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .v26-mega,.v26-simple,.v26-drop>a::after{transition:none!important}
+}
+
+/* ═══ Сетка разделов: скруглённые карточки вместо линованной сетки ═══ */
+.tiles{background:transparent;border:0;gap:12px}
+.tile{
+  border-radius:var(--r-lg);background:var(--paper-hi);
+  border:1px solid var(--rule);box-shadow:var(--shadow-sm);position:relative;
+  transition:box-shadow .2s var(--ease),border-color .2s var(--ease),transform .2s var(--ease);
+}
+.tile .silh{color:var(--ink-4)}
+.tile:hover,.tile:focus-visible{
+  border-color:var(--blue-pale);box-shadow:var(--shadow-md);transform:translateY(-3px);
+}
+.tile:hover .silh{color:var(--blue)}
+.tile[aria-current="page"],.tile--pick[aria-pressed="true"]{background:var(--blue-wash);border-color:var(--blue-pale)}
+.tile[aria-current="page"]::after{display:none}
+.tile[aria-current="page"]{box-shadow:inset 0 0 0 2px var(--blue),var(--shadow-sm)}
+.tile[data-empty="1"]{background:var(--paper-2);border-style:dashed}
+.tile .cn{color:var(--ink-3)}
+
+/* Значок категории — маленькая цветная плашка в углу плитки. По
+   умолчанию нейтральная (серо-синяя): показывает, что у категории ЕСТЬ
+   значок, но не орёт цветом. Красный включается только атрибутом
+   data-fire="1", который assets/vent2026-nav.js ставит ровно на одну
+   плитку — «Противопожарная вентиляция». Красный цвет, который есть
+   везде, перестаёт быть сигналом тревоги; здесь он один на весь сайт. */
+.v26-badge{
+  position:absolute;top:10px;right:10px;display:flex;align-items:center;gap:5px;
+  padding:4px 9px 4px 7px;border-radius:var(--r-pill);
+  background:var(--paper-2);color:var(--ink-3);
+  font-size:10.5px;font-weight:700;letter-spacing:.01em;
+  box-shadow:0 0 0 1px var(--rule-fine) inset;
+}
+.v26-badge svg{width:12px;height:12px;flex:0 0 auto}
+.tile[data-fire="1"] .v26-badge{background:var(--fire);color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.25) inset}
+.tile[data-fire="1"]{border-color:color-mix(in srgb, var(--fire) 28%, var(--rule))}
+.tile[data-fire="1"]:hover{border-color:var(--fire);box-shadow:var(--shadow-md),0 0 0 1px color-mix(in srgb, var(--fire) 35%, transparent)}
+
+/* ═══ Появление плиток на загрузке: короткое, по одному разу, гасится
+      по prefers-reduced-motion. Не крутится бесконечно — тред «анимация
+      как часть бренда» здесь означает уместный вход, а не вечное шевеление. */
+.tiles[data-reveal="1"] .tile{
+  animation:v26In .5s var(--ease) backwards;
+  animation-delay:calc(var(--i,0) * 35ms);
+}
+@keyframes v26In{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){
+  .tiles[data-reveal="1"] .tile{animation:none!important;opacity:1;transform:none}
+}
+
+/* ═══ Крошки, рейка, фасеты, чипы, поле ввода — токены уже несут вид ═ */
+.crumbs{color:var(--ink-3)}
+/* .rail .leg сидит прямо на фоне страницы (var(--paper)), а не на белом
+   поле листа — 11px и --ink-4 давали 3.7:1 вместо нужных 4.5:1. Крупнее
+   и на тон темнее: --ink-3 даёт 5.1:1 на этом фоне с запасом. */
+.rail .leg{font-size:12.5px;color:var(--ink-3)}
+.rail .top{border-bottom-color:var(--rule)}
+.fgrp{border-bottom-color:var(--rule-fine)}
+.opt input{border-radius:5px;border-color:var(--rule-ink)}
+.opt input:checked{background:var(--blue);border-color:var(--blue)}
+.fld input,.fld select,.fld textarea{border-radius:var(--r-sm);border-color:var(--rule-ink);background:var(--paper-hi)}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-pale)}
+.chip,.qb .chip{border-radius:var(--r-pill);font-family:var(--f-ui);font-weight:600;border-color:var(--rule-ink)}
+.chip[aria-pressed="true"],.qb .chip[aria-pressed="true"]{background:var(--blue);border-color:var(--blue)}
+.picked{border-radius:var(--r-lg);border-color:var(--rule);background:var(--blue-wash)}
+.chipx{border-radius:var(--r-pill);border-color:var(--blue-pale);background:var(--paper-hi)}
+.findlist,.sheet{border-radius:var(--r-lg);border-color:var(--rule);box-shadow:var(--shadow-sm)}
+.vtbl{border-radius:var(--r-lg);overflow:hidden;border-color:var(--rule);box-shadow:var(--shadow-sm)}
+table.data thead th{background:var(--paper-2);border-color:var(--rule);font-weight:700;color:var(--ink-2)}
+table.data td.mk{font-family:var(--f-ui);font-weight:700;letter-spacing:0;text-transform:none}
+table.data tbody tr:hover td{background:var(--blue-wash)}
+.st{padding:3px 11px 3px 9px;border-radius:var(--r-pill);font-weight:700;font-size:12px}
+.st::before{border-radius:50%;width:6px;height:6px}
+.st[data-s="ok"]{background:var(--ok-pale)}
+.st[data-s="wait"]{background:var(--warn-pale)}
+.st[data-s="stop"]{background:var(--stop-pale)}
+
+/* ═══ Остатки «Чертежа» в локальных стилях страницы каталога ════════
+   Эти пять правил живут не в системе (vp.css / cat.css), а в собственном
+   <style> самой страницы, поэтому общая замена --f-draw их не достаёт:
+   text-transform и letter-spacing там прописаны буквально. Тема грузится
+   после <style> страницы и при равной специфичности перебивает их —
+   иначе на новом сайте остаются кнопка «ОЧИСТИТЬ» и подписи подсказок
+   поиска чертёжными прописными вразрядку посреди обычного набора. */
+.find .fx,.findlist .kd,.findlist .mk,.stubnote b,.often h2{
+  font-family:var(--f-ui);
+  text-transform:none;
+  letter-spacing:normal;
+}
+.find .fx{font-size:12.5px;font-weight:600;border-radius:var(--r-sm)}
+.findlist .mk{font-weight:700}
+.stubnote b{font-weight:700}
+
+/* Меньше ступеней, но с настоящей разницей. Локальные стили страницы
+   держат шесть почти одинаковых кеглей в полосе 10.5…13px — на глаз это
+   не иерархия, а дрожь. Схлопываем весь служебный ярус в один 12.5px
+   (подписи подсказок, счётчики, сноски, заголовок полосы ссылок), и
+   тогда шкала страницы читается тремя внятными ступенями:
+   12.5 — служебное, 15 — название раздела, 15.5 — связная речь. */
+.findlist .kd,.findlist .gr,.often h2,.often .why,.rail .leg{font-size:12.5px}
+.often h2{font-weight:700}
+
+/* Название раздела — главный текст сетки каталога: тринадцать названий
+   и есть содержание страницы. На 12.5px оно стояло вровень со счётчиком
+   и служебными подписями; поднимаем, чтобы иерархия была настоящей,
+   а не декларируемой. Высоту плитки контракт держит в 1366×768 — рост
+   кегля компенсируем чуть более плотным межстрочным. */
+.tiles--cat .tile .nm{font-size:15px;line-height:1.2}
+
+/* ═══ Подвал: та же тёмная рамка, что и шапка ═══════════════════════ */
+footer{background:var(--dark-frame);border-top:0;color:var(--dark-frame-ink-2)}
+footer h4{color:var(--dark-frame-ink)}
+footer a{color:var(--dark-frame-ink-2);border-radius:var(--r-sm)}
+footer a:hover{color:#fff;background:rgba(255,255,255,.06);padding-left:6px}
+footer .legal{border-top-color:rgba(255,255,255,.1);color:var(--dark-frame-ink-2)}

@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Сохранённые версии · Вентпром</title>
+<meta name="description" content="Замороженные копии версий прототипа на 16.08.2026. Правки в основной ветке их не задевают.">
+<style>
+:root{
+  --paper:#F3F5F9; --paper-hi:#FFFFFF; --paper-2:#EDF0F6;
+  --rule:#DCE2EC; --rule-fine:#E9ECF3;
+  --ink:#131A2A; --ink-2:#3D4A63; --ink-3:#5B6982;
+  --blue:#0B57C7; --blue-pale:#E6EEFC; --blue-wash:#F1F5FD;
+  --dark:#10182B; --dark-ink:#C7D2E6; --dark-ink-2:#8B98B8;
+  --r-sm:6px; --r-md:10px; --r-lg:14px; --r-pill:999px;
+  --shadow-sm:0 1px 2px rgba(19,26,42,.07), 0 0 1px rgba(19,26,42,.12);
+  --shadow-md:0 6px 20px rgba(19,26,42,.10);
+  --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font:16px/1.6 -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--blue)}
+.wrap{max-width:940px;margin:0 auto;padding:0 24px}
+
+header{background:var(--dark);color:var(--dark-ink)}
+header .wrap{padding:44px 24px 36px}
+.kicker{font-family:var(--mono);font-size:12.5px;color:#8FB6F5;margin:0 0 14px;
+  display:flex;align-items:center;gap:9px}
+.kicker::before{content:"";width:7px;height:7px;border-radius:50%;background:#8FB6F5}
+h1{font-size:clamp(27px,4vw,38px);font-weight:800;letter-spacing:-.02em;line-height:1.12;
+  margin:0 0 12px;color:#fff}
+.dek{margin:0;max-width:64ch;color:var(--dark-ink);font-size:16px}
+
+main .wrap{padding:36px 24px 80px}
+.note{background:var(--paper-hi);border:1px solid var(--rule);border-radius:var(--r-lg);
+  padding:16px 20px;margin:0 0 30px;box-shadow:var(--shadow-sm)}
+.note b{color:var(--ink)}
+.note p{margin:0;color:var(--ink-2);font-size:15px}
+
+.card{background:var(--paper-hi);border:1px solid var(--rule);border-radius:var(--r-lg);
+  padding:20px 22px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
+.card h2{margin:0 0 4px;font-size:19px;font-weight:800;letter-spacing:-.01em}
+.card .what{margin:0 0 14px;color:var(--ink-3);font-size:14.5px;max-width:70ch}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+.links a{display:inline-flex;align-items:center;gap:7px;
+  padding:8px 15px;border-radius:var(--r-pill);text-decoration:none;font-size:14px;font-weight:700;
+  background:var(--blue);color:#fff;box-shadow:var(--shadow-sm)}
+.links a:hover{box-shadow:var(--shadow-md)}
+.links a.ghost{background:var(--paper-hi);color:var(--ink-2);border:1px solid var(--rule);
+  box-shadow:none;font-weight:600}
+.links a.ghost:hover{background:var(--blue-wash);border-color:var(--blue);color:var(--blue)}
+.path{font-family:var(--mono);font-size:12.5px;color:var(--ink-3);margin:12px 0 0}
+
+.pending{border-style:dashed;background:var(--paper-2)}
+.pending h2{color:var(--ink-2)}
+
+h3.sec{font-size:13px;font-weight:700;color:var(--ink-3);margin:30px 0 12px;
+  padding-bottom:8px;border-bottom:1px solid var(--rule)}
+
+footer{border-top:1px solid var(--rule);margin-top:36px;padding-top:20px;
+  font-size:13px;color:var(--ink-3)}
+footer p{margin:0 0 7px;max-width:78ch}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <p class="kicker">Снимок от 16.08.2026</p>
+    <h1>Сохранённые версии</h1>
+    <p class="dek">Замороженные копии. Живут отдельно от основной ветки: любые дальнейшие правки
+      сайта их не задевают, потому что у каждой копии свои файлы стилей, скриптов и шрифтов.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <div class="note">
+      <p><b>Почему один снимок, а не три.</b> Каталог 2026, раздел «Вентиляторы» и старый каталог —
+        это три страницы <em>одного и того же</em> состояния кода, а не три разных сайта. Три копии
+        одних и тех же байтов только запутали бы: правка в одной не совпадала бы с двумя другими.
+        Поэтому состояние заморожено целиком и один раз, а ниже — прямые входы в каждую из версий.
+        Внутри снимка работают все переходы между страницами.</p>
+    </div>
+
+    <h3 class="sec">Прототип завода · снимок 16.08.2026</h3>
+
+    <div class="card">
+      <h2>Каталог 2026</h2>
+      <p class="what">Новое оформление: холодная сине-серая палитра, тёмная рамка шапки и подвала,
+        двухпанельное мега-меню по наведению на «Каталог», красный значок с огнём у противопожарной
+        категории. Миллиметровка фона снята.</p>
+      <div class="links">
+        <a href="2026-08-16-prototip/catalog-2026.html">Открыть →</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Раздел «Вентиляторы»</h2>
+      <p class="what">Исходное оформление «Чертёж»: сводная таблица всех типоразмеров раздела
+        с фасетами, сортировкой по любому числовому столбцу и сравнением до четырёх позиций.</p>
+      <div class="links">
+        <a href="2026-08-16-prototip/razdel.html?r=vent">Открыть →</a>
+        <a class="ghost" href="2026-08-16-prototip/razdel-atlassian.html?r=vent">Он же в теме «Атлассиан»</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Каталог</h2>
+      <p class="what">Исходное оформление «Чертёж»: тринадцать разделов одним экраном, дерево
+        каталога слева, мгновенный поиск по марке или типоразмеру сверху.</p>
+      <div class="links">
+        <a href="2026-08-16-prototip/catalog.html">Открыть →</a>
+        <a class="ghost" href="2026-08-16-prototip/index.html">Главная снимка</a>
+      </div>
+    </div>
+
+    <h3 class="sec">Отдельный проект</h3>
+
+    <div class="card pending" id="ai-demo">
+      <h2>AI-консультант — копия ещё не снята</h2>
+      <p class="what">Демо модуля «Вентилятор → Инженер» — отдельный проект, не часть прототипа
+        каталога. Локального исходника нет, копию нужно снимать с живого сайта, а в момент
+        сборки снимка сеть была недоступна. Ссылка на копию появится здесь, как только она
+        будет снята; живая версия работает.</p>
+      <div class="links">
+        <a class="ghost" href="https://wentprom-ai-demo.vercel.app/">Живая версия ↗</a>
+      </div>
+    </div>
+
+    <footer>
+      <p>Каждый снимок самодостаточен: внутри лежат собственные копии <span class="path">assets/</span>
+        и <span class="path">fonts/</span>. Обновление основного сайта на них не влияет.</p>
+      <p>Исходные страницы прототипа при создании снимков не менялись и не удалялись.</p>
+    </footer>
+
+  </div>
+</main>
+
+</body>
+</html>

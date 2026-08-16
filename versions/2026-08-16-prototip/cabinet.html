@@ -1,0 +1,1163 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Личный кабинет — подбор, объекты, расчёты · Вентпром</title>
+<meta name="description" content="Подбор, объекты, просмотренная номенклатура и сохранённые расчёты. Всё копится без регистрации и хранится в вашем браузере; вход нужен только чтобы поднять накопленное на другом компьютере.">
+<link rel="stylesheet" href="assets/vp.css">
+<style>
+/* ── Шапка кабинета: кто вы для этого браузера ─────────────────────── */
+.who{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:26px;align-items:start}
+.who .idbox{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.who .idbox b{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.13em;
+  font-size:11px;color:var(--ink-2);font-weight:700}
+.who .id{
+  font-family:var(--f-num);font-size:19px;letter-spacing:0;color:var(--ink);
+  border:1px solid var(--rule-ink);background:var(--paper-2);padding:2px 11px;
+}
+.who .acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+
+/* Форма входа: нарисована честно, бэкенда за ней нет */
+.auth{margin-top:22px;padding-top:20px;border-top:1px solid var(--rule)}
+.auth[hidden]{display:none}
+.tabs{display:flex;margin-bottom:18px}
+.tabs button{
+  height:36px;padding:0 16px;cursor:pointer;background:var(--paper-2);
+  border:1px solid var(--rule-ink);border-right-width:0;color:var(--ink-2);
+  font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.12em;font-size:11.5px;
+}
+.tabs button:last-child{border-right-width:1px}
+.tabs button[aria-selected="true"]{background:var(--paper-hi);color:var(--blue);
+  box-shadow:inset 0 -2px 0 var(--blue)}
+.authpane[hidden]{display:none}
+.authgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:16px;margin-bottom:16px}
+.say{margin:0;font-size:13px;color:var(--ink-2);border-left:2px solid var(--blue);
+  padding:7px 0 7px 12px;background:var(--blue-wash);max-width:82ch}
+.say:empty{display:none}
+
+/* ── Двухколоночный кабинет ────────────────────────────────────────── */
+.acc{display:grid;grid-template-columns:238px minmax(0,1fr);gap:34px;align-items:start}
+.accnav{position:sticky;top:78px;border:1px solid var(--rule-ink);background:var(--paper-hi)}
+.accnav a{
+  display:flex;align-items:center;gap:10px;padding:10px 13px;text-decoration:none;
+  color:var(--ink-2);font-size:13.5px;border-bottom:1px solid var(--rule-fine);
+}
+.accnav a:last-child{border-bottom:0}
+.accnav a:hover{background:var(--blue-wash);color:var(--blue)}
+.accnav a[aria-current="true"]{background:var(--paper-2);color:var(--ink);
+  box-shadow:inset 3px 0 0 var(--blue)}
+.accnav svg{width:20px;height:17px;flex:0 0 auto;color:var(--blue)}
+.accnav .c{margin-left:auto;font-family:var(--f-num);font-size:11.5px;color:var(--ink-2)}
+.accnav .c[data-zero="1"]{color:var(--ink-4)}
+
+.accsec{padding:0 0 40px;scroll-margin-top:88px}
+.accsec:last-child{padding-bottom:0}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:16px 0 0}
+
+/* Отмена только что сделанного удаления живёт в строке сообщения */
+.say .undo{margin-left:12px;vertical-align:middle}
+
+/* ── Пустое состояние: поверхность, а не заглушка ──────────────────── */
+.empty{border:1px dashed var(--rule-ink);background:var(--paper-hi);padding:22px 24px}
+.empty h3{margin-bottom:9px}
+.empty p{color:var(--ink-2);max-width:78ch;font-size:14px}
+.empty p:last-child{margin-bottom:0}
+.empty ul{margin:0 0 14px;padding-left:20px;color:var(--ink-2);font-size:14px;max-width:78ch}
+.empty li{padding:2px 0}
+.empty .why{border-top:1px solid var(--rule-fine);margin-top:16px;padding-top:14px}
+.empty .why b{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.13em;
+  font-size:10.5px;color:var(--ink-3);display:block;margin-bottom:6px}
+
+/* ── Шкала состояний запроса ───────────────────────────────────────── */
+.rail{display:flex;flex-wrap:wrap;border:1px solid var(--rule);background:var(--paper-hi);margin:0 0 18px}
+.rail div{flex:1 1 148px;padding:11px 13px;border-right:1px solid var(--rule-fine)}
+.rail div:last-child{border-right:0}
+.rail small{display:block;margin-top:4px;font-size:11.5px;color:var(--ink-3);line-height:1.35}
+
+/* ── Объекты ───────────────────────────────────────────────────────── */
+.pform{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(210px,100%),1fr));gap:16px;margin-bottom:16px}
+.prj{border:1px solid var(--rule-ink);background:var(--paper-hi);margin-bottom:16px}
+.prj .hd{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;padding:12px 16px;
+  border-bottom:1px solid var(--rule);background:var(--paper-2)}
+.prj .hd b{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.09em;font-size:16px}
+.prj .hd .meta{margin-left:auto;font-family:var(--f-num);font-size:11.5px;color:var(--ink-2)}
+.prj .rn{display:flex;gap:8px;flex-wrap:wrap;align-items:center;width:100%}
+.prj .rn input{flex:1 1 220px;height:34px;padding:0 10px;background:var(--paper-hi);
+  border:1px solid var(--blue);color:var(--ink);font-family:var(--f-ui);font-size:14px}
+.prj dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;margin:0;padding:12px 16px;
+  border-bottom:1px solid var(--rule-fine)}
+.prj dt{font-family:var(--f-draw);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
+.prj dd{margin:0;font-size:13.5px;color:var(--ink)}
+.prj dd.num{font-family:var(--f-num);font-size:13px}
+.prj .none{padding:14px 16px;font-size:13.5px;color:var(--ink-3);border-bottom:1px solid var(--rule-fine)}
+.prj .acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:13px 16px}
+.prj .mv{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.prj .mv select{height:34px;padding:0 8px;background:var(--paper-hi);
+  border:1px solid var(--rule-ink);color:var(--ink-2);font-size:13px;max-width:230px}
+.prj .share{padding:0 16px 14px}
+.prj .share[hidden]{display:none}
+.prj .share .row{display:flex;gap:8px;flex-wrap:wrap}
+.prj .share input{
+  flex:1 1 250px;height:34px;padding:0 10px;background:var(--paper-2);
+  border:1px solid var(--rule-ink);color:var(--ink-2);font-family:var(--f-num);font-size:12.5px;
+}
+.prj .arm{padding:0 16px 14px;margin:0;color:var(--stop);font-size:13px;
+  display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.prj .arm[hidden]{display:none}
+
+/* ── Ленты ─────────────────────────────────────────────────────────── */
+.feed{border:1px solid var(--rule-ink);background:var(--paper-hi)}
+.feed ol,.feed ul{margin:0;padding:0;list-style:none}
+.feed li{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;
+  padding:9px 14px;border-bottom:1px solid var(--rule-fine)}
+.feed li:last-child{border-bottom:0}
+.feed .mk{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.07em;font-size:14.5px;
+  text-decoration:none;color:var(--ink)}
+.feed .mk:hover{color:var(--blue);text-decoration:underline}
+.feed .sz{font-family:var(--f-num);font-size:12.5px;color:var(--ink-2)}
+.feed .gr{margin-left:auto;font-family:var(--f-num);font-size:12px;color:var(--ink-3);text-align:right}
+.calc-it{display:block;padding:13px 14px;border-bottom:1px solid var(--rule-fine)}
+.calc-it:last-child{border-bottom:0}
+.calc-it .t{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
+.calc-it .t b{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.11em;font-size:12.5px}
+.calc-it .t .when{margin-left:auto;font-family:var(--f-num);font-size:11.5px;color:var(--ink-3)}
+.calc-it .pairs{display:flex;flex-wrap:wrap;gap:5px 22px;margin:0 0 11px}
+.calc-it .pair{display:flex;align-items:baseline;gap:8px}
+.calc-it .pair span{font-family:var(--f-draw);font-size:10.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink-3)}
+.calc-it .pair i{font-style:normal;font-family:var(--f-num);font-size:13px;color:var(--ink)}
+
+.tot{display:flex;flex-wrap:wrap;gap:6px 22px;margin:12px 0 0;font-size:13px;color:var(--ink-2)}
+.tot b{font-family:var(--f-num);font-weight:400;color:var(--ink)}
+
+@media (max-width:900px){
+  .acc{grid-template-columns:minmax(0,1fr);gap:20px}
+  .accnav{position:static;display:flex;overflow-x:auto}
+  .accnav a{border-bottom:0;border-right:1px solid var(--rule-fine);white-space:nowrap}
+  .accnav a:last-child{border-right:0}
+  .accnav a[aria-current="true"]{box-shadow:inset 0 -3px 0 var(--blue)}
+  .who{grid-template-columns:minmax(0,1fr)}
+  .who .acts{justify-content:flex-start}
+  .accsec{scroll-margin-top:16px}
+  .prj dl{grid-template-columns:minmax(0,1fr)}
+  .prj dt{margin-top:6px}
+}
+</style>
+</head>
+<body>
+<!--
+IMPECCABLE DIRECTION CONTRACT · мир «Чертёж»
+THESIS: Кабинет — папка рабочих листов, которая уже лежит на столе у анонима;
+вход не начинает работу заново, а поднимает накопленное в учётную запись.
+OWN-WORLD: бумага #F3F4F2 с миллиметровкой, волосяная линовка вместо теней,
+приборный синий #1B4C86 на структуре, сигнальный оранжевый #D9540B только на
+кнопке; узкий гротеск прописными в разрядку, моноширинный на измерениях,
+основная надпись по ГОСТ 2.104 внизу листа.
+STORY: инженер видит свой подбор без регистрации, раскладывает его по объектам,
+выгружает спецификацию и уходит в опросный лист.
+FIRST VIEWPORT: идентификатор браузера, честная строка о локальном хранении,
+два действия входа; слева рейка разделов с живыми счётчиками.
+FORM: мир закреплён распоряжением заказчика, раунд направления не проводился.
+-->
+
+<div id="vp-head"></div>
+
+<main>
+  <section class="sec--tight">
+    <div class="wrap">
+      <h1>Личный кабинет</h1>
+      <p class="lead" style="margin:14px 0 20px">Подбор, объекты и расчёты копятся
+        с первого клика — регистрация для этого не нужна. Вход понадобится, только
+        когда работу нужно продолжить на другом компьютере или показать коллеге.</p>
+
+      <div class="sheet sheet--pad who">
+        <div>
+          <div class="idbox">
+            <b>Идентификатор браузера</b>
+            <span class="id" id="cid">—</span>
+          </div>
+          <p style="color:var(--ink-2);max-width:70ch;margin-bottom:0">Под этим номером
+            всё, что вы отметили, лежит в памяти этого браузера — на нашем сервере
+            сейчас нет ничего. Очистка данных сайта или другой компьютер означают
+            пустой кабинет. При входе накопленное поднимется в учётную запись:
+            подбор, объекты, лента просмотренного и расчёты сохранятся, вводить
+            заново ничего не придётся.</p>
+        </div>
+        <div class="acts">
+          <button class="btn" type="button" id="authIn" aria-expanded="false" aria-controls="auth">Войти</button>
+          <button class="btn btn--ghost" type="button" id="authUp" aria-expanded="false" aria-controls="auth">Зарегистрироваться</button>
+        </div>
+
+        <div class="auth" id="auth" hidden style="grid-column:1/-1">
+          <div class="tabs" id="authTabs" role="tablist" aria-label="Вход и регистрация">
+            <button type="button" role="tab" data-m="in" aria-selected="true" aria-controls="pane-in" id="tab-in">Вход</button>
+            <button type="button" role="tab" data-m="up" aria-selected="false" aria-controls="pane-up" id="tab-up">Регистрация</button>
+          </div>
+
+          <form class="authpane" data-m="in" id="pane-in" role="tabpanel" aria-labelledby="tab-in" novalidate>
+            <div class="authgrid">
+              <label class="fld"><span>Телефон или почта</span>
+                <input type="text" name="login" autocomplete="username" placeholder="info@example.ru"></label>
+              <label class="fld"><span>Пароль</span>
+                <input type="password" name="pass" autocomplete="current-password"></label>
+            </div>
+            <button class="btn" type="submit">Войти</button>
+          </form>
+
+          <form class="authpane" data-m="up" id="pane-up" role="tabpanel" aria-labelledby="tab-up" hidden novalidate>
+            <div class="authgrid">
+              <label class="fld"><span>Организация</span>
+                <input type="text" name="org" autocomplete="organization"></label>
+              <label class="fld"><span>Контактное лицо</span>
+                <input type="text" name="fio" autocomplete="name"></label>
+              <label class="fld"><span>Почта</span>
+                <input type="email" name="mail" autocomplete="email"></label>
+              <label class="fld"><span>Телефон</span>
+                <input type="tel" name="tel" autocomplete="tel"></label>
+            </div>
+            <button class="btn" type="submit">Зарегистрироваться</button>
+          </form>
+
+          <p class="say" id="authSay" role="status" aria-live="polite" style="margin-top:16px"></p>
+          <p class="small" style="margin:12px 0 0;max-width:78ch">Это прототип: формы
+            нарисованы, но учётных записей за ними нет — ни один символ отсюда никуда
+            не отправляется и нигде не сохраняется. Вход заработает на боевом сайте,
+            вместе с переносом накопленного из браузера в учётную запись.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec--tight" style="padding-bottom:46px">
+    <div class="wrap">
+      <div class="acc">
+
+        <nav class="accnav" id="accnav" aria-label="Разделы кабинета"></nav>
+
+        <div>
+          <!-- ══ 1 · Текущий подбор ══════════════════════════════════ -->
+          <section class="accsec" id="pick" aria-labelledby="h-pick">
+            <div class="dim" style="margin-top:8px">
+              <h2 id="h-pick">Текущий подбор</h2><i class="line"></i>
+              <span class="val" id="pickVal">—</span>
+            </div>
+            <p class="lead" style="margin-bottom:16px">Строки, отмеченные кнопкой
+              «В подбор» в каталоге и в таблицах типоразмеров. Это черновик
+              спецификации: из него собирается объект, выгружается файл и заполняется
+              опросный лист.</p>
+            <div id="pickBox" aria-live="polite"></div>
+            <p class="say" id="pickSay" role="status" aria-live="polite" style="margin-top:12px"></p>
+          </section>
+
+          <!-- ══ 2 · Объекты ═════════════════════════════════════════ -->
+          <section class="accsec" id="projects" aria-labelledby="h-projects">
+            <div class="dim" style="margin-top:8px">
+              <h2 id="h-projects">Объекты</h2><i class="line"></i>
+              <span class="val" id="projVal">—</span>
+            </div>
+            <p class="lead" style="margin-bottom:16px">Один объект — одна папка:
+              позиции по зданию, адрес, стадия. Удобно, когда в работе три корпуса
+              сразу и перепутать их нельзя. Позиции переносятся между объектами и
+              возвращаются в подбор.</p>
+
+            <form class="sheet sheet--pad" id="projForm" novalidate style="margin-bottom:20px">
+              <h3 style="margin-bottom:14px">Новый объект</h3>
+              <div class="pform">
+                <label class="fld" id="f-pname"><span>Название</span>
+                  <input type="text" id="pName" required aria-required="true"
+                         aria-describedby="e-pname" placeholder="Корпус 2, вентиляция">
+                  <span class="err" id="e-pname" hidden></span></label>
+                <label class="fld"><span>Адрес</span>
+                  <input type="text" id="pAddr" placeholder="город, улица, участок"></label>
+                <label class="fld"><span>Стадия</span>
+                  <select id="pStage">
+                    <option>Предпроектная проработка</option>
+                    <option selected>Проектная документация</option>
+                    <option>Рабочая документация</option>
+                    <option>Закупка и комплектация</option>
+                    <option>Реконструкция</option>
+                  </select></label>
+              </div>
+              <label class="opt" id="pWithPickL" style="margin-bottom:14px">
+                <input type="checkbox" id="pWithPick" checked>
+                <span id="pWithPickT">Включить текущий подбор</span>
+              </label>
+              <button class="btn" type="submit">Создать объект</button>
+              <p class="say" id="projSay" role="status" aria-live="polite" style="margin-top:14px"></p>
+            </form>
+
+            <div id="projList"></div>
+            <p class="tot" id="projTot"></p>
+          </section>
+
+          <!-- ══ 3 · Запросы и заказы ════════════════════════════════ -->
+          <section class="accsec" id="orders" aria-labelledby="h-orders">
+            <div class="dim" style="margin-top:8px">
+              <h2 id="h-orders">Запросы и заказы</h2><i class="line"></i>
+              <span class="val" id="ordVal">пусто</span>
+            </div>
+
+            <p class="lead" style="margin-bottom:16px">Шкала состояний — то, что
+              появится здесь после первой отправки опросного листа. Сейчас ни одного
+              запроса нет, поэтому все состояния показаны незанятыми: ни одна отметка
+              на этой странице не относится к реальному заказу.</p>
+
+            <div class="rail" aria-label="Состояния запроса">
+              <div><span class="st" data-s="wait">Отправлен</span>
+                <small>лист ушёл менеджеру, номер присвоен</small></div>
+              <div><span class="st" data-s="wait">В работе</span>
+                <small>подбор проверен инженером завода</small></div>
+              <div><span class="st" data-s="wait">Счёт</span>
+                <small>коммерческое предложение и счёт</small></div>
+              <div><span class="st" data-s="wait">Изготовление</span>
+                <small>позиция в производственном плане</small></div>
+              <div><span class="st" data-s="wait">Отгрузка</span>
+                <small>документы и перевозчик</small></div>
+            </div>
+
+            <div class="empty">
+              <h3>Запросов пока нет</h3>
+              <p>Раздел заполняется сам, когда вы отправляете опросный лист или
+                запрос коммерческого предложения. В строке запроса будут:</p>
+              <ul>
+                <li>номер и дата — их присваивает система завода, а не браузер;</li>
+                <li>объект, к которому привязан запрос;</li>
+                <li>перечень позиций с количеством и исполнением;</li>
+                <li>состояние из шкалы выше и менеджер, который ведёт запрос;</li>
+                <li>приложенные файлы: КП, счёт, спецификация, отгрузочные документы.</li>
+              </ul>
+              <div class="why">
+                <b>Почему здесь пусто</b>
+                <p>Заводская система заказов к прототипу не подключена, а показать
+                  «пример заказа» — значит нарисовать номер, срок и состояние, которых
+                  нет. Такую строку невозможно отличить от настоящей, и на согласовании
+                  она превращается в обещание. Поэтому раздел ждёт первого настоящего
+                  запроса.</p>
+              </div>
+              <p style="margin-top:16px"><a class="btn" href="podbor.html#survey">Заполнить опросный лист</a></p>
+            </div>
+          </section>
+
+          <!-- ══ 4 · Просмотренное ═══════════════════════════════════ -->
+          <section class="accsec" id="viewed" aria-labelledby="h-viewed">
+            <div class="dim" style="margin-top:8px">
+              <h2 id="h-viewed">Просмотренная номенклатура</h2><i class="line"></i>
+              <span class="val" id="viewVal">—</span>
+            </div>
+            <p class="lead" style="margin-bottom:16px">Лента заполняется, когда вы
+              открываете типоразмер. Свежее — сверху.</p>
+            <div id="viewBox" aria-live="polite"></div>
+          </section>
+
+          <!-- ══ 5 · Расчёты ═════════════════════════════════════════ -->
+          <section class="accsec" id="calcs" aria-labelledby="h-calcs">
+            <div class="dim" style="margin-top:8px">
+              <h2 id="h-calcs">Сохранённые расчёты</h2><i class="line"></i>
+              <span class="val" id="calcVal">—</span>
+            </div>
+            <p class="lead" style="margin-bottom:16px">Каждый расчёт ложится сюда
+              сразу после нажатия кнопки. «Повторить» возвращает исходные числа в тот
+              инструмент, где они были получены.</p>
+            <div id="calcBox" aria-live="polite"></div>
+          </section>
+
+          <!-- ══ 6 · Документы ═══════════════════════════════════════ -->
+          <section class="accsec" id="docs" aria-labelledby="h-docs">
+            <div class="dim" style="margin-top:8px">
+              <h2 id="h-docs">Документы</h2><i class="line"></i>
+              <span class="val" id="docVal">пусто</span>
+            </div>
+            <div class="empty">
+              <h3>Файлов нет</h3>
+              <p>Здесь будут лежать документы по вашим позициям и запросам:</p>
+              <ul>
+                <li>паспорт и руководство по эксплуатации на подобранный типоразмер;</li>
+                <li>габаритный и присоединительный чертёж, схема разворота корпуса;</li>
+                <li>аэродинамическая характеристика с нанесённой рабочей точкой;</li>
+                <li>сертификаты и декларации, действующие на дату отгрузки;</li>
+                <li>счёт, спецификация и отгрузочные документы по заказу.</li>
+              </ul>
+              <div class="why">
+                <b>Почему здесь пусто</b>
+                <p>Чертежи, схемы и фотографии на действующем сайте отдаются
+                  посторонними доменами, права на них не выяснены — переносить такие
+                  файлы в прототип нельзя. Заводскую документацию мы запросили; до
+                  ответа пустой раздел честнее, чем чужая картинка с подписью
+                  «паспорт».</p>
+              </div>
+              <p style="margin-top:16px">
+                <a class="btn btn--ghost" href="about.html#docs">Что уже опубликовано заводом</a></p>
+            </div>
+          </section>
+        </div>
+
+      </div>
+
+      <dl class="stamp" style="margin-top:34px">
+        <div><dt>Изделие</dt><dd>Прототип нового сайта</dd></div>
+        <div><dt>Раздел</dt><dd>Личный кабинет</dd></div>
+        <div><dt>Лист</dt><dd>cabinet.html</dd></div>
+        <div><dt>Стадия</dt><dd>Прототип, данные демонстрационные</dd></div>
+      </dl>
+    </div>
+  </section>
+</main>
+
+<div id="vp-foot"></div>
+
+<!-- data.vp.js — старый модуль на восемь серий, catalog.vp.js — полный каталог.
+     Кабинет разбирает позиции из обоих через VP.resolve(). -->
+<script src="assets/data.vp.js"></script>
+<script src="assets/catalog.vp.js"></script>
+<script src="assets/vp.js"></script>
+<script>
+(() => {
+'use strict';
+const {$, $$, ICON, store, init} = VP;
+const D = VPDATA;
+
+init('cabinet.html');
+
+/* ── Служебное ────────────────────────────────────────────────────── */
+const ESC = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ESC[c]);
+/* Позиция может прийти из двух модулей: старого VPDATA (восемь серий) и
+   полного каталога VPCAT (45 серий). Кабинет общий, поэтому ищем в обоих —
+   иначе всё, отложенное в новом каталоге, до кабинета не доедет, а счётчик
+   в шапке при этом растёт. VP.resolve возвращает и строку, и её адрес. */
+const rowById = id => {
+  const r = VP.resolve(id);
+  if (!r) return null;
+  /* Адрес кладём на саму строку: у каталожных позиций своя карточка,
+     у старых — только страница серии с якорем на типоразмер. */
+  return Object.assign({_href:r.href}, r.row);
+};
+const rowsOf = ids => (ids || []).map(rowById).filter(Boolean);
+/* У клапанов мощности нет вовсе — Number(null) дал бы NaN на всю сумму. */
+const kwSum = rows => Math.round(
+  rows.reduce((s, r) => s + (Number(r.n) || 0), 0) * 100) / 100;
+const cardHref = r => r._href || ('series.html?s=' + encodeURIComponent(r.mk));
+/* Число или прочерк. У клапанов противопожарной вентиляции завод не
+   публикует ни расхода, ни давления, ни оборотов; D.fmt(null) дал бы «0»,
+   а ноль — это выдуманное значение, а не отсутствующее. */
+const nz  = v => (v == null || v === '') ? '—' : D.fmt(v);
+const nzd = v => (v == null || v === '') ? '—' : D.dec(v);
+const plural = (n, a, b, c) => {
+  const n10 = n % 10, n100 = n % 100;
+  if (n10 === 1 && n100 !== 11) return a;
+  if (n10 >= 2 && n10 <= 4 && (n100 < 10 || n100 >= 20)) return b;
+  return c;
+};
+const pos = n => n + ' ' + plural(n, 'позиция', 'позиции', 'позиций');
+
+/* Выдача файла: Blob → объектная ссылка → программный клик */
+function download(name, text, mime) {
+  const blob = new Blob(['﻿' + text], {type: (mime || 'text/plain') + ';charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.style.display = 'none';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+async function toClipboard(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (e) { /* отказано в разрешении — идём запасным путём */ }
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:-1000px;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    return ok;
+  } catch (e) { return false; }
+}
+
+/* ══ Удалить сразу и дать вернуть ═════════════════════════════════════
+   Одну позицию не спрашивают «точно ли» — на такой вопрос всегда отвечают
+   «да». Убираем сразу, а рядом на восемь секунд остаётся «Вернуть».
+   Системных диалогов на этой странице нет ни одного. */
+let undoTimer = 0;
+function sayUndo(el, text, restore) {
+  el.textContent = text + ' ';
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'btn btn--ghost btn--sm undo';
+  b.textContent = 'Вернуть';
+  b.addEventListener('click', () => { clearTimeout(undoTimer); restore(); });
+  el.appendChild(b);
+  clearTimeout(undoTimer);
+  undoTimer = setTimeout(() => { if (b.isConnected) b.remove(); }, 8000);
+}
+
+$('#cid').textContent = store.clientId;
+
+/* ══ Вход и регистрация ══════════════════════════════════════════════
+   Форма настоящая на вид и честная по сути: сервера за ней нет. */
+const auth = $('#auth'), authSay = $('#authSay');
+
+function showAuth(mode) {
+  auth.hidden = false;
+  $$('#authTabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.m === mode)));
+  $$('.authpane').forEach(p => { p.hidden = p.dataset.m !== mode; });
+  ['#authIn', '#authUp'].forEach(s => $(s).setAttribute('aria-expanded', 'true'));
+  const first = $('.authpane:not([hidden]) input');
+  if (first) first.focus();
+}
+function hideAuth() {
+  auth.hidden = true;
+  ['#authIn', '#authUp'].forEach(s => $(s).setAttribute('aria-expanded', 'false'));
+}
+$('#authIn').addEventListener('click', () => { auth.hidden ? showAuth('in') : hideAuth(); });
+$('#authUp').addEventListener('click', () => showAuth('up'));
+$$('#authTabs button').forEach(b => b.addEventListener('click', () => showAuth(b.dataset.m)));
+auth.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { hideAuth(); $('#authIn').focus(); }
+});
+$$('.authpane').forEach(f => f.addEventListener('submit', e => {
+  e.preventDefault();
+  authSay.textContent = 'Прототип ничего не отправил: учётных записей за этими полями пока нет. '
+    + 'Подбор, объекты и расчёты от этого не пострадали — они лежат под номером '
+    + store.clientId + ' в этом браузере и перенесутся в учётную запись, когда вход заработает '
+    + 'на боевом сайте.';
+}));
+
+/* ══ Рейка разделов со счётчиками ════════════════════════════════════ */
+const SECS = [
+  {id:'pick',     t:'Текущий подбор',   ic:'list',  n:() => store.pick.length},
+  {id:'projects', t:'Объекты',          ic:'draft', n:() => store.projects.length},
+  {id:'orders',   t:'Запросы и заказы', ic:'arrow', n:() => 0},
+  {id:'viewed',   t:'Просмотренное',    ic:'eye',   n:() => store.viewed.length},
+  {id:'calcs',    t:'Расчёты',          ic:'calc',  n:() => store.calcs.length},
+  {id:'docs',     t:'Документы',        ic:'doc',   n:() => 0},
+];
+$('#accnav').innerHTML = SECS.map(s => `
+  <a href="#${s.id}">${ICON[s.ic]}<span>${s.t}</span>
+     <i class="c num" id="c-${s.id}" data-zero="1">0</i></a>`).join('');
+
+function paintCounts() {
+  SECS.forEach(s => {
+    const n = s.n(), el = $('#c-' + s.id);
+    if (!el) return;
+    el.textContent = n;
+    el.dataset.zero = n ? '0' : '1';
+  });
+  const p = store.pick.length, v = store.viewed.length,
+        pr = store.projects.length, c = store.calcs.length;
+  $('#pickVal').textContent = p ? pos(p) : 'пусто';
+  $('#projVal').textContent = pr ? pr + ' ' + plural(pr, 'объект', 'объекта', 'объектов') : 'пусто';
+  $('#viewVal').textContent = v ? v + ' ' + plural(v, 'запись', 'записи', 'записей') : 'пусто';
+  $('#calcVal').textContent = c ? c + ' ' + plural(c, 'расчёт', 'расчёта', 'расчётов') : 'пусто';
+  $('#pWithPickT').textContent = p ? 'Включить текущий подбор — ' + pos(p)
+                                   : 'Включить текущий подбор (сейчас он пуст)';
+  const box = $('#pWithPick'), lab = $('#pWithPickL');
+  box.disabled = !p;
+  if (!p) { box.checked = false; lab.dataset.empty = '1'; }
+  else { delete lab.dataset.empty; }
+}
+
+/* Подсветка текущего раздела при прокрутке */
+(() => {
+  const links = new Map(SECS.map(s => [s.id, $('#accnav a[href="#' + s.id + '"]')]));
+  const seen = new Set();
+  const io = new IntersectionObserver(es => {
+    es.forEach(e => e.isIntersecting ? seen.add(e.target.id) : seen.delete(e.target.id));
+    const first = SECS.map(s => s.id).find(id => seen.has(id));
+    if (first) links.forEach((a, k) => a.setAttribute('aria-current', String(k === first)));
+  }, {rootMargin: '-84px 0px -55% 0px', threshold: 0});
+  $$('.accsec').forEach(s => io.observe(s));
+})();
+
+/* ══ Спецификация файлом ═════════════════════════════════════════════ */
+function specCsv(rows, title) {
+  const q = v => '"' + String(v).replace(/"/g, '""') + '"';
+  const line = arr => arr.map(q).join(';');
+  const out = [
+    line([title]),
+    line(['Идентификатор браузера', store.clientId]),
+    line(['Позиций', String(rows.length)]),
+    line(['Суммарная мощность двигателей, кВт', D.dec(kwSum(rows))]),
+    line(['Внимание', 'строки внутри опубликованных диапазонов получены интерполяцией; '
+      + 'подбирать по ним оборудование нельзя']),
+    '',
+    line(['Марка', 'Типоразмер', 'Q, м3/ч', 'Pv, Па', 'N двигателя, кВт',
+          'Частота, об/мин', 'Масса, кг', 'Состояние данных']),
+  ];
+  rows.forEach(r => out.push(line([r.mk, D.szl(r), r.q == null ? '' : r.q,
+    r.p == null ? '' : r.p, nzd(r.n), r.rpm == null ? '' : r.rpm,
+    r.mass == null ? '' : r.mass, D.DATA[r.data].t])));
+  return out.join('\r\n');
+}
+
+function posTable(rows, dropAttr, caption) {
+  return `
+    <div class="tbl-scroll">
+      <table class="data">
+        <caption class="vh">${esc(caption)}</caption>
+        <thead><tr>
+          <th class="l" scope="col">Марка</th>
+          <th class="l" scope="col">Типоразмер</th>
+          <th scope="col">Q, м³/ч</th>
+          <th scope="col">Pv, Па</th>
+          <th scope="col">N, кВт</th>
+          <th class="l" scope="col">Данные</th>
+          <th class="acts" scope="col"><span class="vh">Действие</span></th>
+        </tr></thead>
+        <tbody>${rows.map(r => `
+          <tr>
+            <td class="l mk"><a href="${cardHref(r)}"
+                style="color:inherit;text-decoration:none">${esc(r.mk)}</a></td>
+            <td class="l"><span class="num">${esc(D.szl(r))}</span></td>
+            <td>${nz(r.q)}</td>
+            <td>${nz(r.p)}</td>
+            <td>${nzd(r.n)}</td>
+            <td class="l"><span class="st" data-s="${D.DATA[r.data].s}"
+                title="${esc(D.DATA[r.data].t)}">${esc(D.DATA[r.data].short)}</span></td>
+            <td class="acts"><span>
+              <button class="btn btn--ghost btn--sm" type="button" ${dropAttr(r)}>Убрать</button>
+            </span></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+/* ══ Раздел 1 · Текущий подбор ═══════════════════════════════════════ */
+function renderPick() {
+  const rows = rowsOf(store.pick), box = $('#pickBox');
+  if (!rows.length) {
+    box.innerHTML = `
+      <div class="empty">
+        <h3>Подбор пуст</h3>
+        <p>Кнопка «В подбор» стоит в конце каждой строки таблицы типоразмеров —
+          в разделе каталога и в карточке серии. Отмечайте всё, что рассматриваете:
+          позиции складываются здесь и не пропадают при закрытии вкладки.</p>
+        <p>Когда позиции появятся, отсюда можно будет собрать объект, выгрузить
+          спецификацию файлом и перенести перечень в опросный лист.</p>
+        <div class="why">
+          <b>С чего начать</b>
+          <p style="margin-bottom:0">Если расход и давление уже известны — быстрее
+            выйти на типоразмер подбором по рабочей точке, а не листанием каталога.</p>
+        </div>
+        <p style="margin-top:16px">
+          <a class="btn" href="podbor.html">Подобрать по Q и P</a>
+          <a class="btn btn--ghost" href="catalog.html" style="margin-left:8px">Открыть каталог</a></p>
+      </div>`;
+    return;
+  }
+  const dup = rows.filter(r => r.data === 'dup').length;
+  box.innerHTML = posTable(rows, r => 'data-drop="' + r.id + '"', 'Позиции текущего подбора') + `
+    <p class="tot">
+      <span>Позиций: <b>${rows.length}</b></span>
+      <span>Суммарная мощность двигателей: <b>${D.dec(kwSum(rows))} кВт</b></span>
+      ${dup ? `<span><span class="st" data-s="stop">Сверить: ${dup}</span></span>` : ''}
+      <span class="small" style="flex:1 1 100%">Расход по перечню не складывается —
+        это разные системы. Сами цифры демонстрационные: методика подбора заводом не
+        передана, строки между опубликованными краями диапазона получены
+        интерполяцией.</span>
+    </p>
+    <div class="bar">
+      <button class="btn" type="button" id="toProject">Собрать в объект</button>
+      <button class="btn btn--ghost" type="button" id="dlSpec">Выгрузить спецификацию</button>
+      <a class="btn btn--ghost" href="podbor.html#survey">Запросить КП</a>
+    </div>`;
+
+  $('#dlSpec').addEventListener('click', () => {
+    const name = 'ventprom-podbor-' + store.clientId + '.csv';
+    download(name, specCsv(rows, 'Спецификация подбора · прототип сайта Вентпром'), 'text/csv');
+    $('#pickSay').textContent = 'Файл ' + name + ' собран в браузере и отдан на скачивание. '
+      + 'Разделитель — точка с запятой, кодировка UTF-8 с BOM: Excel открывает без плясок.';
+  });
+  $('#toProject').addEventListener('click', () => {
+    $('#pWithPick').checked = true;
+    document.getElementById('projects').scrollIntoView({block: 'start'});
+    $('#pName').focus();
+  });
+}
+
+$('#pickBox').addEventListener('click', e => {
+  const b = e.target.closest('[data-drop]');
+  if (!b) return;
+  const id = b.dataset.drop, i = store.pick.indexOf(id), r = rowById(id);
+  if (i < 0) return;
+  store.pick.splice(i, 1);
+  store.save();
+  sayUndo($('#pickSay'),
+    'Позиция ' + (r ? r.mk + ' ' + D.szl(r) : id) + ' убрана из подбора. '
+      + 'В объектах и в истории расчётов она осталась.',
+    () => {
+      store.pick.splice(i, 0, id);
+      store.save();
+      $('#pickSay').textContent = 'Позиция ' + (r ? r.mk + ' ' + D.szl(r) : id)
+        + ' возвращена в подбор на своё место.';
+    });
+});
+
+/* ══ Раздел 2 · Объекты ══════════════════════════════════════════════ */
+let armedPrj = null;    /* объект с открытым подтверждением удаления */
+let renamePrj = null;   /* объект в режиме переименования */
+
+function prjById(id) { return store.projects.find(p => p.id === id); }
+
+function newToken() {
+  const a = new Uint8Array(8);
+  if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(a);
+  else for (let i = 0; i < a.length; i++) a[i] = Math.floor(Math.random() * 256);
+  return [...a].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+function shareLink(p) {
+  const base = location.protocol === 'http:' || location.protocol === 'https:'
+    ? location.origin + location.pathname.replace(/[^/]*$/, '')
+    : '';
+  return base + 'cabinet.html?share=' + p.token;
+}
+
+function renderProjects() {
+  const box = $('#projList'), tot = $('#projTot');
+  if (!store.projects.length) {
+    tot.textContent = '';
+    box.innerHTML = `
+      <div class="empty">
+        <h3>Объектов пока нет</h3>
+        <p>Объект — это папка: в неё складываются позиции по одному зданию, а вместе
+          с ними адрес и стадия проекта. Когда объектов несколько, позиции можно
+          переносить между ними и возвращать в подбор, не набирая заново.</p>
+        <p>Создайте первый в форме выше. Если в подборе уже что-то есть, позиции
+          перенесутся сразу — сам подбор при этом не очистится, он остаётся
+          черновиком.</p>
+        <div class="why">
+          <b>Что даёт объект</b>
+          <p style="margin-bottom:0">Спецификация выгружается по объекту целиком,
+            опросный лист заполняется его данными, а ссылка на объект открывает
+            коллеге тот же перечень без пересылки файлов.</p>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const all = store.projects.reduce((s, p) => s + (p.items || []).length, 0);
+  const allRows = store.projects.flatMap(p => rowsOf(p.items));
+  tot.innerHTML = `<span>Объектов: <b>${store.projects.length}</b></span>
+    <span>Позиций во всех объектах: <b>${all}</b></span>
+    <span>Суммарная мощность: <b>${D.dec(kwSum(allRows))} кВт</b></span>`;
+
+  box.innerHTML = store.projects.map(p => {
+    const rows = rowsOf(p.items);
+    const when = p.ts ? new Date(p.ts).toLocaleDateString('ru-RU') : '';
+    const others = store.projects.filter(x => x.id !== p.id);
+    return `
+    <article class="prj" data-p="${esc(p.id)}">
+      <div class="hd">${renamePrj === p.id ? `
+        <span class="rn">
+          <label class="vh" for="rn-${esc(p.id)}">Новое название объекта</label>
+          <input type="text" id="rn-${esc(p.id)}" value="${esc(p.name)}" maxlength="80">
+          <button class="btn btn--sm" type="button" data-rnok="${esc(p.id)}">Сохранить</button>
+          <button class="btn btn--ghost btn--sm" type="button" data-rncancel="1">Отмена</button>
+        </span>` : `
+        <b>${esc(p.name)}</b>
+        <span class="st" data-s="${rows.length ? 'ok' : 'wait'}">${rows.length ? pos(rows.length) : 'позиций нет'}</span>
+        <span class="meta">${when ? 'создан ' + esc(when) : ''}</span>`}
+      </div>
+
+      <dl>
+        <dt>Адрес</dt><dd>${esc(p.addr) || '—'}</dd>
+        <dt>Стадия</dt><dd>${esc(p.stage) || '—'}</dd>
+        ${rows.length ? `<dt>Мощность</dt>
+          <dd class="num">${D.dec(kwSum(rows))} кВт суммарно по двигателям</dd>` : ''}
+      </dl>
+
+      ${rows.length
+        ? posTable(rows, r => 'data-pdrop="' + esc(p.id) + '|' + r.id + '"', 'Позиции объекта ' + p.name)
+        : `<p class="none">Позиций нет. Отметьте строки в каталоге и нажмите
+             «Добавить текущий подбор» — или перенесите их из другого объекта.</p>`}
+
+      <div class="acts">
+        <button class="btn btn--ghost btn--sm" type="button" data-add="${esc(p.id)}"
+          ${store.pick.length ? '' : 'disabled'}>Добавить текущий подбор</button>
+        <button class="btn btn--ghost btn--sm" type="button" data-spec="${esc(p.id)}"
+          ${rows.length ? '' : 'disabled'}>Выгрузить спецификацию</button>
+        <button class="btn btn--ghost btn--sm" type="button" data-rename="${esc(p.id)}">Переименовать</button>
+        <button class="btn btn--ghost btn--sm" type="button" data-share="${esc(p.id)}"
+          aria-expanded="${p.token ? 'true' : 'false'}">Поделиться с коллегой</button>
+        <button class="btn btn--ghost btn--sm" type="button" data-arm="${esc(p.id)}">Удалить</button>
+      </div>
+
+      ${rows.length ? `
+      <div class="acts" style="padding-top:0">
+        <span class="mv">
+          <label class="small" for="mv-${esc(p.id)}">Перенести позиции:</label>
+          <select id="mv-${esc(p.id)}" data-move="${esc(p.id)}">
+            <option value="">— выберите, куда —</option>
+            <option value="pick">Вернуть в текущий подбор</option>
+            ${others.map(o => `<option value="${esc(o.id)}">В объект «${esc(o.name)}»</option>`).join('')}
+          </select>
+        </span>
+      </div>` : ''}
+
+      <div class="share" ${p.token ? '' : 'hidden'}>
+        <div class="row">
+          <input type="text" readonly value="${esc(p.token ? shareLink(p) : '')}"
+                 aria-label="Ссылка на объект ${esc(p.name)}">
+          <button class="btn btn--ghost btn--sm" type="button" data-copy="${esc(p.id)}">Скопировать</button>
+        </div>
+        <p class="small" style="margin:8px 0 0;max-width:76ch">Токен выдан этим
+          браузером и записан рядом с объектом. В прототипе ссылка никуда не ведёт:
+          сервера, который отдал бы объект коллеге, нет. На боевом сайте она откроет
+          объект только на чтение и будет отзываться одной кнопкой.</p>
+      </div>
+
+      <p class="arm" ${armedPrj === p.id ? '' : 'hidden'}>
+        <span>Удалить объект «${esc(p.name)}» — ${rows.length ? pos(rows.length) : 'позиций нет'}?
+          Сами позиции останутся в каталоге, расчёты и лента просмотренного не тронутся.
+          Вернуть удалённый объект будет нельзя.</span>
+        <button class="btn btn--ghost btn--sm" type="button" data-del="${esc(p.id)}">Удалить</button>
+        <button class="btn btn--ghost btn--sm" type="button" data-cancel="1">Отмена</button>
+      </p>
+    </article>`;
+  }).join('');
+
+  if (renamePrj) {
+    const inp = $('#rn-' + renamePrj);
+    if (inp) { inp.focus(); inp.select(); }
+  }
+}
+
+$('#projForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const name = $('#pName').value.trim(), fld = $('#f-pname'), err = $('#e-pname');
+  if (!name) {
+    fld.dataset.err = '1';
+    $('#pName').setAttribute('aria-invalid', 'true');
+    err.hidden = false;
+    err.textContent = 'Без названия объект не отличить от соседнего. Впишите то, как он '
+      + 'называется у вас в проекте: «Корпус 2», «Секция Б, П-1».';
+    $('#pName').focus();
+    return;
+  }
+  delete fld.dataset.err;
+  $('#pName').removeAttribute('aria-invalid');
+  err.hidden = true; err.textContent = '';
+
+  const take = $('#pWithPick').checked && store.pick.length > 0;
+  const n = store.pick.length;
+  store.projects.unshift({
+    id: 'o' + Date.now().toString(36),
+    name, addr: $('#pAddr').value.trim(), stage: $('#pStage').value,
+    items: take ? store.pick.slice() : [], token: null, ts: Date.now(),
+  });
+  store.save();
+  $('#projSay').textContent = 'Объект «' + name + '» создан'
+    + (take ? ' и получил ' + pos(n) + ' из текущего подбора. Сам подбор не очищен — '
+              + 'он остаётся черновиком.'
+            : '. Позиции добавите кнопкой «Добавить текущий подбор».');
+  $('#projForm').reset();
+  $('#pStage').selectedIndex = 1;
+  paintCounts();          /* reset() вернул галочку — согласуем её с подбором */
+  $('#pName').focus();
+});
+
+$('#projList').addEventListener('click', async e => {
+  const t = e.target.closest('button');
+  if (!t) return;
+  const d = t.dataset, say = $('#projSay');
+
+  if (d.add) {
+    const p = prjById(d.add);
+    if (!p) return;
+    const before = p.items.length;
+    store.pick.forEach(id => { if (!p.items.includes(id)) p.items.push(id); });
+    const added = p.items.length - before;
+    store.save();
+    say.textContent = added
+      ? 'В объект «' + p.name + '» добавлено ' + pos(added) + '.'
+      : 'Все позиции текущего подбора уже есть в объекте «' + p.name + '».';
+    return;
+  }
+
+  if (d.rename) { renamePrj = d.rename; armedPrj = null; renderProjects(); return; }
+  if (d.rncancel) { renamePrj = null; renderProjects(); return; }
+  if (d.rnok) {
+    const p = prjById(d.rnok), inp = $('#rn-' + d.rnok);
+    if (!p || !inp) return;
+    const v = inp.value.trim();
+    if (!v) {
+      say.textContent = 'Название не может быть пустым — прежнее оставлено без изменений.';
+      inp.focus();
+      return;
+    }
+    const was = p.name;
+    p.name = v.slice(0, 80);
+    renamePrj = null;
+    store.save();
+    say.textContent = 'Объект «' + was + '» переименован в «' + p.name + '».';
+    return;
+  }
+
+  if (d.share) {
+    const p = prjById(d.share);
+    if (!p) return;
+    if (!p.token) { p.token = newToken(); store.save(); return; }
+    const sh = t.closest('.prj').querySelector('.share');
+    sh.hidden = !sh.hidden;
+    t.setAttribute('aria-expanded', String(!sh.hidden));
+    if (!sh.hidden) sh.querySelector('input').focus();
+    return;
+  }
+  if (d.copy) {
+    const p = prjById(d.copy);
+    if (!p) return;
+    const ok = await toClipboard(shareLink(p));
+    say.textContent = ok
+      ? 'Ссылка на объект «' + p.name + '» скопирована в буфер обмена.'
+      : 'Браузер не отдал буфер обмена. Выделите строку со ссылкой и скопируйте вручную.';
+    return;
+  }
+
+  if (d.spec) {
+    const p = prjById(d.spec);
+    if (!p) return;
+    const rows = rowsOf(p.items);
+    const name = 'ventprom-obekt-' + p.id + '.csv';
+    download(name, specCsv(rows, 'Спецификация объекта: ' + p.name
+      + (p.addr ? ' · ' + p.addr : '')), 'text/csv');
+    say.textContent = 'Спецификация объекта «' + p.name + '» выгружена файлом ' + name + '.';
+    return;
+  }
+
+  if (d.pdrop) {
+    const [pid, rid] = d.pdrop.split('|');
+    const p = prjById(pid);
+    if (!p) return;
+    const r = rowById(rid), i = p.items.indexOf(rid);
+    if (i < 0) return;
+    p.items.splice(i, 1);
+    store.save();
+    const what = r ? r.mk + ' ' + D.szl(r) : rid;
+    sayUndo(say, 'Позиция ' + what + ' убрана из объекта «' + p.name + '».', () => {
+      const back = prjById(pid);
+      if (!back) return;
+      back.items.splice(i, 0, rid);
+      store.save();
+      say.textContent = 'Позиция ' + what + ' возвращена в объект «' + back.name + '».';
+    });
+    return;
+  }
+
+  if (d.arm) { armedPrj = d.arm; renamePrj = null; renderProjects(); return; }
+  if (d.cancel) { armedPrj = null; renderProjects(); return; }
+  if (d.del) {
+    const p = prjById(d.del);
+    if (!p) return;
+    store.projects = store.projects.filter(x => x.id !== d.del);
+    armedPrj = null;
+    store.save();
+    say.textContent = 'Объект «' + p.name + '» удалён. Текущий подбор не тронут.';
+    $('#pName').focus();
+  }
+});
+
+/* Переименование с клавиатуры: Enter подтверждает, Esc отменяет */
+$('#projList').addEventListener('keydown', e => {
+  const inp = e.target.closest('.prj .rn input');
+  if (!inp) return;
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const ok = inp.closest('.rn').querySelector('[data-rnok]');
+    if (ok) ok.click();
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    renamePrj = null;
+    renderProjects();
+    const back = $('[data-rename]');
+    if (back) back.focus();
+  }
+});
+
+/* Перенос перечня между объектами и обратно в подбор */
+$('#projList').addEventListener('change', e => {
+  const sel = e.target.closest('[data-move]');
+  if (!sel || !sel.value) return;
+  const from = prjById(sel.dataset.move), say = $('#projSay');
+  if (!from) return;
+  const moved = from.items.slice();
+
+  /* Куда бы ни переносили, перечень источника очищается, а задвоения не
+     происходит. Сообщение обязано различать перенесённое и уже бывшее там. */
+  const report = (whereTo, whereIn, added) => {
+    const was = moved.length - added;
+    say.textContent = added
+      ? pos(added) + ' перенесено из «' + from.name + '» ' + whereTo
+        + (was ? '; ещё ' + was + ' ' + plural(was, 'позиция была', 'позиции были', 'позиций были')
+                 + ' там раньше, задвоения нет' : '') + '.'
+      : 'Все ' + pos(moved.length) + ' уже ' + (moved.length === 1 ? 'была' : 'были') + ' '
+        + whereIn + ', задвоения нет. Перечень объекта «' + from.name + '» очищен.';
+  };
+
+  if (sel.value === 'pick') {
+    let n = 0;
+    moved.forEach(id => { if (!store.pick.includes(id)) { store.pick.push(id); n++; } });
+    from.items = [];
+    store.save();
+    report('в текущий подбор', 'в текущем подборе', n);
+    return;
+  }
+  const to = prjById(sel.value);
+  if (!to) return;
+  let n = 0;
+  moved.forEach(id => { if (!to.items.includes(id)) { to.items.push(id); n++; } });
+  from.items = [];
+  store.save();
+  report('в объект «' + to.name + '»', 'в объекте «' + to.name + '»', n);
+});
+
+/* ══ Раздел 4 · Просмотренное ════════════════════════════════════════ */
+let armedViewed = false;
+
+function renderViewed() {
+  const rows = rowsOf(store.viewed), box = $('#viewBox');
+  if (!rows.length) {
+    box.innerHTML = `
+      <div class="empty">
+        <h3>Лента пуста</h3>
+        <p>Как только вы откроете первый типоразмер, он появится здесь — и в панели
+          «Просмотренное» в шапке, чтобы вернуться к нему с любой страницы.</p>
+        <p>Лента нужна не для истории ради истории: инженер сравнивает четыре-пять
+          соседних номеров и на третьем перестаёт помнить, у какого из них была
+          нужная частота вращения. Здесь они лежат рядом.</p>
+        <p style="margin-bottom:0">
+          <a class="btn btn--ghost" href="catalog.html">Открыть каталог</a></p>
+      </div>`;
+    return;
+  }
+  box.innerHTML = `
+    <div class="feed"><ol>${rows.map(r => `
+      <li>
+        <a class="mk" href="${cardHref(r)}">${esc(r.mk)}</a>
+        <span class="sz">${esc(D.szl(r))}</span>
+        <span class="gr">${nz(r.q)} м³/ч · ${nz(r.p)} Па · ${nzd(r.n)} кВт</span>
+      </li>`).join('')}</ol></div>
+    <div class="bar">
+      ${armedViewed
+        ? `<span style="color:var(--stop);font-size:13px">Очистить ленту целиком?</span>
+           <button class="btn btn--ghost btn--sm" type="button" id="viewYes">Очистить</button>
+           <button class="btn btn--ghost btn--sm" type="button" id="viewNo">Отмена</button>`
+        : `<button class="btn btn--ghost btn--sm" type="button" id="viewClear">Очистить ленту</button>
+           <span class="small">Подбор и объекты это не затронет.</span>`}
+    </div>`;
+  if (armedViewed) {
+    $('#viewYes').addEventListener('click', () => {
+      store.viewed = [];
+      armedViewed = false;
+      store.save();
+    });
+    $('#viewNo').addEventListener('click', () => {
+      armedViewed = false; renderViewed();
+      const b = $('#viewClear'); if (b) b.focus();
+    });
+    $('#viewYes').focus();
+  } else {
+    $('#viewClear').addEventListener('click', () => { armedViewed = true; renderViewed(); });
+  }
+}
+
+/* ══ Раздел 5 · Расчёты ══════════════════════════════════════════════ */
+const CALC_T = {
+  point: 'Подбор по рабочей точке',
+  aero:  'Аэродинамика воздуховода',
+  area:  'Площадь воздуховодов',
+};
+const CALC_F = {
+  q:'Q, м³/ч', p:'P, Па', top:'первая серия', v:'v, м/с', d:'Ø, мм',
+  l:'L, м', dp:'Δp, Па', s:'S, м²', a:'A, мм', b:'B, мм', type:'тип',
+};
+function calcHref(rec) {
+  if (rec.t === 'point') {
+    const qs = [];
+    if (rec.q != null) qs.push('q=' + encodeURIComponent(rec.q));
+    if (rec.p != null) qs.push('p=' + encodeURIComponent(rec.p));
+    return 'podbor.html' + (qs.length ? '?' + qs.join('&') : '');
+  }
+  return 'calc.html' + (rec.t ? '#' + encodeURIComponent(rec.t) : '');
+}
+
+function renderCalcs() {
+  const box = $('#calcBox'), list = store.calcs;
+  if (!list.length) {
+    box.innerHTML = `
+      <div class="empty">
+        <h3>Расчётов нет</h3>
+        <p>Рабочая точка на главной, подбор по Q и P, аэродинамика воздуховода и
+          площадь развёртки — каждый из них кладёт сюда исходные числа и результат,
+          без отдельной кнопки «сохранить».</p>
+        <p>Отсюда же они подставляются в опросный лист: расход и давление не надо
+          переписывать из своей таблицы во второй раз.</p>
+        <p style="margin-bottom:0">
+          <a class="btn" href="podbor.html">Подобрать по Q и P</a>
+          <a class="btn btn--ghost" href="calc.html" style="margin-left:8px">Калькуляторы</a></p>
+      </div>`;
+    return;
+  }
+  const noTime = list.some(r => !r.ts);
+  box.innerHTML = `<div class="feed">${list.map((rec, i) => {
+    const keys = Object.keys(rec).filter(k => k !== 't' && k !== 'ts'
+      && rec[k] != null && rec[k] !== '');
+    const when = rec.ts ? new Date(rec.ts).toLocaleString('ru-RU') : '';
+    return `
+      <div class="calc-it">
+        <div class="t">
+          <b>${esc(CALC_T[rec.t] || rec.t || 'Расчёт')}</b>
+          ${when ? `<span class="when">${esc(when)}</span>` : ''}
+        </div>
+        <div class="pairs">${keys.map(k => `<span class="pair">
+          <span>${esc(CALC_F[k] || k)}</span>
+          <i>${esc(typeof rec[k] === 'number' ? D.fmt(rec[k]) : rec[k])}</i></span>`).join('')}</div>
+        <a class="btn btn--ghost btn--sm" href="${calcHref(rec)}">Повторить расчёт</a>
+        <button class="btn btn--ghost btn--sm" type="button" data-cdrop="${i}"
+          style="margin-left:6px">Убрать</button>
+      </div>`;
+  }).join('')}</div>
+  ${noTime ? `<p class="small" style="margin-top:12px;max-width:80ch">У части записей нет
+    времени: его не записал тот инструмент, который их сохранил. Подставлять сюда
+    правдоподобную дату нельзя — строка остаётся без времени.</p>` : ''}`;
+}
+
+$('#calcBox').addEventListener('click', e => {
+  const b = e.target.closest('[data-cdrop]');
+  if (!b) return;
+  store.calcs.splice(Number(b.dataset.cdrop), 1);
+  store.save();
+});
+
+/* ══ Общая перерисовка ═══════════════════════════════════════════════ */
+function paint() {
+  paintCounts();
+  renderPick();
+  renderProjects();
+  renderViewed();
+  renderCalcs();
+}
+addEventListener('vp:store', paint);
+paint();
+
+/* Пришли по общей ссылке — объясняем честно, а не показываем чужой объект */
+const share = new URLSearchParams(location.search).get('share');
+if (share) {
+  const mine = store.projects.find(p => p.token === share);
+  $('#projSay').textContent = mine
+    ? 'Ссылка с токеном ' + share + ' указывает на ваш объект «' + mine.name + '» — он ниже.'
+    : 'Ссылка с токеном ' + share + ' пришла с другого компьютера. Открыть по ней чужой объект '
+      + 'прототип не может: объекты живут в браузере, а не на сервере. На боевом сайте такая '
+      + 'ссылка откроет объект на чтение.';
+  document.getElementById('projects').scrollIntoView({block: 'start'});
+}
+})();
+</script>
+</body>
+</html>

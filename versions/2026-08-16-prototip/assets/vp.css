@@ -1,0 +1,514 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   ВЕНТПРОМ · визуальный мир «ЧЕРТЁЖ»
+   Общая система для всех страниц прототипа.
+
+   Мир: лист чертёжной бумаги. Миллиметровка как грунт, волосяная линовка
+   вместо теней, размерные линии со стрелками как настоящий приём вёрстки,
+   основная надпись по ГОСТ 2.104 как компонент интерфейса, приборный синий
+   на структуре, сигнальный оранжевый — ТОЛЬКО на действии.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@import url("../fonts/fonts.css");
+
+:root{
+  /* ── Бумага ─────────────────────────────────────────────────────── */
+  --paper:#F3F4F2;
+  --paper-hi:#FBFCFA;      /* поле листа, светлее грунта */
+  --paper-2:#E9EBE8;       /* панель, шапка таблицы */
+  --paper-3:#DFE2DE;       /* вдавленная поверхность */
+
+  /* ── Линовка. Волосяная линия — основной инструмент разделения ──── */
+  --rule:#C9CFCB;          /* основная линия 1px */
+  --rule-fine:#DFE3E0;     /* вспомогательная */
+  --rule-ink:#8B948F;      /* обводка по контуру блока */
+  --grid:#DCE0DD;          /* миллиметровка, крупная клетка */
+  --grid-fine:#E7EAE7;     /* миллиметровка, мелкая клетка */
+
+  /* ── Тушь. Порог: любой из этих цветов обязан давать 4.5:1 на бумаге
+        --paper-hi #FBFCFA. Светлее делать нельзя — счётчики, подписи
+        основной надписи и вторичный текст перестают читаться. ────────── */
+  --ink:#131A1E;
+  --ink-2:#465257;
+  --ink-3:#5E6A70;   /* 5.4:1 на бумаге */
+  --ink-4:#697479;   /* 4.7:1 на бумаге */
+
+  /* ── Приборный синий: структура, ссылки, оси, выносные линии ────── */
+  --blue:#1B4C86;
+  --blue-2:#2C6BB4;
+  --blue-pale:#DCE7F3;
+  --blue-wash:#EDF3F9;
+
+  /* ── Сигнальный оранжевый: ТОЛЬКО действие. Больше нигде ────────── */
+  --signal:#D9540B;
+  --signal-hi:#F06A1C;
+  --signal-pale:#FBE7D8;
+
+  /* ── Состояния: закрытая тройка ─────────────────────────────────── */
+  --ok:#256B42;
+  --warn:#8A6212;
+  --stop:#A82918;
+  --ok-pale:#E0EFE6;
+  --warn-pale:#F6EDD8;
+  --stop-pale:#F7E2DE;
+  --warn-line:#C9B478;   /* рамка предупреждающей поверхности */
+  --warn-ink:#6B4C08;    /* текст на предупреждающей поверхности */
+
+  --focus:#1B4C86;
+
+  /* ── Шрифты ─────────────────────────────────────────────────────── */
+  --f-draw:"PT Sans Narrow","Arial Narrow",sans-serif;  /* надписи чертежа */
+  --f-ui:"Golos Text","Segoe UI",system-ui,sans-serif;  /* связная речь */
+  --f-num:"PT Mono","Consolas",monospace;               /* измерения */
+
+  /* ── Ритм ───────────────────────────────────────────────────────── */
+  --gut:24px;
+  --max:1320px;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+body{
+  margin:0;
+  color:var(--ink);
+  font-family:var(--f-ui);
+  font-size:15.5px;
+  line-height:1.55;
+  background-color:var(--paper);
+  /* Миллиметровка: мелкая клетка 5px, крупная 25px. Грунт листа. */
+  background-image:
+    linear-gradient(var(--grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px),
+    linear-gradient(var(--grid-fine) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid-fine) 1px,transparent 1px);
+  background-size:100px 100px,100px 100px,20px 20px,20px 20px;
+  background-position:-1px -1px,-1px -1px,-1px -1px,-1px -1px;
+}
+
+/* ── Поверхности браузера: они тоже наши ────────────────────────────── */
+::selection{background:var(--blue);color:#fff}
+::-webkit-scrollbar{width:12px;height:12px}
+::-webkit-scrollbar-track{background:var(--paper-2)}
+::-webkit-scrollbar-thumb{background:var(--rule-ink);border:3px solid var(--paper-2)}
+::-webkit-scrollbar-thumb:hover{background:var(--ink-3)}
+*{scrollbar-color:var(--rule-ink) var(--paper-2)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+input,button,select,textarea{font:inherit;color:inherit;caret-color:var(--signal)}
+
+/* ═══ Типографика ═══════════════════════════════════════════════════ */
+/* Надпись чертежа: узкий гротеск прописными в разрядке */
+.dw{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.14em;font-weight:700}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+
+h1,h2,h3,h4{margin:0;font-family:var(--f-draw);text-transform:uppercase;font-weight:700}
+h1{font-size:clamp(30px,4.6vw,54px);letter-spacing:.055em;line-height:1.04}
+h2{font-size:clamp(21px,2.5vw,29px);letter-spacing:.1em;line-height:1.14}
+h3{font-size:17px;letter-spacing:.12em}
+h4{font-size:12px;letter-spacing:.15em;color:var(--ink-2)}
+p{margin:0 0 1em}
+a{color:var(--blue);text-underline-offset:3px;text-decoration-thickness:1px}
+a:hover{color:var(--blue-2)}
+
+.lead{font-size:17px;line-height:1.6;color:var(--ink-2);max-width:68ch}
+.small{font-size:13px;color:var(--ink-3)}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 var(--gut)}
+
+/* ═══ Размерная линия — настоящий приём, а не орнамент ═══════════════
+   Заголовок раздела несёт размерную линию со стрелками и выноской,
+   как на чертеже. Ширина линии анимируется при появлении. */
+.dim{
+  display:flex;align-items:center;gap:14px;margin:0 0 8px;
+}
+.dim h2{flex:0 0 auto}
+.dim .line{
+  position:relative;flex:1 1 auto;height:1px;background:var(--blue);
+  transform-origin:left center;
+}
+.dim .line::before,.dim .line::after{
+  content:"";position:absolute;top:50%;width:7px;height:7px;
+  border-top:1px solid var(--blue);border-right:1px solid var(--blue);
+}
+.dim .line::before{left:0;transform:translateY(-50%) rotate(-135deg)}
+.dim .line::after{right:0;transform:translateY(-50%) rotate(45deg)}
+.dim .val{
+  flex:0 0 auto;font-family:var(--f-num);font-size:11.5px;color:var(--blue);
+  letter-spacing:0;
+}
+
+/* Разрез А-А: якорь раздела */
+.cut{
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.16em;
+  font-size:11px;color:var(--blue);
+}
+.cut::before{
+  content:"";width:16px;height:16px;border:1px solid var(--blue);
+  border-radius:50%;display:inline-block;
+}
+
+/* ═══ Лист: белое поле поверх миллиметровки ═════════════════════════ */
+.sheet{
+  background:var(--paper-hi);
+  border:1px solid var(--rule-ink);
+  position:relative;
+}
+.sheet--pad{padding:26px 28px}
+
+/* Основная надпись по ГОСТ 2.104 — компонент, а не картинка */
+.stamp{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  border:1px solid var(--rule-ink);background:var(--paper-hi);
+  font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.11em;
+}
+.stamp div{padding:7px 10px;border-right:1px solid var(--rule);min-width:0}
+.stamp div:last-child{border-right:0}
+.stamp dt{font-size:9.5px;color:var(--ink-4);margin:0 0 2px}
+.stamp dd{margin:0;font-size:12px;color:var(--ink);letter-spacing:.06em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ═══ Кнопки. Оранжевый только здесь ════════════════════════════════ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  height:46px;padding:0 22px;cursor:pointer;
+  font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.11em;
+  font-size:13.5px;font-weight:700;
+  background:var(--signal);color:#fff;border:1px solid var(--signal);
+  text-decoration:none;
+  transition:background .16s var(--ease),border-color .16s var(--ease);
+}
+.btn:hover{background:var(--signal-hi);border-color:var(--signal-hi);color:#fff}
+.btn:disabled{background:var(--paper-3);border-color:var(--rule);color:var(--ink-4);cursor:not-allowed}
+.btn--ghost{
+  background:transparent;color:var(--blue);border-color:var(--rule-ink);
+}
+.btn--ghost:hover{background:var(--blue-wash);border-color:var(--blue);color:var(--blue)}
+.btn--sm{height:34px;padding:0 14px;font-size:12px}
+
+/* ═══ Шапка ═════════════════════════════════════════════════════════ */
+.util{
+  border-bottom:1px solid var(--rule);background:var(--paper-hi);
+  font-size:12.5px;color:var(--ink-3);
+}
+.util .wrap{display:flex;align-items:center;gap:22px;padding-top:8px;padding-bottom:8px;
+  overflow-x:auto;white-space:nowrap}
+.util a{color:var(--ink-2);text-decoration:none}
+.util a:hover{color:var(--blue);text-decoration:underline}
+.util .sp{margin-left:auto}
+.util .tel{font-family:var(--f-num);color:var(--ink);letter-spacing:0}
+
+.head{
+  position:sticky;top:0;z-index:50;
+  background:var(--paper-hi);border-bottom:1px solid var(--rule-ink);
+}
+.head .wrap{display:flex;align-items:center;gap:22px;padding-top:13px;padding-bottom:13px}
+.logo{display:flex;align-items:baseline;gap:9px;text-decoration:none;flex:0 0 auto}
+.logo b{
+  font-family:var(--f-draw);font-size:25px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink);
+}
+.logo i{
+  font-style:normal;font-family:var(--f-draw);font-size:9.5px;letter-spacing:.19em;
+  text-transform:uppercase;color:var(--blue);border-left:1px solid var(--rule);
+  padding-left:9px;
+}
+.nav{display:flex;gap:2px;margin-left:8px}
+.nav a{
+  padding:9px 13px;text-decoration:none;color:var(--ink-2);font-size:14px;
+  border:1px solid transparent;
+}
+.nav a:hover{background:var(--blue-wash);color:var(--blue)}
+.nav a[aria-current="page"]{border-color:var(--rule);background:var(--paper-2);color:var(--ink)}
+.head-acts{display:flex;gap:8px;margin-left:auto;flex:0 0 auto;position:relative}
+
+.hbtn{
+  display:flex;align-items:center;gap:7px;height:40px;padding:0 13px;
+  background:transparent;border:1px solid var(--rule);color:var(--ink-2);
+  cursor:pointer;font-size:13px;text-decoration:none;
+  transition:border-color .16s var(--ease),color .16s var(--ease);
+}
+.hbtn:hover{border-color:var(--blue);color:var(--blue)}
+.hbtn .cnt{
+  font-family:var(--f-num);font-size:11px;min-width:19px;height:19px;
+  display:grid;place-items:center;background:var(--signal);color:#fff;
+}
+.hbtn .cnt[data-zero="1"]{background:var(--paper-3);color:var(--ink-3)}
+
+/* ═══ Таблица данных ════════════════════════════════════════════════
+   Контейнер прокрутки создаётся ТОЛЬКО там, где таблица правда не влезает.
+   Иначе overflow-x:auto делает .tbl-scroll контейнером прокрутки, липкая
+   шапка начинает липнуть к нему, а не к окну, и уезжает на 66px вниз,
+   накрывая вторую строку. Там, где контейнер нужен, шапка липнет к нулю. */
+table.data{width:100%;border-collapse:separate;border-spacing:0;background:var(--paper-hi)}
+table.data thead th{
+  position:sticky;top:66px;z-index:20;background:var(--paper-2);
+  font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.11em;
+  font-size:11px;font-weight:700;color:var(--ink-2);
+  text-align:right;padding:9px 10px;white-space:nowrap;
+  border-bottom:1px solid var(--rule-ink);border-top:1px solid var(--rule-ink);
+  user-select:none;
+}
+table.data thead th.l{text-align:left}
+table.data thead th[data-k]{cursor:pointer}
+table.data thead th[data-k]:hover{color:var(--blue)}
+table.data thead th .ar{
+  display:inline-block;width:6px;height:6px;margin-left:6px;vertical-align:middle;
+  /* Стрелка сортировки — указатель состояния, а не действие:
+     оранжевый по закону мира живёт только на кнопках */
+  border-right:1.4px solid var(--blue);border-bottom:1.4px solid var(--blue);
+  opacity:0;transform:rotate(45deg) translate(-1px,-1px);
+}
+table.data thead th[aria-sort] .ar{opacity:1}
+table.data thead th[aria-sort="descending"] .ar{transform:rotate(-135deg) translate(-1px,-1px)}
+table.data td{
+  padding:8px 10px;text-align:right;white-space:nowrap;background:var(--paper-hi);
+  font-family:var(--f-num);font-size:13px;font-variant-numeric:tabular-nums;
+  border-bottom:1px solid var(--rule-fine);
+}
+table.data td.l{text-align:left;font-family:var(--f-ui);letter-spacing:0}
+table.data td.mk{font-family:var(--f-draw);font-size:15px;letter-spacing:.07em;text-transform:uppercase}
+table.data td.dim2{color:var(--ink-3)}
+table.data tbody tr:hover td{background:var(--blue-wash)}
+table.data tbody tr[data-picked="1"] td{background:var(--ok-pale)}
+th.acts,td.acts{
+  position:sticky;right:0;z-index:15;
+  box-shadow:-1px 0 0 var(--rule);
+}
+td.acts>span{display:flex;gap:6px;justify-content:flex-end}
+
+/* ═══ Пометы состояния ══════════════════════════════════════════════ */
+.st{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-ui);font-size:12.5px;letter-spacing:0}
+.st::before{content:"";width:7px;height:7px;flex:0 0 auto}
+.st[data-s="ok"]{color:var(--ok)}
+.st[data-s="ok"]::before{background:var(--ok)}
+.st[data-s="wait"]{color:var(--warn)}
+.st[data-s="wait"]::before{background:var(--warn);clip-path:polygon(50% 0,100% 100%,0 100%)}
+.st[data-s="stop"]{color:var(--stop)}
+.st[data-s="stop"]::before{background:var(--stop);border-radius:50%}
+
+/* ═══ Поля ввода ════════════════════════════════════════════════════ */
+.fld{display:block}
+.fld>span{
+  display:block;font-family:var(--f-draw);text-transform:uppercase;
+  letter-spacing:.12em;font-size:11px;color:var(--ink-2);margin-bottom:5px;
+}
+.fld input,.fld select,.fld textarea{
+  width:100%;height:44px;padding:0 12px;
+  background:var(--paper-hi);border:1px solid var(--rule-ink);color:var(--ink);
+  font-family:var(--f-num);font-size:14.5px;
+}
+.fld textarea{height:auto;padding:10px 12px;font-family:var(--f-ui);resize:vertical}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--blue)}
+.fld input::placeholder{color:var(--ink-4)}
+/* Подсказка и ошибка — это связная речь, а не надпись чертежа. Оба лежат
+   внутри .fld прямыми потомками и потому попадали под .fld>span с его
+   прописными и разрядкой: сообщение об ошибке кричало на пользователя
+   капслоком. Возвращаем нормальный набор. */
+.fld .hint,.fld .err{
+  display:block;margin-top:5px;font-size:12px;
+  font-family:var(--f-ui);text-transform:none;letter-spacing:normal;
+}
+.fld .hint{color:var(--ink-3)}
+.fld .err{color:var(--stop)}
+.fld[data-err="1"] input{border-color:var(--stop);background:var(--stop-pale)}
+
+/* ═══ Полоса-предупреждение ═════════════════════════════════════════ */
+.warn{
+  background:var(--warn-pale);
+  border-top:1px solid var(--warn-line);border-bottom:1px solid var(--warn-line);
+  color:var(--warn-ink);font-size:13px;
+}
+.warn>summary{display:flex;gap:10px;align-items:center;padding:9px 0;cursor:pointer;list-style:none}
+.warn>summary::-webkit-details-marker{display:none}
+.warn>summary::after{
+  content:"подробно";margin-left:auto;flex:0 0 auto;
+  font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.12em;
+  font-size:10.5px;border:1px solid #C9B478;padding:2px 8px;
+}
+.warn[open]>summary::after{content:"свернуть"}
+.warn .lead2{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.warn b{color:#4E3705}
+.warn .full{padding:0 0 12px;margin:0;max-width:92ch;line-height:1.5}
+
+/* ═══ Подвал ════════════════════════════════════════════════════════ */
+footer{
+  border-top:1px solid var(--rule-ink);background:var(--paper-hi);
+  margin-top:56px;padding:34px 0 0;
+}
+footer .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:26px}
+footer h4{margin:0 0 9px}
+footer a{display:block;color:var(--ink-2);text-decoration:none;padding:2.5px 0;font-size:13.5px}
+footer a:hover{color:var(--blue);text-decoration:underline}
+footer .legal{
+  margin-top:26px;padding:14px 0;border-top:1px solid var(--rule);
+  font-size:12px;color:var(--ink-3);max-width:86ch;
+}
+
+/* ═══ Выдвижная панель под кнопкой шапки ════════════════════════════ */
+.panel{
+  position:absolute;top:calc(100% + 9px);right:0;width:min(390px,92vw);z-index:80;
+  background:var(--paper-hi);border:1px solid var(--rule-ink);
+}
+.panel[hidden]{display:none}
+.panel h3{
+  margin:0;padding:11px 14px;border-bottom:1px solid var(--rule);
+  font-size:11px;letter-spacing:.14em;color:var(--ink-2);
+  display:flex;align-items:center;gap:8px;background:var(--paper-2);
+}
+.panel h3 button{
+  margin-left:auto;background:none;border:0;color:var(--ink-3);cursor:pointer;
+  display:grid;place-items:center;padding:2px;
+}
+.panel h3 button:hover{color:var(--stop)}
+.panel ol{margin:0;padding:0;list-style:none;max-height:320px;overflow:auto}
+.panel li{border-bottom:1px solid var(--rule-fine)}
+.panel li:last-child{border-bottom:0}
+.panel li button{
+  display:flex;width:100%;gap:10px;align-items:baseline;padding:9px 14px;
+  background:none;border:0;text-align:left;cursor:pointer;
+}
+.panel li button:hover{background:var(--blue-wash)}
+.panel .mk{font-family:var(--f-draw);font-size:14px;letter-spacing:.07em;text-transform:uppercase}
+.panel .gr{margin-left:auto;font-family:var(--f-num);font-size:11.5px;color:var(--ink-3)}
+.panel .foot{padding:10px 14px;font-size:12px;color:var(--ink-3);border-top:1px solid var(--rule);margin:0}
+
+/* ═══ Карточка серии: лист с основной надписью ══════════════════════ */
+.card{
+  display:flex;flex-direction:column;background:var(--paper-hi);
+  border:1px solid var(--rule-ink);text-align:left;cursor:pointer;
+  padding:0;color:inherit;text-decoration:none;
+  transition:border-color .18s var(--ease),box-shadow .18s var(--ease);
+}
+/* Наведение — смена обводки на синюю. Жёсткая смещённая тень отсюда снята:
+   в мире листа теней нет, и приём противоречил собственному закону системы. */
+.card:hover{border-color:var(--blue)}
+.card:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.card .top{padding:16px 18px 0}
+.card .mk{
+  display:block;font-family:var(--f-draw);text-transform:uppercase;font-weight:700;
+  font-size:27px;letter-spacing:.09em;line-height:1;color:var(--ink);
+}
+.card .sub{display:block;margin-top:6px;font-size:12.5px;color:var(--ink-3);line-height:1.35}
+.card .silh{
+  display:block;width:100%;max-width:200px;height:auto;margin:14px auto 12px;
+  color:var(--blue);
+}
+.card dl{
+  display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 12px;margin:0;
+  padding:12px 18px;border-top:1px solid var(--rule);
+}
+.card dt{font-family:var(--f-draw);font-size:10.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink-3)}
+.card dd{margin:0;font-family:var(--f-num);font-size:12.5px;text-align:right;
+  font-variant-numeric:tabular-nums;color:var(--ink)}
+.card .bottom{
+  margin-top:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:10px 18px;border-top:1px solid var(--rule);
+  font-size:12px;color:var(--ink-3);
+}
+.card .badge{
+  margin-left:auto;font-family:var(--f-draw);font-size:10px;letter-spacing:.15em;
+  text-transform:uppercase;padding:2px 7px;border:1px solid currentColor;
+}
+.card .badge[data-d="ok"]{color:var(--ok)}
+.card .badge[data-d="wait"]{color:var(--warn)}
+.card .badge[data-d="stop"]{color:var(--stop)}
+.card .pnote{
+  padding:9px 18px;border-top:1px solid var(--rule-fine);
+  font-size:11.5px;line-height:1.4;color:var(--ink-3);
+}
+
+/* ═══ Стойка фасетов ════════════════════════════════════════════════ */
+.facet{border-bottom:1px solid var(--rule)}
+.facet>summary{
+  display:flex;align-items:center;gap:8px;padding:11px 0;cursor:pointer;list-style:none;
+  font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.13em;
+  font-size:11px;color:var(--ink-2);
+}
+.facet>summary::-webkit-details-marker{display:none}
+.facet>summary::after{
+  content:"";width:7px;height:7px;margin-left:auto;
+  border-right:1.4px solid var(--ink-4);border-bottom:1.4px solid var(--ink-4);
+  transform:rotate(45deg) translate(-2px,-2px);transition:transform .2s var(--ease);
+}
+.facet[open]>summary::after{transform:rotate(-135deg) translate(-2px,-2px)}
+.facet .body{padding:0 0 12px}
+.opt{display:flex;align-items:center;gap:9px;padding:4.5px 0;cursor:pointer;
+  font-size:13.5px;color:var(--ink-2)}
+.opt:hover{color:var(--ink)}
+.opt input{
+  appearance:none;width:15px;height:15px;flex:0 0 auto;
+  border:1px solid var(--rule-ink);background:var(--paper-hi);
+  display:grid;place-items:center;cursor:pointer;
+}
+.opt input:checked{border-color:var(--blue);background:var(--blue)}
+.opt input:checked::after{content:"";width:7px;height:4px;
+  border-left:1.6px solid #fff;border-bottom:1.6px solid #fff;transform:rotate(-45deg) translateY(-1px)}
+.opt .n{margin-left:auto;font-family:var(--f-num);font-size:11.5px;color:var(--ink-4)}
+.opt[data-empty="1"]{opacity:.38;cursor:not-allowed}
+.opt[data-empty="1"] input{cursor:not-allowed}
+
+/* ═══ Утилиты ═══════════════════════════════════════════════════════ */
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:var(--gut)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:var(--gut)}
+/* padding-block, а не сокращённое padding: иначе класс, поставленный на один
+   элемент с .wrap, обнуляет её боковые поля и лист встаёт вплотную к краям */
+.sec{padding-block:46px}
+.sec--tight{padding-block:30px}
+.mb0{margin-bottom:0}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* position:relative обязателен и вне переломов. Контейнер прокрутки НЕ
+   обрезает абсолютно позиционированного потомка, если содержащий блок для
+   того лежит выше контейнера. Скрытые подписи .vh для экранного диктора
+   как раз абсолютные: без этой строки они цеплялись за ближайший
+   позиционированный .sheet СНАРУЖИ прокрутки, вставали на x≈641 при листе
+   375 и распирали страницу на 267 px — при том, что ни один видимый узел
+   за габарит не выходил. Отсюда же и то, что обход предков по overflow-x
+   ничего не находил: предок и содержащий блок — разные вещи. */
+.tbl-scroll{position:relative}
+
+/* Ниже этой ширины таблица данных перестаёт влезать: включаем контейнер
+   прокрутки и переводим липкую шапку на нулевое смещение, иначе она
+   уедет вниз внутри контейнера и накроет первую строку. */
+@media (max-width:1279px){
+  .tbl-scroll{overflow-x:auto}
+  table.data thead th{top:0}
+}
+/* Порог сворачивания навигации — 1045 px, а не 900.
+   Замер: логотип, шесть пунктов меню и две кнопки действий встают в одну
+   строку только с ~1045 px. При прежнем пороге 900 в полосе 901…1044
+   шапка молча распирала лист на всех без исключения страницах
+   (1036 против 1009 при окне 1024) — снаружи это выглядело как
+   горизонтальная прокрутка всего сайта на планшете и в половинном окне. */
+@media (max-width:1044px){
+  .head .wrap{flex-wrap:wrap;gap:12px}
+  /* Рейка разделов прокручивается, и это надо СКАЗАТЬ: без градиента
+     у правой кромки пункты просто пропадают за обрезом, и посетитель
+     не догадывается, что там что-то есть */
+  .nav{
+    order:3;flex:1 1 100%;margin-left:0;
+    overflow-x:auto;scroll-snap-type:x proximity;
+    -webkit-overflow-scrolling:touch;
+    padding-right:26px;
+    mask-image:linear-gradient(90deg,#000 calc(100% - 26px),transparent);
+  }
+  .nav a{flex:0 0 auto;scroll-snap-align:start}
+  .nav::-webkit-scrollbar{height:3px}
+  .nav::-webkit-scrollbar-thumb{background:var(--rule-ink);border:0}
+}
+@media (max-width:900px){
+  :root{--gut:16px}
+}
+/* Размерная линия на телефоне: выноска с номером не сжимается (flex:0 0 auto)
+   и вместе с заголовком распирает лист шире экрана. Переносим её на
+   следующую строку — приём сохраняется, горизонтальная прокрутка уходит. */
+@media (max-width:620px){
+  .dim{flex-wrap:wrap}
+  .dim .line{min-width:40px}
+  .dim .val{flex:1 0 100%;order:3;text-align:right}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
