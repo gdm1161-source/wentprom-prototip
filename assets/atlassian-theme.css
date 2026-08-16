@@ -205,6 +205,9 @@ h4{font-size:12.5px;font-weight:700;color:var(--ink-3)}
              background .2s var(--ease);
 }
 .tile .silh{color:var(--ink-4)}
+/* Название подраздела — самая заметная строка на плитке; даём ей реально
+   отличаться от служебных подписей, а не сидеть с ними в одном кегле. */
+.tile .nm{font-size:15px}
 .tile:hover,.tile:focus-visible{
   background:var(--paper-hi);border-color:var(--blue-pale);box-shadow:var(--shadow-md);
 }
@@ -285,7 +288,10 @@ table.data thead th{
   background:var(--paper-2);border-color:var(--rule);font-weight:700;color:var(--ink-2);
 }
 table.data td{border-color:var(--rule-fine)}
-table.data td.mk{font-family:var(--f-ui);font-weight:700;letter-spacing:0;text-transform:none;font-size:14.5px}
+/* Марка — единственный текстовый (не числовой) и самый важный столбец
+   строки: держим её заметно крупнее соседних чисел, а не вровень с ними,
+   чтобы в плотной таблице читалась настоящая, а не условная иерархия. */
+table.data td.mk{font-family:var(--f-ui);font-weight:700;letter-spacing:0;text-transform:none;font-size:17px}
 table.data tbody tr:hover td{background:var(--blue-wash)}
 table.data tbody tr[data-picked="1"] td{background:var(--ok-pale)}
 .vtbl a.szb{font-weight:700}
