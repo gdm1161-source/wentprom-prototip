@@ -1,0 +1,155 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   ВЕНТПРОМ 2026 · карусель разделов каталога на главной.
+
+   Тринадцать карточек стоят по окружности и медленно едут по кругу.
+   Каждая наклонена на небольшой угол — ряд читается как колесо, а не как
+   плоская лента. Наведение мыши или фокус с клавиатуры ОСТАНАВЛИВАЮТ
+   вращение: пока пользователь выбирает, ничто не уезжает из-под курсора.
+
+   Круг медальона под силуэтом — это будущее место фотографии: когда завод
+   передаст съёмку, снимок встанет в ту же окружность без правки раскладки.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.v26-wheel-sec{
+  position:relative;
+  /* Колесо уходит краями за поля листа — обрезаем по секции, иначе
+     дальние карточки распирают страницу и дают боковую прокрутку. */
+  overflow:hidden;
+}
+
+/* Высота считается, а не подбирается на глаз. Карточка ростом 215 px
+   стоит на радиусе 475 при перспективе 1500, поэтому ближняя к читателю
+   вырастает в 1500/(1500-475) = 1.46 раза, то есть до 315 px, а под
+   курсором она выезжает ещё на 34 px вперёд и множится на 1.06 — это
+   уже 345 px. При контейнере в 330 px приподнятая карточка обрезалась
+   бы ровно в тот момент, когда её выбирают. Берём 372 с запасом на тень. */
+.v26-wheel{
+  position:relative;
+  height:var(--wh-h,372px);
+  perspective:1500px;
+  perspective-origin:50% 45%;
+  margin:6px 0 4px;
+}
+
+/* Кольцо. Вращает только оно; карточки внутри поворачиваются обратно,
+   чтобы оставаться лицом к читателю. */
+.v26-ring{
+  position:absolute;inset:0;
+  transform-style:preserve-3d;
+  animation:v26spin var(--wh-dur,54s) linear infinite;
+  will-change:transform;
+}
+@keyframes v26spin{
+  from{transform:rotateY(0deg)}
+  to{transform:rotateY(-360deg)}
+}
+
+/* Остановка по наведению и по фокусу с клавиатуры — оба входа
+   равноправны, иначе колесо недоступно без мыши. */
+.v26-wheel:hover .v26-ring,
+.v26-wheel:focus-within .v26-ring{animation-play-state:paused}
+
+.v26-card{
+  position:absolute;top:0;left:50%;
+  width:var(--wh-w,182px);
+  margin-left:calc(var(--wh-w,182px) / -2);
+  /* --a — место карточки на окружности, --tilt — её собственный наклон */
+  transform:
+    rotateY(var(--a)) translateZ(var(--wh-r,392px))
+    rotateY(calc(var(--a) * -1)) rotate(var(--tilt,0deg));
+  transform-style:preserve-3d;
+  display:block;padding:16px 14px 14px;
+  background:var(--paper-hi);border:1px solid var(--rule);border-radius:var(--r-lg);
+  box-shadow:var(--shadow-sm);
+  color:inherit;text-decoration:none;text-align:center;
+  transition:box-shadow .22s var(--ease),border-color .22s var(--ease),
+             transform .28s var(--ease);
+}
+
+/* Медальон — круглое место под фотографию. Пока внутри силуэт. */
+.v26-card .well{
+  width:118px;height:118px;margin:0 auto 12px;
+  border-radius:50%;background:var(--paper-2);
+  display:grid;place-items:center;color:var(--ink-3);
+  box-shadow:inset 0 0 0 1px var(--rule-fine);
+  transition:background .22s var(--ease),color .22s var(--ease);
+}
+.v26-card .well svg{width:64px;height:auto;max-height:64px}
+.v26-card .nm{
+  display:block;font-size:13.5px;font-weight:600;line-height:1.25;color:var(--ink);
+  overflow-wrap:break-word;hyphens:manual;
+}
+.v26-card .cn{
+  display:block;margin-top:5px;font-size:12px;color:var(--ink-3);
+}
+
+/* Карточка под курсором приподнимается и выпрямляется — её удобно
+   прочитать и в неё удобно попасть. */
+.v26-card:hover,.v26-card:focus-visible{
+  transform:
+    rotateY(var(--a)) translateZ(calc(var(--wh-r,392px) + 34px))
+    rotateY(calc(var(--a) * -1)) rotate(0deg) scale(1.06);
+  border-color:var(--blue-pale);
+  box-shadow:var(--shadow-lg);
+  z-index:5;
+}
+.v26-card:hover .well,.v26-card:focus-visible .well{
+  background:var(--blue-pale);color:var(--blue);
+}
+.v26-card:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+
+/* Противопожарный раздел — единственный красный на весь сайт */
+.v26-card[data-fire="1"] .well{background:color-mix(in srgb,var(--fire) 12%,var(--paper-2));color:var(--fire)}
+.v26-card[data-fire="1"]:hover .well{background:var(--fire);color:#fff}
+
+/* Раздел без заводских таблиц не притворяется полным */
+.v26-card[data-empty="1"] .well{opacity:.55}
+.v26-card[data-empty="1"] .nm{color:var(--ink-2)}
+
+/* Подсказка под колесом: без неё неочевидно, что вращение остановимо */
+.v26-wheel-hint{
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;
+  margin:2px 0 0;font-size:13px;color:var(--ink-3);
+}
+.v26-wheel-hint b{color:var(--ink-2);font-weight:600}
+
+/* ── Узкий лист: 3D-кольцо не помещается и мешает пальцу ────────────
+   Ниже 900 px карточки раскладываются обычной сеткой — тот же состав,
+   те же ссылки, без вращения и без перспективы. */
+@media (max-width:900px){
+  .v26-wheel{
+    height:auto;perspective:none;display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;
+  }
+  .v26-ring{position:static;animation:none;display:contents}
+  .v26-card{
+    position:static;width:auto;margin:0;transform:none!important;
+  }
+  .v26-card .well{width:92px;height:92px}
+  .v26-card .well svg{width:52px;max-height:52px}
+  .v26-wheel-hint{display:none}
+}
+
+/* Отключённая анимация — требование системы, а не пожелание: колесо
+   останавливается совсем, карточки остаются на своих местах. */
+@media (prefers-reduced-motion:reduce){
+  .v26-ring{animation:none}
+  .v26-card{transition:none}
+}
+
+/* ═══ Остатки «Чертежа» в локальных стилях главной ═══════════════════
+   Как и на странице каталога, эти правила живут в собственном <style>
+   страницы, а не в системе, и прописывают регистр с разрядкой буквально —
+   подмена --f-draw их не достаёт. Плюс кегль 10.5–11 px: для подписи
+   «Рабочая точка», подписи под чертежом и ссылки инструмента это
+   функциональный текст, а не декоративная мелочь, и он должен читаться.
+   Файл подключён после <style> страницы и перебивает их. */
+.point .hd span,.tool .go{
+  font-family:var(--f-ui);
+  text-transform:none;
+  letter-spacing:normal;
+  font-weight:700;
+}
+.point .hd span{font-size:13px}
+.tool .go{font-size:13px}
+.flow .cap{font-size:12.5px;color:var(--ink-2)}
