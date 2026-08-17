@@ -80,7 +80,7 @@
   overflow-wrap:break-word;hyphens:manual;
 }
 .v26-card .cn{
-  display:block;margin-top:5px;font-size:12px;color:var(--ink-3);
+  display:block;margin-top:5px;font-size:12.5px;color:var(--ink-3);
 }
 
 /* Карточка под курсором приподнимается и выпрямляется — её удобно
@@ -150,6 +150,17 @@
   letter-spacing:normal;
   font-weight:700;
 }
-.point .hd span{font-size:13px}
-.tool .go{font-size:13px}
-.flow .cap{font-size:12.5px;color:var(--ink-2)}
+.point .hd span,.tool .go{font-size:13px}
+
+/* Подписи сечений на чертеже канала. 10 px с разрядкой — это чертёжная
+   выноска, но на экране «Сечение 1 — 1» остаётся функциональной подписью
+   к рисунку, а не декоративной мелочью: ниже 11 px она разваливается на
+   плотных экранах. Весь служебный ярус страницы сведён на одну ступень
+   12.5 px — ту же, что в теме и на остальных страницах, — чтобы кегли
+   не расползались по полупиксельным значениям. */
+.flow .lbl{
+  font-family:var(--f-ui);text-transform:none;letter-spacing:normal;
+  font-size:12.5px;font-weight:700;
+}
+.flow .cap,.point .out .z{font-size:12.5px}
+.flow .cap{color:var(--ink-2)}
