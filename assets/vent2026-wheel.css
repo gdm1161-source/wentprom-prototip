@@ -6,33 +6,35 @@
    плоская лента. Наведение мыши или фокус с клавиатуры ОСТАНАВЛИВАЮТ
    вращение: пока пользователь выбирает, ничто не уезжает из-под курсора.
 
+   ── Как карточка остаётся лицом к читателю ───────────────────────────
+   Кольцо поворачивается на -t. Если гасить только смещение карточки по
+   окружности (статичный -a), итоговая ориентация остаётся -t: карточка
+   едет ВМЕСТЕ с кольцом и на дальней половине показывает изнанку —
+   текст читается зеркально. Поэтому внутри карточки лежит .v26-face со
+   ВСТРЕЧНОЙ анимацией той же длительности: она добавляет +t, и сумма
+   -t + a - a + t обращается в ноль при любом t. Обе анимации обязаны
+   быть linear, одной длительности и останавливаться вместе — иначе
+   карточки начнут крутиться на месте.
+
    Круг медальона под силуэтом — это будущее место фотографии: когда завод
    передаст съёмку, снимок встанет в ту же окружность без правки раскладки.
    ═══════════════════════════════════════════════════════════════════════ */
 
-.v26-wheel-sec{
+.v26-wheel-sec{position:relative}
+
+/* Обод: колесо крутится внутри очерченного поля и за него не выходит. */
+.v26-wheel{
   position:relative;
-  /* Колесо уходит краями за поля листа — обрезаем по секции, иначе
-     дальние карточки распирают страницу и дают боковую прокрутку. */
+  height:var(--wh-h,392px);
+  perspective:1500px;
+  perspective-origin:50% 50%;
+  margin:8px 0 0;
+  border:1px solid var(--rule);
+  border-radius:var(--r-lg);
+  background:var(--paper-hi);
   overflow:hidden;
 }
 
-/* Высота считается, а не подбирается на глаз. Карточка ростом 215 px
-   стоит на радиусе 475 при перспективе 1500, поэтому ближняя к читателю
-   вырастает в 1500/(1500-475) = 1.46 раза, то есть до 315 px, а под
-   курсором она выезжает ещё на 34 px вперёд и множится на 1.06 — это
-   уже 345 px. При контейнере в 330 px приподнятая карточка обрезалась
-   бы ровно в тот момент, когда её выбирают. Берём 372 с запасом на тень. */
-.v26-wheel{
-  position:relative;
-  height:var(--wh-h,372px);
-  perspective:1500px;
-  perspective-origin:50% 45%;
-  margin:6px 0 4px;
-}
-
-/* Кольцо. Вращает только оно; карточки внутри поворачиваются обратно,
-   чтобы оставаться лицом к читателю. */
 .v26-ring{
   position:absolute;inset:0;
   transform-style:preserve-3d;
@@ -44,123 +46,142 @@
   to{transform:rotateY(-360deg)}
 }
 
-/* Остановка по наведению и по фокусу с клавиатуры — оба входа
-   равноправны, иначе колесо недоступно без мыши. */
-.v26-wheel:hover .v26-ring,
-.v26-wheel:focus-within .v26-ring{animation-play-state:paused}
-
+/* Карточка: место на окружности. Высота задана явно, потому что от неё
+   считается высота обода — «сколько получится» здесь не годится.
+   Центрирование по вертикали обязательно: при top:0 центр карточки стоял
+   бы на её полувысоте от верха, а перспектива увеличивает ближнюю
+   карточку ОТ ЦЕНТРА — верхний край уходил в минус и налезал на текст
+   над колесом. При top:50% рост идёт симметрично и остаётся внутри. */
 .v26-card{
-  position:absolute;top:0;left:50%;
-  width:var(--wh-w,182px);
+  position:absolute;top:50%;left:50%;
+  width:var(--wh-w,182px);height:var(--wh-card-h,216px);
   margin-left:calc(var(--wh-w,182px) / -2);
-  /* --a — место карточки на окружности, --tilt — её собственный наклон */
+  margin-top:calc(var(--wh-card-h,216px) / -2);
   transform:
-    rotateY(var(--a)) translateZ(var(--wh-r,392px))
-    rotateY(calc(var(--a) * -1)) rotate(var(--tilt,0deg));
+    rotateY(var(--a)) translateZ(var(--wh-r,475px)) rotateY(calc(var(--a) * -1));
   transform-style:preserve-3d;
-  display:block;padding:16px 14px 14px;
+  color:inherit;text-decoration:none;
+  transition:transform .28s var(--ease);
+}
+
+/* Встречное вращение — то, что держит текст читаемым */
+.v26-face{
+  display:block;width:100%;height:100%;
+  transform-style:preserve-3d;
+  animation:v26face var(--wh-dur,54s) linear infinite;
+  will-change:transform;
+}
+@keyframes v26face{
+  from{transform:rotateY(0deg)}
+  to{transform:rotateY(360deg)}
+}
+
+/* Наклон и вся видимая часть карточки */
+.v26-body{
+  display:flex;flex-direction:column;align-items:center;
+  width:100%;height:100%;padding:15px 13px 13px;
   background:var(--paper-hi);border:1px solid var(--rule);border-radius:var(--r-lg);
   box-shadow:var(--shadow-sm);
-  color:inherit;text-decoration:none;text-align:center;
+  text-align:center;
+  transform:rotate(var(--tilt,0deg));
   transition:box-shadow .22s var(--ease),border-color .22s var(--ease),
              transform .28s var(--ease);
 }
 
-/* Медальон — круглое место под фотографию. Пока внутри силуэт. */
+/* Медальон — круглое место под фотографию. Пока внутри силуэт.
+   Цвет свой у каждого раздела: приглушённый, чтобы карточки различались
+   с одного взгляда, но не спорили ни друг с другом, ни с синим акцентом. */
 .v26-card .well{
-  width:118px;height:118px;margin:0 auto 12px;
-  border-radius:50%;background:var(--paper-2);
-  display:grid;place-items:center;color:var(--ink-3);
-  box-shadow:inset 0 0 0 1px var(--rule-fine);
-  transition:background .22s var(--ease),color .22s var(--ease);
+  width:104px;height:104px;flex:0 0 auto;margin-bottom:10px;
+  border-radius:50%;
+  background:var(--tint,var(--paper-2));
+  color:var(--tint-ink,var(--ink-3));
+  display:grid;place-items:center;
+  box-shadow:inset 0 0 0 1px rgba(19,26,42,.05);
+  transition:transform .22s var(--ease);
 }
-.v26-card .well svg{width:64px;height:auto;max-height:64px}
+.v26-card .well svg{width:58px;height:auto;max-height:58px}
 .v26-card .nm{
-  display:block;font-size:13.5px;font-weight:600;line-height:1.25;color:var(--ink);
+  display:block;font-size:13.5px;font-weight:600;line-height:1.22;color:var(--ink);
   overflow-wrap:break-word;hyphens:manual;
 }
 .v26-card .cn{
-  display:block;margin-top:5px;font-size:12.5px;color:var(--ink-3);
+  display:block;margin-top:auto;padding-top:5px;font-size:12.5px;color:var(--ink-3);
 }
 
-/* Карточка под курсором приподнимается и выпрямляется — её удобно
-   прочитать и в неё удобно попасть. */
+/* Под курсором карточка выезжает вперёд, выпрямляется и замирает */
 .v26-card:hover,.v26-card:focus-visible{
   transform:
-    rotateY(var(--a)) translateZ(calc(var(--wh-r,392px) + 34px))
-    rotateY(calc(var(--a) * -1)) rotate(0deg) scale(1.06);
-  border-color:var(--blue-pale);
-  box-shadow:var(--shadow-lg);
+    rotateY(var(--a)) translateZ(calc(var(--wh-r,475px) + 34px)) rotateY(calc(var(--a) * -1));
   z-index:5;
 }
-.v26-card:hover .well,.v26-card:focus-visible .well{
-  background:var(--blue-pale);color:var(--blue);
+.v26-card:hover .v26-body,.v26-card:focus-visible .v26-body{
+  transform:rotate(0deg);
+  border-color:var(--tint-ink,var(--blue));
+  box-shadow:var(--shadow-lg);
 }
-.v26-card:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+.v26-card:hover .well,.v26-card:focus-visible .well{transform:scale(1.06)}
+.v26-card:focus-visible{outline:none}
+.v26-card:focus-visible .v26-body{outline:2px solid var(--focus);outline-offset:3px}
 
-/* Противопожарный раздел — единственный красный на весь сайт */
-.v26-card[data-fire="1"] .well{background:color-mix(in srgb,var(--fire) 12%,var(--paper-2));color:var(--fire)}
-.v26-card[data-fire="1"]:hover .well{background:var(--fire);color:#fff}
+/* Останавливаются ОБА вращения разом. Остановить одно кольцо мало:
+   встречная анимация продолжила бы крутить карточки на месте. */
+.v26-wheel:hover .v26-ring,.v26-wheel:hover .v26-face,
+.v26-wheel:focus-within .v26-ring,.v26-wheel:focus-within .v26-face{
+  animation-play-state:paused;
+}
 
 /* Раздел без заводских таблиц не притворяется полным */
-.v26-card[data-empty="1"] .well{opacity:.55}
+.v26-card[data-empty="1"] .well{opacity:.6}
 .v26-card[data-empty="1"] .nm{color:var(--ink-2)}
 
-/* Подсказка под колесом: без неё неочевидно, что вращение остановимо */
+/* Подсказка под колесом */
 .v26-wheel-hint{
   display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;
-  margin:2px 0 0;font-size:13px;color:var(--ink-3);
+  margin:10px 0 0;font-size:13px;color:var(--ink-3);
 }
 .v26-wheel-hint b{color:var(--ink-2);font-weight:600}
 
 /* ── Узкий лист: 3D-кольцо не помещается и мешает пальцу ────────────
    Ниже 900 px карточки раскладываются обычной сеткой — тот же состав,
-   те же ссылки, без вращения и без перспективы. */
+   те же ссылки и цвета, без вращения и без перспективы. */
 @media (max-width:900px){
   .v26-wheel{
-    height:auto;perspective:none;display:grid;
+    height:auto;perspective:none;display:grid;border:0;background:none;
     grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;
+    overflow:visible;
   }
   .v26-ring{position:static;animation:none;display:contents}
   .v26-card{
-    position:static;width:auto;margin:0;transform:none!important;
+    position:static;width:auto;height:auto;margin:0;transform:none!important;
   }
-  .v26-card .well{width:92px;height:92px}
-  .v26-card .well svg{width:52px;max-height:52px}
+  .v26-face{animation:none;height:auto}
+  .v26-body{height:auto;min-height:186px;transform:none!important}
+  .v26-card .well{width:84px;height:84px}
+  .v26-card .well svg{width:48px;max-height:48px}
   .v26-wheel-hint{display:none}
 }
 
-/* Отключённая анимация — требование системы, а не пожелание: колесо
-   останавливается совсем, карточки остаются на своих местах. */
+/* Отключённая анимация: колесо стоит, карточки остаются лицом к читателю */
 @media (prefers-reduced-motion:reduce){
-  .v26-ring{animation:none}
-  .v26-card{transition:none}
+  .v26-ring,.v26-face{animation:none}
+  .v26-card,.v26-body,.v26-card .well{transition:none}
 }
 
 /* ═══ Остатки «Чертежа» в локальных стилях главной ═══════════════════
-   Как и на странице каталога, эти правила живут в собственном <style>
-   страницы, а не в системе, и прописывают регистр с разрядкой буквально —
-   подмена --f-draw их не достаёт. Плюс кегль 10.5–11 px: для подписи
-   «Рабочая точка», подписи под чертежом и ссылки инструмента это
-   функциональный текст, а не декоративная мелочь, и он должен читаться.
-   Файл подключён после <style> страницы и перебивает их. */
-.point .hd span,.tool .go{
+   Эти правила живут в собственном <style> страницы, а не в системе, и
+   прописывают регистр с разрядкой буквально — подмена --f-draw их не
+   достаёт. Кегль 10–11 px для подписи «Рабочая точка», подписей сечений
+   на чертеже и ссылки инструмента — это функциональный текст, а не
+   декоративная мелочь: ниже 11 px он разваливается на плотных экранах.
+   Весь служебный ярус сведён на одну ступень 12.5–13 px. */
+.point .hd span,.tool .go,.flow .lbl{
   font-family:var(--f-ui);
   text-transform:none;
   letter-spacing:normal;
   font-weight:700;
 }
 .point .hd span,.tool .go{font-size:13px}
-
-/* Подписи сечений на чертеже канала. 10 px с разрядкой — это чертёжная
-   выноска, но на экране «Сечение 1 — 1» остаётся функциональной подписью
-   к рисунку, а не декоративной мелочью: ниже 11 px она разваливается на
-   плотных экранах. Весь служебный ярус страницы сведён на одну ступень
-   12.5 px — ту же, что в теме и на остальных страницах, — чтобы кегли
-   не расползались по полупиксельным значениям. */
-.flow .lbl{
-  font-family:var(--f-ui);text-transform:none;letter-spacing:normal;
-  font-size:12.5px;font-weight:700;
-}
+.flow .lbl{font-size:12.5px}
 .flow .cap,.point .out .z{font-size:12.5px}
 .flow .cap{color:var(--ink-2)}
