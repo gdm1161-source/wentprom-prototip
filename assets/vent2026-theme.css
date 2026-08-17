@@ -87,7 +87,7 @@ table.data thead th,.rail .top h2,.st,.chipx,.chip{
 }
 h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.12}
 h2{font-size:clamp(19px,2.1vw,24px);font-weight:800;letter-spacing:-.01em}
-h3{font-size:16px;font-weight:700}
+h3{font-size:19px;font-weight:700}
 h4{font-size:12.5px;font-weight:700;color:var(--ink-3)}
 .logo b{font-size:21px;font-weight:800;letter-spacing:-.01em}
 .logo i{font-style:normal;font-family:var(--f-ui);font-weight:600;letter-spacing:0;
@@ -198,7 +198,7 @@ h4{font-size:12.5px;font-weight:700;color:var(--ink-3)}
 }
 .v26-panel-head .ic svg{width:21px;height:21px}
 .v26-panel-head .ic[data-fire="1"]{background:var(--fire);color:#fff}
-.v26-panel-head b{display:block;font-size:17px;font-weight:700;line-height:1.25;color:var(--ink)}
+.v26-panel-head b{display:block;font-size:19px;font-weight:700;line-height:1.25;color:var(--ink)}
 .v26-panel-head span{display:block;font-size:12.5px;color:var(--ink-3);margin-top:2px}
 
 .v26-subs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 12px}

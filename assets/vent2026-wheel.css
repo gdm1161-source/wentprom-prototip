@@ -92,7 +92,7 @@
    Цвет свой у каждого раздела: приглушённый, чтобы карточки различались
    с одного взгляда, но не спорили ни друг с другом, ни с синим акцентом. */
 .v26-card .well{
-  width:104px;height:104px;flex:0 0 auto;margin-bottom:10px;
+  width:92px;height:92px;flex:0 0 auto;margin-bottom:10px;
   border-radius:50%;
   background:var(--tint,var(--paper-2));
   color:var(--tint-ink,var(--ink-3));
@@ -100,9 +100,9 @@
   box-shadow:inset 0 0 0 1px rgba(19,26,42,.05);
   transition:transform .22s var(--ease);
 }
-.v26-card .well svg{width:58px;height:auto;max-height:58px}
+.v26-card .well svg{width:52px;height:auto;max-height:52px}
 .v26-card .nm{
-  display:block;font-size:13.5px;font-weight:600;line-height:1.22;color:var(--ink);
+  display:block;font-size:15.5px;font-weight:600;line-height:1.22;color:var(--ink);
   overflow-wrap:break-word;hyphens:manual;
 }
 .v26-card .cn{
@@ -138,7 +138,7 @@
 /* Подсказка под колесом */
 .v26-wheel-hint{
   display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;
-  margin:10px 0 0;font-size:13px;color:var(--ink-3);
+  margin:10px 0 0;font-size:15.5px;color:var(--ink-3);
 }
 .v26-wheel-hint b{color:var(--ink-2);font-weight:600}
 
@@ -168,20 +168,11 @@
   .v26-card,.v26-body,.v26-card .well{transition:none}
 }
 
-/* ═══ Остатки «Чертежа» в локальных стилях главной ═══════════════════
-   Эти правила живут в собственном <style> страницы, а не в системе, и
-   прописывают регистр с разрядкой буквально — подмена --f-draw их не
-   достаёт. Кегль 10–11 px для подписи «Рабочая точка», подписей сечений
-   на чертеже и ссылки инструмента — это функциональный текст, а не
-   декоративная мелочь: ниже 11 px он разваливается на плотных экранах.
-   Весь служебный ярус сведён на одну ступень 12.5–13 px. */
-.point .hd span,.tool .go,.flow .lbl{
-  font-family:var(--f-ui);
-  text-transform:none;
-  letter-spacing:normal;
-  font-weight:700;
-}
-.point .hd span,.tool .go{font-size:13px}
-.flow .lbl{font-size:12.5px}
-.flow .cap,.point .out .z{font-size:12.5px}
-.flow .cap{color:var(--ink-2)}
+/* ═══ Шкала кеглей главной ════════════════════════════════════════════
+   Значения сведены прямо в стилях самой страницы (index-2026.html), а не
+   переопределены отсюда: слой поверх слоя было бы труднее читать, а
+   страница всё равно моя. Три ступени с шагом около 1.24 —
+     12.5  служебное: счётчики, ординалы, формулы-аннотации, чипы;
+     15.5  связная речь: описания, значения, названия карточек;
+     19    заголовок строки или блока.
+   Здесь остаётся только то, что относится к самому колесу. */
