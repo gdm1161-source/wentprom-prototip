@@ -6,6 +6,7 @@
 'use strict';
 
 const D = root.VPDATA;
+const C = root.VPCAT;
 const $  = (s, c) => (c || document).querySelector(s);
 const $$ = (s, c) => [...(c || document).querySelectorAll(s)];
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -159,16 +160,51 @@ const store = {
 /* ═══ 4. Шапка: единая для всех страниц ══════════════════════════════ */
 const NAV = [
   {href:'index.html',   t:'Главная'},
-  {href:'catalog.html', t:'Каталог'},
+  {href:'catalog.html', t:'Каталог', mega:true},
   {href:'podbor.html',  t:'Подбор'},
   {href:'calc.html',    t:'Калькуляторы'},
   {href:'podbor.html#survey',  t:'Опросный лист'},
   {href:'about.html',   t:'Завод'},
 ];
 
+/* Хвост последнего ряда сетки добивается пустой бумагой: сколько клеток
+   не хватает до полного ряда, знает только текущая раскладка колонок,
+   поэтому считаем по факту вычисленного grid-template-columns. Приём тот
+   же, что и в catalog.html (там своя копия — трогать принятый файл
+   не стал ради шести строк общего кода). */
+function fillGrid(el) {
+  if (!el) return;
+  $$('.fill', el).forEach(f => f.remove());
+  const cols = getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length;
+  const need = cols > 0 ? (cols - el.childElementCount % cols) % cols : 0;
+  el.insertAdjacentHTML('beforeend', '<span class="fill" aria-hidden="true"></span>'.repeat(need));
+}
+
+/* Сетка разделов в мега-меню — сверено разведкой конкурентов 16 августа
+   2026: мега-меню каталога в шапке есть у всех проверенных сайтов отрасли
+   (Nevatom, ГалВент, Русклимат и др.), у нас раньше не было — путь в
+   каталог занимал лишний переход. Силуэт отличает раздел так же, как на
+   самой странице catalog.html; не заимствуем cat.css — это системный
+   элемент шапки, а не часть каталожного потока. */
+function catMegaTiles() {
+  if (!C) return '';
+  const silh = ic => (root.VPSILH && root.VPSILH[ic]) || BIG[ic] || ICON[ic] || '';
+  const cn = C.counts();
+  return C.RAZDEL.map(r => {
+    const n = cn.razdel[r.id];
+    const empty = r.stub;
+    const cnt = empty
+      ? (r.siteCnt ? r.siteCnt + ' на сайте завода' : 'уточняется')
+      : (n.series + ' сер. · ' + n.sku + ' поз.');
+    return `<a href="razdel.html?r=${encodeURIComponent(r.id)}"${empty ? ' data-empty="1"' : ''}>
+      ${silh(r.ic)}<span class="nm">${r.short || r.name}</span><span class="cn">${cnt}</span></a>`;
+  }).join('');
+}
+
 function mountHeader(current) {
   const host = $('#vp-head');
   if (!host) return;
+  const total = C ? C.counts().total : null;
   host.innerHTML = `
     <div class="util"><div class="wrap">
       <span>Промышленные вентиляторы и вентиляционные установки</span>
@@ -187,7 +223,25 @@ function mountHeader(current) {
              не получил отметку текущего раздела */
           const path = n.href.split('#')[0];
           const cur  = String(current || '').split('#')[0];
-          return `<a href="${n.href}"${path === cur ? ' aria-current="page"' : ''}>${n.t}</a>`;
+          const on   = path === cur;
+          if (!n.mega) return `<a href="${n.href}"${on ? ' aria-current="page"' : ''}>${n.t}</a>`;
+          /* Пункт «Каталог» — одновременно ссылка (Enter уводит на
+             catalog.html без JS) и раскрывающая кнопка (клик по стрелке
+             открывает мега-меню без перехода). Middle-click/Ctrl-click
+             в новой вкладке продолжают работать как обычная ссылка. */
+          return `<span class="navmega">
+            <a href="${n.href}"${on ? ' aria-current="page"' : ''}>${n.t}</a>
+            <button type="button" class="navmega-t" id="vpCatT" aria-expanded="false"
+              aria-controls="vpCatMenu" aria-label="Показать разделы каталога"></button>
+            <div class="megamenu" id="vpCatMenu" hidden>
+              <div class="mhd"><b>Каталог</b>
+                <span class="n">${total ? total.razdel + ' разделов · ' + total.series + ' серий · ' + total.sku + ' типоразмеров' : ''}</span>
+                <button type="button" id="vpCatClose" aria-label="Закрыть">${ICON.close}</button>
+              </div>
+              <div class="mgrid">${catMegaTiles()}</div>
+              <div class="mft"><a href="catalog.html">Открыть каталог целиком</a></div>
+            </div>
+          </span>`;
         }).join('')}
       </nav>
       <div class="head-acts">
@@ -212,17 +266,59 @@ function mountHeader(current) {
     const b = e.target.closest('[data-href]');
     if (b) location.href = b.dataset.href;
   });
+  const catT = $('#vpCatT');
+  if (catT) {
+    catT.addEventListener('click', () => toggleCatMenu());
+    $('#vpCatClose').addEventListener('click', () => { toggleCatMenu(false); catT.focus(); });
+  }
   document.addEventListener('click', e => {
     const p = $('#vpViewedPanel');
     if (p && !p.hidden && !e.target.closest('#vpViewedPanel') && !e.target.closest('#vpViewed'))
       toggleViewed(false);
+    const m = $('#vpCatMenu');
+    if (m && !m.hidden && !e.target.closest('.navmega'))
+      toggleCatMenu(false);
   });
   document.addEventListener('keydown', e => {
     const p = $('#vpViewedPanel');
     if (e.key === 'Escape' && p && !p.hidden) { toggleViewed(false); $('#vpViewed').focus(); }
+    const m = $('#vpCatMenu');
+    if (e.key === 'Escape' && m && !m.hidden) { toggleCatMenu(false); catT && catT.focus(); }
   });
+  /* Панель зафиксирована в пикселях viewport по кнопке — при прокрутке или
+     смене ширины окна эти координаты устаревают быстрее, чем стоит их
+     пересчитывать на лету. Проще закрыть, как делает подавляющее
+     большинство мега-меню. */
+  const closeCatOnMove = () => { const m = $('#vpCatMenu'); if (m && !m.hidden) toggleCatMenu(false); };
+  addEventListener('scroll', closeCatOnMove, {passive:true});
+  addEventListener('resize', closeCatOnMove);
   root.addEventListener('vp:store', paintCounts);
   paintCounts();
+}
+
+/* Координаты фиксированной панели считаются от самой кнопки, а не заданы
+   в CSS: .megamenu — потомок .navmega, а .navmega лежит внутри .nav,
+   которая ниже 1044 px становится лентой overflow-x:auto — по CSS это
+   неявно включает и overflow-y:auto, и любой absolute-потомок обрезался бы
+   по высоте. Fixed-позиция предком не обрезается, но требует top/left
+   явно, потому и считаем их здесь при каждом открытии. */
+function toggleCatMenu(force) {
+  const m = $('#vpCatMenu'), b = $('#vpCatT'), wrap = b && b.closest('.navmega');
+  if (!m || !b || !wrap) return;
+  const open = force != null ? force : m.hidden;
+  if (open) {
+    m.hidden = false;                     /* сначала показать — иначе offsetWidth = 0 */
+    fillGrid($('.mgrid', m));             /* добить хвост ряда чистой бумагой */
+    const r = wrap.getBoundingClientRect();
+    const margin = 8;
+    const left = Math.min(r.left, innerWidth - m.offsetWidth - margin);
+    m.style.top  = Math.round(r.bottom + 9) + 'px';
+    m.style.left = Math.round(Math.max(margin, left)) + 'px';
+  } else {
+    m.hidden = true;
+  }
+  b.setAttribute('aria-expanded', String(open));
+  b.classList.toggle('is-on', open);
 }
 
 function toggleViewed(force) {
@@ -240,7 +336,6 @@ function toggleViewed(force) {
    надо уметь найти в обоих — иначе всё, отмеченное в новом каталоге, молча
    пропадает из шапки. Сначала спрашиваем полный каталог, потом старый. */
 function resolve(id) {
-  const C = root.VPCAT;
   if (C) {
     const r = C.sku(id);
     if (r) return {row:r, src:C, href:'product.html?p=' + encodeURIComponent(r.id)};
@@ -286,7 +381,6 @@ function paintCounts() {
    читатель жал «Воздуховоды», а попадал в общий каталог. Берём разделы,
    в которых реально есть номенклатура, — они и полезны читателю. */
 function catLinks() {
-  const C = root.VPCAT;
   if (!C) return '';
   return C.RAZDEL
     .filter(r => !r.stub)
