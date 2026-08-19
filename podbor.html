@@ -1156,6 +1156,7 @@ function paintEmpty() {
         + 'в <a href="catalog.html">каталоге</a> — там ряд виден целиком.';
   }
 
+  const showSurveyLink = S.q > 0 && S.p > 0;
   emp.innerHTML = `<h3>В точку ничего не попадает</h3>
     <p>${esc(why)}</p>
     ${adv ? `<p class="adv">${adv}</p>` : ''}
@@ -1165,7 +1166,10 @@ function paintEmpty() {
        Проверьте единицы: расход в м³/ч, давление в паскалях.</p>
     ${fixes.length ? `<div class="fixes">${fixes.map(f =>
       `<button class="btn btn--ghost btn--sm" type="button" data-drop="${f.b}">${esc(f.t)} → ${f.n}</button>`
-    ).join('')}</div>` : ''}`;
+    ).join('')}</div>` : ''}
+    ${showSurveyLink ? `<p class="small" style="margin-top:14px">Не уверены, что делать дальше?
+      <a href="#survey">Отправьте эту рабочую точку инженеру Вентпром</a> — параметры уже
+      подставлены в опросный лист ниже.</p>` : ''}`;
 }
 
 /* ══════════════════════════════════════════════════════════════════
