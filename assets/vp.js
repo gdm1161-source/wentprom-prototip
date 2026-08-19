@@ -215,7 +215,7 @@ function mountHeader(current) {
       <a href="cabinet.html">Войти в кабинет</a>
     </div></div>
     <header class="head"><div class="wrap">
-      <a class="logo" href="index.html"><b>Вентпром</b><i>завод</i></a>
+      <a class="logo" href="index.html"><img src="assets/img/logo-wentprom.png" alt="Вентпром — знак качества" width="143" height="37"><i>завод</i></a>
       <nav class="nav" aria-label="Разделы сайта">
         ${NAV.map(n => {
           /* Сравниваем только путь: пункт «Опросный лист» ведёт на

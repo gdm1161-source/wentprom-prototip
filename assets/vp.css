@@ -203,11 +203,8 @@ a:hover{color:var(--blue-2)}
   background:var(--paper-hi);border-bottom:1px solid var(--rule-ink);
 }
 .head .wrap{display:flex;align-items:center;gap:22px;padding-top:13px;padding-bottom:13px}
-.logo{display:flex;align-items:baseline;gap:9px;text-decoration:none;flex:0 0 auto}
-.logo b{
-  font-family:var(--f-draw);font-size:25px;letter-spacing:.15em;
-  text-transform:uppercase;color:var(--ink);
-}
+.logo{display:flex;align-items:center;gap:9px;text-decoration:none;flex:0 0 auto}
+.logo img{display:block;height:30px;width:auto}
 .logo i{
   font-style:normal;font-family:var(--f-draw);font-size:9.5px;letter-spacing:.19em;
   text-transform:uppercase;color:var(--blue);border-left:1px solid var(--rule);

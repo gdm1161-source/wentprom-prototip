@@ -6,6 +6,9 @@
 <title>Вентпром — промышленные вентиляторы и вентиляционные установки</title>
 <meta name="description" content="Подбор промышленного вентилятора по расходу и давлению: каталог серий, инженерные калькуляторы, опросный лист и сохранение расчётов в личном кабинете.">
 <link rel="stylesheet" href="assets/vp.css">
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js" } }
+</script>
 <style>
 /* ── Первый экран: лист с рабочим полем, а не рекламный баннер ─────── */
 .hero{padding:34px 0 10px}
@@ -109,6 +112,26 @@
   .hero-in{grid-template-columns:minmax(0,1fr);grid-template-areas:"head" "point" "body"}
   .hero{padding-top:22px}
 }
+
+/* 3D-модель установки */
+.ahu3d{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:0;
+  border:1px solid var(--rule-ink);background:var(--paper-hi)}
+.ahu3d-stage{position:relative;aspect-ratio:16/10;border-right:1px solid var(--rule-ink);
+  background:linear-gradient(180deg,#EDEFEC,#E4E7E3);touch-action:pan-y}
+.ahu3d-stage canvas{display:block;width:100% !important;height:100% !important}
+.ahu3d-side{padding:16px 18px;display:flex;flex-direction:column}
+.ahu3d-side ol{list-style:none;margin:0 0 14px;padding:0;counter-reset:sec}
+.ahu3d-side li{counter-increment:sec;display:flex;gap:10px;align-items:baseline;
+  padding:7px 0;border-bottom:1px solid var(--rule-fine);font-size:13px}
+.ahu3d-side li::before{content:counter(sec);font-family:var(--f-num);color:var(--blue);
+  font-size:12px;flex:0 0 auto;width:16px}
+.ahu3d-side li b{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.08em;font-size:12.5px}
+.ahu3d-side li span{color:var(--ink-3);font-size:12px;margin-left:auto;text-align:right}
+.ahu3d-hint{font-size:12px;color:var(--ink-3);margin-top:auto}
+@media (max-width:820px){
+  .ahu3d{grid-template-columns:minmax(0,1fr)}
+  .ahu3d-stage{border-right:0;border-bottom:1px solid var(--rule-ink)}
+}
 </style>
 </head>
 <body>
@@ -174,6 +197,38 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
         <span class="lbl b">Сечение 2 — 2</span>
         <canvas id="flow" aria-hidden="true"></canvas>
         <span class="cap">Q = const · при уменьшении сечения скорость растёт</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="scenarii">
+    <div class="wrap">
+      <div class="dim">
+        <h2>Пять сценариев одного визита</h2><i class="line"></i><span class="val">кто вы — с того и начинайте</span>
+      </div>
+      <p class="lead" style="margin-bottom:20px">Заказчик, снабженец, монтажник, инженер
+        или проектировщик приходят за разным. Ниже — пять входов, а не один общий каталог.</p>
+      <ul class="tools" id="scenList"></ul>
+    </div>
+  </section>
+
+  <section class="sec" id="ustanovka">
+    <div class="wrap">
+      <div class="dim">
+        <h2>Как устроена установка</h2><i class="line"></i><span class="val">6 узлов на одной раме</span>
+      </div>
+      <p class="lead" style="margin-bottom:20px">Приточно-вытяжная установка — не один
+        короб, а связка самостоятельных секций: каждую можно снять, заменить, обслужить
+        отдельно. Потяните модель — она повернётся. Кнопка — секции разъедутся по раме.</p>
+      <div class="ahu3d">
+        <div class="ahu3d-stage" id="ahuStage"></div>
+        <div class="ahu3d-side">
+          <ol id="ahuList"></ol>
+          <button class="btn btn--sm" id="ahuToggle" type="button" style="margin-bottom:10px">Разобрать на секции</button>
+          <p class="ahu3d-hint">Схематичная модель: чертежей завода на секции пока нет,
+            пропорции условные. Точная модель встанет на её место, когда придут габаритные
+            чертежи — <a href="catalog.html">актуальные типоразмеры в каталоге</a>.</p>
+        </div>
       </div>
     </div>
   </section>
@@ -283,6 +338,33 @@ init('index.html');
 
 $('#clientTag').textContent = store.clientId;
 
+/* ── Пять сценариев ───────────────────────────────────────────────── */
+const SCEN = [
+  {t:'Подобрать вентилятор',        fx:'Q, P → серия и типоразмер',
+   d:'Рабочая точка выше на этой странице или полный подбор с фильтрами по сети.',
+   h:'podbor.html'},
+  {t:'Найти оборудование',          fx:'13 разделов каталога',
+   d:'Крепёж, воздуховоды, фильтры, тепловое оборудование — не только вентиляторы.',
+   h:'catalog.html'},
+  {t:'Рассчитать сеть',             fx:'ΔP, S, скорость, Re',
+   d:'Аэродинамика участка и площадь воздуховодов с показом каждого шага расчёта.',
+   h:'calc.html'},
+  {t:'Скачать документы',           fx:'опросный лист → файл',
+   d:'Заполненный лист сохраняется файлом и попадает в историю личного кабинета.',
+   h:'podbor.html#survey'},
+  {t:'Отправить заявку инженеру',   fx:'расчёт → письмо',
+   d:'Открывает готовое письмо в вашей почте с параметрами и объектом расчёта.',
+   h:'mailto:info@wentprom.ru?subject=' + encodeURIComponent('Заявка инженеру — Вентпром')},
+];
+$('#scenList').innerHTML = SCEN.map((s, i) => `
+  <li><a class="tool" href="${s.h}">
+    <span class="no">${String(i + 1).padStart(2, '0')}</span>
+    <b>${s.t}</b>
+    <span class="fx">${s.fx}</span>
+    <span class="go">Открыть</span>
+    <span class="out">${s.d}</span>
+  </a></li>`).join('');
+
 /* ── Разделы каталога ─────────────────────────────────────────────── */
 $('#groups').innerHTML = D.GROUPS.map(g => `
   <a class="grp" href="${g.off ? '#' : 'catalog.html'}" title="${g.n}"
@@ -348,6 +430,37 @@ run();
 /* ── Линии тока в канале ──────────────────────────────────────────── */
 airflow($('#flow'), {lines:44, speed:1});
 })();
+</script>
+
+<script type="module">
+import { mountAHU } from './assets/ahu3d.js';
+
+const SEC_LEGEND = [
+  {n:'Забор воздуха', d:'жалюзи + заслонка'},
+  {n:'Фильтрация', d:'кассета G4'},
+  {n:'Рекуперация', d:'роторный теплообменник'},
+  {n:'Вентилятор', d:'колесо + мотор'},
+  {n:'Нагрев / охлаждение', d:'калорифер'},
+  {n:'Выброс', d:'жалюзи'},
+];
+document.getElementById('ahuList').innerHTML = SEC_LEGEND.map(s =>
+  `<li><b>${s.n}</b><span>${s.d}</span></li>`).join('');
+
+const stage = document.getElementById('ahuStage');
+const btn = document.getElementById('ahuToggle');
+try {
+  const ahu = mountAHU(stage);
+  btn.addEventListener('click', () => {
+    const exploded = ahu.toggle();
+    btn.textContent = exploded ? 'Собрать установку' : 'Разобрать на секции';
+  });
+} catch (err) {
+  stage.innerHTML = '<p style="padding:16px;color:var(--ink-3);font-size:13px">'
+    + '3D-модель не загрузилась (нет сети до unpkg.com или WebGL отключён в браузере). '
+    + 'Состав установки — в списке справа.</p>';
+  btn.style.display = 'none';
+  console.error(err);
+}
 </script>
 </body>
 </html>
