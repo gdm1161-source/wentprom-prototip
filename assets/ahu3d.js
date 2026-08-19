@@ -211,7 +211,14 @@ export function mountAHU(host, opts = {}) {
   const mid = (groups.length - 1) / 2;
   groups.forEach((g, i) => { g.userData.explodeZ = g.userData.restZ + (i - mid) * 0.62; });
 
-  camera.position.set(totalLen*.55, 1.0, totalLen*.62);
+  // Кадрируем по разобранному состоянию — оно длиннее собранного, а не наоборот
+  const halfLenExploded = Math.max(...groups.map(g => Math.abs(g.userData.explodeZ) + g.userData.def.len / 2));
+  const boundRadius = Math.sqrt(halfLenExploded**2 + (SEC_W/2)**2 + (SEC_H/2)**2);
+  const dist = boundRadius / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2)) * 1.28;
+  // Смотровой проём у каждой секции — на +Z: держим камеру ближе к оси Z,
+  // иначе видно только закрытые борта короба, а не внутренности секций
+  const dir = new THREE.Vector3(0.26, 0.30, 0.92).normalize();
+  camera.position.copy(dir.multiplyScalar(dist));
   camera.lookAt(0, 0, 0);
 
   let explode = 0, explodeTarget = 0;      // 0 = собрано, 1 = разобрано
