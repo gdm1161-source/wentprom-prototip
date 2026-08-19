@@ -25,7 +25,10 @@
 .hero h1{margin-bottom:0}
 .hero h1 em{font-style:normal;color:var(--blue);display:block}
 .hero .lead{margin-bottom:22px}
-.hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.hero-third{margin-bottom:22px;font-size:14px}
+.hero-third a{color:var(--ink-2);text-decoration:underline;text-underline-offset:3px}
+.hero-third a:hover{color:var(--blue)}
 
 /* Рабочая точка прямо в первом экране: инженер вводит Q и P до всякой прокрутки */
 .point{border:1px solid var(--rule-ink);background:var(--paper-hi)}
@@ -46,8 +49,12 @@
 .point .out .mk{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.07em;font-size:14px}
 .point .out .z{margin-left:auto;font-family:var(--f-num);font-size:12px;color:var(--ink-3)}
 
-/* Канал с линиями тока */
-.flow{position:relative;border:1px solid var(--rule-ink);background:var(--paper-hi);margin-top:22px}
+/* Канал с линиями тока: наглядное доказательство закона неразрывности,
+   а не самостоятельная загадка — заголовок и вывод объясняют, что на нём
+   происходит, до того как читатель дойдёт до подписей внутри рисунка */
+.flow-wrap{margin-top:22px}
+.flow-wrap .dim{margin-bottom:10px}
+.flow{position:relative;border:1px solid var(--rule-ink);background:var(--paper-hi)}
 .flow canvas{display:block;width:100%;height:230px}
 .flow .cap{
   position:absolute;left:14px;bottom:10px;font-family:var(--f-num);font-size:11px;
@@ -59,6 +66,10 @@
 }
 .flow .lbl.a{left:14px}
 .flow .lbl.b{right:14px}
+.flow-foot{
+  display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;
+  margin-top:10px;
+}
 
 /* Рейка разделов */
 .groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(200px,100%),1fr));
@@ -159,19 +170,18 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
     <div class="wrap">
       <div class="hero-in">
         <div class="hero-head">
-          <h1>Вентилятор подбирают<em>по двум числам</em></h1>
+          <h1>Подбор начинается<em>с расхода и давления</em></h1>
         </div>
         <div class="hero-body">
-          <p class="lead">Расход и давление в сети — всё, что нужно, чтобы выйти
-             на типоразмер. Каталог, аэродинамика, габаритные чертежи и опросный
-             лист собраны так, чтобы не звонить менеджеру ради первой цифры.</p>
+          <p class="lead">Q и P быстро укажут подходящие серии. Дальше подбор
+             уточнит рабочую точку, среду, температуру, исполнение и двигатель —
+             это тоже влияет на выбор, и страница подбора это проверяет, а не
+             оставляет на глаз.</p>
           <div class="hero-cta">
-            <a class="btn" href="podbor.html">Подобрать по Q и P</a>
-            <a class="btn btn--ghost" href="catalog.html">Открыть каталог</a>
+            <a class="btn" href="podbor.html">Быстрый подбор по Q и P</a>
+            <a class="btn btn--ghost" href="catalog.html">Каталог для инженера</a>
           </div>
-          <p class="small">Расчёт сохраняется сразу и без регистрации — она
-             понадобится, только когда захотите вернуться к нему с другого
-             компьютера или показать коллеге.</p>
+          <p class="hero-third"><a href="podbor.html#survey">Не знаю параметров — помочь с подбором →</a></p>
         </div>
 
         <div class="point">
@@ -182,21 +192,41 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
           <div class="bd">
             <div class="row">
               <label class="fld"><span>Расход Q, м³/ч</span>
-                <input type="number" id="q" value="8000" min="1" inputmode="numeric"></label>
+                <input type="number" id="q" value="8000" min="1" inputmode="numeric" placeholder="например, 4000">
+                <em class="hint">Например, 4000</em></label>
               <label class="fld"><span>Давление P, Па</span>
-                <input type="number" id="p" value="1200" min="1" inputmode="numeric"></label>
+                <input type="number" id="p" value="1200" min="1" inputmode="numeric" placeholder="например, 800">
+                <em class="hint">Например, 800</em></label>
             </div>
-            <button class="btn btn--sm" id="calcBtn" type="button" style="width:100%">Показать серии</button>
+            <button class="btn btn--sm" id="calcBtn" type="button" style="width:100%">Подобрать вентилятор</button>
+            <p class="small" style="margin:8px 0 0">Через несколько секунд увидите серии, которые
+              накрывают эту точку. Точный подбор по типоразмерам, среде и исполнению — на
+              следующем экране.</p>
             <div class="out" id="out" aria-live="polite"></div>
+            <p class="small" style="margin-top:10px">Расчёт автоматически сохраняется в этом
+              браузере. Чтобы открыть его с другого устройства или показать коллеге,
+              войдите в кабинет.</p>
           </div>
         </div>
       </div>
 
-      <div class="flow">
-        <span class="lbl a">Сечение 1 — 1</span>
-        <span class="lbl b">Сечение 2 — 2</span>
-        <canvas id="flow" aria-hidden="true"></canvas>
-        <span class="cap">Q = const · при уменьшении сечения скорость растёт</span>
+      <div class="flow-wrap">
+        <div class="dim">
+          <h2 style="font-size:15px">Как сечение канала влияет на скорость</h2><i class="line"></i>
+        </div>
+        <div class="flow">
+          <span class="lbl a">Сечение 1 — 1</span>
+          <span class="lbl b">Сечение 2 — 2</span>
+          <canvas id="flow" aria-hidden="true"></canvas>
+          <span class="cap">Q = const · при уменьшении сечения скорость растёт</span>
+        </div>
+        <div class="flow-foot">
+          <p class="small mb0" style="max-width:52ch">Расход воздуха в канале не меняется, поэтому
+            там, где сечение 2 — 2 у́же сечения 1 — 1, скорость растёт — это и держит линии тока
+            плотнее на сужении. Тот же расчёт нужен, чтобы подобрать сечение воздуховода под
+            вашу скорость.</p>
+          <a class="btn btn--ghost btn--sm" href="calc.html#area">Рассчитать сечение воздуховода →</a>
+        </div>
       </div>
     </div>
   </section>
@@ -240,8 +270,8 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       </div>
       <p class="lead" style="margin-bottom:20px">Разделы и счётчики позиций взяты
         с действующего сайта завода. Крепёж, воздуховоды, фильтры и тепловое
-        оборудование остаются в каталоге наравне с вентиляторами — заказчик
-        подтвердил это решение 16 августа 2026.</p>
+        оборудование остаются в каталоге наравне с вентиляторами — раздел не
+        сужен только до вентиляции.</p>
       <nav class="groups" id="groups" aria-label="Разделы каталога"></nav>
     </div>
   </section>
@@ -261,26 +291,23 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
   <section class="sec">
     <div class="wrap">
       <div class="dim">
-        <h2>Чем это подтверждено</h2><i class="line"></i><span class="val">проверяемое</span>
+        <h2>Чем это подтверждено</h2><i class="line"></i><span class="val">документами</span>
       </div>
       <div class="proof">
         <div class="it">
           <b>Система качества</b>
-          <span>Соответствие ГОСТ Р ИСО 9001-2015 заявлено заводом; сертификаты
-            выложены файлами. Номера, сроки и орган сертификации на действующем
-            сайте не опубликованы — запрошены.</span>
+          <span>Соответствие ГОСТ Р ИСО 9001-2015 заявлено заводом, сертификаты
+            выложены файлами. <a href="about.html#docs">Открыть документы</a>.</span>
         </div>
         <div class="it">
           <b>Технические условия</b>
-          <span>ТУ 4861-001-85589750 на серию ВР 80-75 и
-            ТУ 4861-008-85589750-2011 на ВКРФ ДУ. По индустриальным ВР 200…800 и
-            тягодутьевым машинам норматив не указан — тоже запрошен.</span>
+          <span>ТУ 4861-001-85589750 на серию ВР 80-75, ТУ 4861-008-85589750-2011
+            на ВКРФ ДУ. По остальным сериям норматив уточняется у завода.</span>
         </div>
         <div class="it">
           <b>География поставок</b>
-          <span>18 городов в списке региональных представительств — от Волгограда
-            и Краснодара до Севастополя и Махачкалы. Девятнадцатый поддомен
-            технический, представительством не является.</span>
+          <span>18 региональных представительств — от Волгограда и Краснодара до
+            Севастополя и Махачкалы. <a href="about.html#contacts">Список представителей</a>.</span>
         </div>
         <div class="it">
           <b>Объекты</b>
@@ -293,8 +320,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       </div>
       <p class="small" style="margin-top:20px;max-width:80ch">Здесь нет ни одного
         отзыва, срока изготовления, гарантийного обязательства и объёма
-        производства — на действующем сайте их нет, а придумывать такое нельзя.
-        Список запрошенного у завода лежит в файле разведки.</p>
+        производства — на действующем сайте их нет, а придумывать такое нельзя.</p>
     </div>
   </section>
 
@@ -311,7 +337,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
           </div>
           <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end">
             <a class="btn" href="podbor.html#survey">Открыть опросный лист</a>
-            <a class="btn btn--ghost" href="cabinet.html">Мои расчёты</a>
+            <a class="btn btn--ghost" href="about.html#contacts">Написать инженеру</a>
           </div>
         </div>
       </div>
