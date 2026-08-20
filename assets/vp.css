@@ -313,7 +313,10 @@ a:hover{color:var(--blue-2)}
   font-family:var(--f-num);font-size:11px;min-width:19px;height:19px;
   display:grid;place-items:center;background:var(--signal);color:#fff;
 }
-.hbtn .cnt[data-zero="1"]{background:var(--paper-3);color:var(--ink-3)}
+/* Пустой счётчик: --ink-3 на вдавленной поверхности давал 4.26:1 — ниже
+   требуемых контрактом 4.5:1. --ink-2 на том же фоне даёт 6.17:1 и не
+   меняет тон: счётчик по-прежнему тише активного оранжевого. */
+.hbtn .cnt[data-zero="1"]{background:var(--paper-3);color:var(--ink-2)}
 
 /* ═══ Таблица данных ════════════════════════════════════════════════
    Контейнер прокрутки создаётся ТОЛЬКО там, где таблица правда не влезает.
