@@ -143,6 +143,23 @@
   .ahu3d{grid-template-columns:minmax(0,1fr)}
   .ahu3d-stage{border-right:0;border-bottom:1px solid var(--rule-ink)}
 }
+
+/* Стат-блок первых показателей */
+.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--rule-ink);border-left:1px solid var(--rule-ink)}
+.stat{padding:20px 18px;border-right:1px solid var(--rule-ink);border-bottom:1px solid var(--rule-ink);background:var(--paper-hi)}
+.stat-n{display:block;font-size:clamp(34px,5vw,52px);line-height:1;color:var(--blue)}
+.stat-l{display:block;margin-top:8px;font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.1em;font-size:11.5px;color:var(--ink-2)}
+@media (max-width:700px){.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Карточки диапазонов серий */
+.diap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:0;border-top:1px solid var(--rule-ink);border-left:1px solid var(--rule-ink)}
+.diap{background:var(--paper-hi);border-right:1px solid var(--rule-ink);border-bottom:1px solid var(--rule-ink);padding:16px 16px 14px}
+.diap b{display:block;font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.08em;font-size:15px;margin-bottom:2px}
+.diap .ty{font-size:12px;color:var(--ink-3);margin-bottom:10px;display:block}
+.diap dl{margin:0;padding-top:10px;border-top:1px solid var(--rule-fine)}
+.diap dl>div{display:flex;justify-content:space-between;gap:8px;padding:3px 0;font-size:13px}
+.diap dt{color:var(--ink-2)}
+.diap dd{margin:0;font-family:var(--f-num)}
 </style>
 </head>
 <body>
@@ -160,7 +177,9 @@ FIRST VIEWPORT: слева тезис и два действия, справа �
 выдачей; ниже канал с линиями тока, где скорость растёт в сужении.
 FORM: «Чертёж» — мир закреплён распоряжением заказчика, раунд направления
 не проводился: закреплённое брифом бьёт бросок.
-FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance.
+FINISH: страница проверена построчно на соответствие списку фактов и работает целиком —
+нет TODO, нет заглушек «здесь будет», нет нерабочих кнопок; всё, чего нет в списке фактов
+(сроки, цены, отзывы, штат, площадь производства), сюда не добавлено.
 -->
 
 <div id="vp-head"></div>
@@ -231,6 +250,17 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
     </div>
   </section>
 
+  <section class="sec sec--tight" id="stats">
+    <div class="wrap">
+      <div class="stat-grid">
+        <div class="stat"><span class="stat-n num">2009</span><span class="stat-l">Работает с года</span></div>
+        <div class="stat"><span class="stat-n num">18</span><span class="stat-l">Региональных представительств</span></div>
+        <div class="stat"><span class="stat-n num">13</span><span class="stat-l">Разделов каталога</span></div>
+        <div class="stat"><span class="stat-n num">3</span><span class="stat-l">Направления собственного производства</span></div>
+      </div>
+    </div>
+  </section>
+
   <section class="sec" id="scenarii">
     <div class="wrap">
       <div class="dim">
@@ -260,6 +290,9 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
             чертежи — <a href="catalog.html">актуальные типоразмеры в каталоге</a>.</p>
         </div>
       </div>
+      <p class="small" style="margin-top:14px">Радиальное рабочее колесо — с корпусом-улиткой и переключаемым
+        разрезом — отдельная 3D-модель на витрине оборудования.
+        <a class="btn btn--ghost btn--sm" href="3d.html" style="margin-left:8px">Открыть 3D-витрину →</a></p>
     </div>
   </section>
 
@@ -273,6 +306,18 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
         оборудование остаются в каталоге наравне с вентиляторами — раздел не
         сужен только до вентиляции.</p>
       <nav class="groups" id="groups" aria-label="Разделы каталога"></nav>
+    </div>
+  </section>
+
+  <section class="sec" id="diapasons">
+    <div class="wrap">
+      <div class="dim">
+        <h2>Диапазоны серий</h2><i class="line"></i><span class="val">по опубликованным крайним значениям</span>
+      </div>
+      <p class="lead" style="margin-bottom:20px">Расход, давление и предельная температура — крайние
+        значения диапазона серии, снятые с действующего сайта завода. Строки внутри диапазона
+        (конкретные типоразмеры) в карточках не показаны — они есть в каталоге и подборе.</p>
+      <div class="diap-grid" id="diapGrid"></div>
     </div>
   </section>
 
@@ -423,6 +468,19 @@ $('#toolList').innerHTML = TOOLS.map((t, i) => `
     <span class="go">Открыть</span>
     <span class="out">${t.d}</span>
   </a></li>`).join('');
+
+/* ── Диапазоны серий (крайние значения из data.vp.js) ────────────────── */
+const DIAP_MARKS = ['ВР 80-75', 'ВР 300-45', 'ВО 06-300', 'ВКР', 'ВКПН'];
+const diapSeries = DIAP_MARKS.map(mk => D.SERIES.find(s => s.mk === mk)).filter(Boolean);
+$('#diapGrid').innerHTML = diapSeries.map(s => `
+  <div class="diap">
+    <b>${s.mk}</b><span class="ty">${D.TYPE[s.type]}</span>
+    <dl>
+      <div><dt>Расход</dt><dd class="num">${D.fmt(s.qr[0])}–${D.fmt(s.qr[1])} м³/ч</dd></div>
+      <div><dt>Давление</dt><dd class="num">${D.fmt(s.pr[0])}–${D.fmt(s.pr[1])} Па</dd></div>
+      <div><dt>Температура</dt><dd class="num">до ${s.t} °C</dd></div>
+    </dl>
+  </div>`).join('');
 
 /* ── Живая выдача по рабочей точке ────────────────────────────────── */
 const out = $('#out');

@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D-витрина оборудования — Вентпром</title>
+<meta name="description" content="Процедурные 3D-модели приточно-вытяжной установки и радиального вентилятора: вращающееся рабочее колесо, разрез корпуса-улитки, разборка на секции. Демонстрационная геометрия, пропорций завода нет.">
+<link rel="stylesheet" href="assets/vp.css">
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js" } }
+</script>
+<style>
+/* ── Раскладка страницы «3D-витрина». Токены не переопределяются. ──── */
+main section[id]{scroll-margin-top:88px}
+
+/* Первый экран: тезис без рабочей точки — здесь нечего считать */
+.hero{padding:34px 0 10px}
+.hero h1{margin-bottom:14px}
+.hero h1 em{font-style:normal;color:var(--blue);display:block}
+.hero .lead{margin-bottom:0;max-width:70ch}
+
+/* 3D-модель установки. Копия блока index.html дословно — те же классы,
+   тот же приём: stage слева, список секций и кнопка справа. */
+.ahu3d{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:0;
+  border:1px solid var(--rule-ink);background:var(--paper-hi)}
+.ahu3d-stage{position:relative;aspect-ratio:16/10;border-right:1px solid var(--rule-ink);
+  background:linear-gradient(180deg,var(--paper-2),var(--paper-3));touch-action:pan-y}
+.ahu3d-stage:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
+.ahu3d-stage canvas{display:block;width:100% !important;height:100% !important}
+.ahu3d-side{padding:16px 18px;display:flex;flex-direction:column}
+.ahu3d-side ol{list-style:none;margin:0 0 14px;padding:0;counter-reset:sec}
+.ahu3d-side li{counter-increment:sec;display:flex;gap:10px;align-items:baseline;
+  padding:7px 0;border-bottom:1px solid var(--rule-fine);font-size:13px}
+.ahu3d-side li::before{content:counter(sec);font-family:var(--f-num);color:var(--blue);
+  font-size:12px;flex:0 0 auto;width:16px}
+.ahu3d-side li b{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.08em;font-size:12.5px}
+.ahu3d-side li span{color:var(--ink-3);font-size:12px;margin-left:auto;text-align:right}
+.ahu3d-hint{font-size:12px;color:var(--ink-3);margin-top:auto}
+@media (max-width:820px){
+  .ahu3d{grid-template-columns:minmax(0,1fr)}
+  .ahu3d-stage{border-right:0;border-bottom:1px solid var(--rule-ink)}
+}
+
+/* 3D-модель вентилятора. Параллельные классы той же сетки 1.55fr/1fr
+   и того же перелома — но не .ahu3d: страница показывает два разных
+   агрегата, и разбор одного не должен переключать вид другого. */
+.fan3d{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:0;
+  border:1px solid var(--rule-ink);background:var(--paper-hi)}
+.fan3d-stage{position:relative;aspect-ratio:16/10;border-right:1px solid var(--rule-ink);
+  background:linear-gradient(180deg,var(--paper-2),var(--paper-3));touch-action:pan-y}
+.fan3d-stage:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
+.fan3d-stage canvas{display:block;width:100% !important;height:100% !important}
+.fan3d-side{padding:16px 18px;display:flex;flex-direction:column}
+.fan3d-side ol{list-style:none;margin:0 0 14px;padding:0;counter-reset:node}
+.fan3d-side li{counter-increment:node;display:flex;gap:10px;align-items:baseline;
+  padding:7px 0;border-bottom:1px solid var(--rule-fine);font-size:13px}
+.fan3d-side li::before{content:counter(node);font-family:var(--f-num);color:var(--blue);
+  font-size:12px;flex:0 0 auto;width:16px}
+.fan3d-side li b{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.08em;font-size:12.5px}
+.fan3d-side li span{color:var(--ink-3);font-size:12px;margin-left:auto;text-align:right}
+.fan3d-hint{font-size:12px;color:var(--ink-3);margin-top:auto}
+@media (max-width:820px){
+  .fan3d{grid-template-columns:minmax(0,1fr)}
+  .fan3d-stage{border-right:0;border-bottom:1px solid var(--rule-ink)}
+}
+
+/* Ведомость диапазона серии — тот же приём, что «Карточка предприятия»
+   на about.html (класс .rec там), под новым именем для этой страницы. */
+.diap{border:1px solid var(--rule-ink);background:var(--paper-hi);margin-top:18px}
+.diap .hd{display:flex;align-items:baseline;gap:10px;padding:10px 16px;
+  border-bottom:1px solid var(--rule);background:var(--paper-2)}
+.diap .hd span{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.13em;
+  font-size:11px;color:var(--ink-2)}
+.diap .hd b{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.07em;
+  font-size:13px;color:var(--ink)}
+.diap dl{margin:0;padding:6px 16px 2px}
+.diap dl>div{display:flex;align-items:baseline;gap:12px;padding:7px 0;
+  border-bottom:1px solid var(--rule-fine)}
+.diap dl>div:last-child{border-bottom:0}
+.diap dt{font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.12em;
+  font-size:10.5px;color:var(--ink-2);flex:0 0 auto}
+.diap dd{margin:0 0 0 auto;text-align:right;font-size:13px;color:var(--ink)}
+.diap .foot{padding:10px 16px 13px;border-top:1px solid var(--rule-fine)}
+</style>
+</head>
+<body>
+
+<div id="vp-head"></div>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <h1>3D-витрина<em>вращающиеся модели, а не фото</em></h1>
+      <p class="lead">Обе модели ниже — процедурная геометрия: чертежей завода
+        на секции приточно-вытяжной установки и на вентиляторы пока нет,
+        пропорции условные. Точная модель встанет на их место, когда придут
+        габаритные чертежи.</p>
+    </div>
+  </section>
+
+  <section class="sec" id="pvu">
+    <div class="wrap">
+      <div class="dim">
+        <h2>Приточно-вытяжная установка</h2><i class="line"></i><span class="val">секции на общей раме</span>
+      </div>
+      <p class="lead" style="margin-bottom:20px">Приточно-вытяжная установка — не один
+        короб, а связка самостоятельных секций: каждую можно снять, заменить, обслужить
+        отдельно. Потяните модель — она повернётся. Кнопка — секции разъедутся по раме.</p>
+      <div class="ahu3d">
+        <div class="ahu3d-stage" id="ahuStage" tabindex="0" role="img" aria-label="Поворачиваемая 3D-модель приточно-вытяжной установки: шесть секций на общей раме. Стрелки влево и вправо поворачивают модель, кнопка справа разбирает её на секции."></div>
+        <div class="ahu3d-side">
+          <ol id="ahuList"></ol>
+          <button class="btn btn--sm" id="ahuToggle" type="button" style="margin-bottom:10px">Разобрать на секции</button>
+          <p class="ahu3d-hint">Схематичная модель: чертежей завода на секции пока нет,
+            пропорции условные. Точная модель встанет на её место, когда придут габаритные
+            чертежи — <a href="catalog.html">актуальные типоразмеры в каталоге</a>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="ventilyator">
+    <div class="wrap">
+      <div class="dim">
+        <h2>Радиальный вентилятор</h2><i class="line"></i><span class="val">разрез корпуса-улитки</span>
+      </div>
+      <p class="lead" style="margin-bottom:20px">Рабочее колесо разгоняет воздух внутри
+        корпуса-улитки: вход через всасывающий конфузор, выход через нагнетательный
+        патрубок. Потяните модель — она повернётся. Кнопка показывает срез корпуса.</p>
+      <div class="fan3d">
+        <div class="fan3d-stage" id="fanStage" tabindex="0" role="img" aria-label="Поворачиваемая 3D-модель радиального вентилятора: рабочее колесо и корпус-улитка. Стрелки влево и вправо поворачивают модель, кнопка справа показывает разрез корпуса."></div>
+        <div class="fan3d-side">
+          <ol id="fanList"></ol>
+          <button class="btn btn--sm" id="fanToggle" type="button" style="margin-bottom:10px">Показать в разрезе</button>
+          <p class="fan3d-hint">Схематичная модель: чертежей завода на типоразмеры
+            вентиляторов тоже нет, пропорции условные.</p>
+        </div>
+      </div>
+      <div class="diap">
+        <div class="hd"><span>Диапазон серии</span><b>ВР 80-75</b></div>
+        <dl id="diapList"></dl>
+        <p class="small foot">Диапазон серии ВР 80-75, крайние значения с сайта завода — не
+          геометрия конкретно этой 3D-модели, она демонстрационная.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec--tight" style="padding-bottom:46px">
+    <div class="wrap">
+      <div class="sheet sheet--pad">
+        <div class="grid2" style="align-items:center">
+          <div>
+            <h3 style="margin-bottom:8px">Витрина, не подбор</h3>
+            <p class="mb0" style="color:var(--ink-2)">Подбор по параметрам не входит в эту
+              витрину — 3D показывает устройство, а не помогает выбрать типоразмер.</p>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end">
+            <a class="btn" href="podbor.html">Перейти к подбору →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="vp-foot"></div>
+
+<script src="assets/data.vp.js"></script>
+<script src="assets/catalog.vp.js"></script>
+<script src="assets/silh.js"></script>
+<script src="assets/vp.js"></script>
+<script>
+(() => {
+'use strict';
+const { init } = VP;
+const D = VPDATA;
+
+init('3d.html');
+
+/* Диапазон серии ВР 80-75 — единственные цифры на этой странице, взяты
+   из общего модуля данных, а не вписаны руками. */
+const s = D.SERIES.find(x => x.mk === 'ВР 80-75');
+const dl = document.getElementById('diapList');
+if (s && dl) {
+  dl.innerHTML = `
+    <div><dt>Расход</dt><dd><span class="num">${D.fmt(s.qr[0])}–${D.fmt(s.qr[1])}</span> м³/ч</dd></div>
+    <div><dt>Давление</dt><dd><span class="num">${D.fmt(s.pr[0])}–${D.fmt(s.pr[1])}</span> Па</dd></div>
+    <div><dt>Температура до</dt><dd><span class="num">${D.fmt(s.t)}</span> °C</dd></div>`;
+}
+})();
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { mountAHU } from './assets/ahu3d.js';
+
+const SEC_LEGEND = [
+  {n:'Забор воздуха', d:'жалюзи + заслонка'},
+  {n:'Фильтрация', d:'кассета G4'},
+  {n:'Рекуперация', d:'роторный теплообменник'},
+  {n:'Вентилятор', d:'колесо + мотор'},
+  {n:'Нагрев / охлаждение', d:'калорифер'},
+  {n:'Выброс', d:'жалюзи'},
+];
+document.getElementById('ahuList').innerHTML = SEC_LEGEND.map(s =>
+  `<li><b>${s.n}</b><span>${s.d}</span></li>`).join('');
+
+const stage = document.getElementById('ahuStage');
+const btn = document.getElementById('ahuToggle');
+try {
+  const ahu = mountAHU(stage);
+  btn.addEventListener('click', () => {
+    const exploded = ahu.toggle();
+    btn.textContent = exploded ? 'Собрать установку' : 'Разобрать на секции';
+  });
+  // Клавиатурный эквивалент перетаскивания: стрелки влево/вправо
+  // орбитируют камеру вокруг модели, тот же жест, что и drag мышью.
+  const ROT_STEP = THREE.MathUtils.degToRad(12);
+  stage.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    const cam = ahu.camera;
+    const radius = Math.hypot(cam.position.x, cam.position.z);
+    const angle = Math.atan2(cam.position.z, cam.position.x)
+      + (e.key === 'ArrowLeft' ? -ROT_STEP : ROT_STEP);
+    cam.position.x = Math.cos(angle) * radius;
+    cam.position.z = Math.sin(angle) * radius;
+    cam.lookAt(0, 0, 0);
+  });
+} catch (err) {
+  stage.innerHTML = '<p style="padding:16px;color:var(--ink-3);font-size:13px">'
+    + '3D-модель не загрузилась (нет сети до unpkg.com или WebGL отключён в браузере). '
+    + 'Состав установки — в списке справа.</p>';
+  stage.removeAttribute('tabindex');
+  stage.removeAttribute('role');
+  stage.removeAttribute('aria-label');
+  btn.style.display = 'none';
+  console.error(err);
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { mountFan } from './assets/fan3d.js';
+
+const FAN_LEGEND = [
+  {n:'Рабочее колесо', d:'лопатки, вал'},
+  {n:'Корпус-улитка', d:'кожух нагнетания'},
+  {n:'Всасывающий конфузор', d:'вход воздуха'},
+  {n:'Нагнетательный патрубок', d:'фланец выхода'},
+  {n:'Электродвигатель', d:'привод колеса'},
+];
+document.getElementById('fanList').innerHTML = FAN_LEGEND.map(s =>
+  `<li><b>${s.n}</b><span>${s.d}</span></li>`).join('');
+
+const stage = document.getElementById('fanStage');
+const btn = document.getElementById('fanToggle');
+try {
+  const fan = mountFan(stage);
+  btn.addEventListener('click', () => {
+    const sectioned = fan.toggleSection();
+    btn.textContent = sectioned ? 'Собрать корпус' : 'Показать в разрезе';
+  });
+  // Клавиатурный эквивалент перетаскивания: стрелки влево/вправо
+  // орбитируют камеру вокруг модели, тот же жест, что и drag мышью.
+  const ROT_STEP = THREE.MathUtils.degToRad(12);
+  stage.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    const cam = fan.camera;
+    const radius = Math.hypot(cam.position.x, cam.position.z);
+    const angle = Math.atan2(cam.position.z, cam.position.x)
+      + (e.key === 'ArrowLeft' ? -ROT_STEP : ROT_STEP);
+    cam.position.x = Math.cos(angle) * radius;
+    cam.position.z = Math.sin(angle) * radius;
+    cam.lookAt(0, -0.15, 0);
+  });
+} catch (err) {
+  stage.innerHTML = '<p style="padding:16px;color:var(--ink-3);font-size:13px">'
+    + '3D-модель не загрузилась (нет сети до unpkg.com или WebGL отключён в браузере). '
+    + 'Устройство вентилятора — в списке справа.</p>';
+  stage.removeAttribute('tabindex');
+  stage.removeAttribute('role');
+  stage.removeAttribute('aria-label');
+  btn.style.display = 'none';
+  console.error(err);
+}
+</script>
+</body>
+</html>

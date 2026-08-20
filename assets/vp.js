@@ -163,6 +163,7 @@ const NAV = [
   {href:'catalog.html', t:'Каталог', mega:true},
   {href:'podbor.html',  t:'Подбор'},
   {href:'calc.html',    t:'Калькуляторы'},
+  {href:'3d.html',      t:'3D-витрина'},
   {href:'podbor.html#survey',  t:'Опросный лист'},
   {href:'about.html',   t:'Завод'},
 ];
@@ -401,6 +402,7 @@ function mountFooter() {
           <a href="podbor.html">Подбор по Q и P</a>
           <a href="calc.html">Инженерные калькуляторы</a>
           <a href="podbor.html#survey">Опросный лист</a>
+          <a href="3d.html">3D-витрина</a>
           <a href="about.html#docs">Паспорта и сертификаты</a></div>
         <div><h4>Кабинет</h4>
           <a href="cabinet.html">Мои подборы</a>
@@ -569,7 +571,7 @@ function mountIcon() {
     '<g fill="none" stroke="%231B4C86" stroke-width="2.2" stroke-linecap="round">' +
     '<path d="M20 16a6 6 0 0 0-5.5-6A7.5 7.5 0 0 0 7 16a9 9 0 0 0 7.5 8.8A10.5 10.5 0 0 0 25 16V5"/>' +
     '<path d="M20 16V5"/></g>' +
-    '<circle cx="14.5" cy="16" r="2.4" fill="%23D9540B"/></svg>';
+    '<circle cx="14.5" cy="16" r="2.4" fill="%23C24A08"/></svg>';
   const l = document.createElement('link');
   l.rel = 'icon';
   l.type = 'image/svg+xml';

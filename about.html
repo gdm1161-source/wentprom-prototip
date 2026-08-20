@@ -130,6 +130,21 @@ main section[id]{scroll-margin-top:88px}
   .stamp div:nth-child(2n){border-right:0}
 }
 
+/* Стат-блок: те же 4 факта, что на главной, переиспользованы буквально */
+.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--rule-ink);border-left:1px solid var(--rule-ink)}
+.stat{padding:20px 18px;border-right:1px solid var(--rule-ink);border-bottom:1px solid var(--rule-ink);background:var(--paper-hi)}
+.stat-n{display:block;font-size:clamp(34px,5vw,52px);line-height:1;color:var(--blue)}
+.stat-l{display:block;margin-top:8px;font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.1em;font-size:11.5px;color:var(--ink-2)}
+@media (max-width:700px){.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Хронология: три вехи компании */
+.tl{list-style:none;margin:0;padding:0;border-top:1px solid var(--rule-ink)}
+.tl li{display:grid;grid-template-columns:84px minmax(0,1fr);gap:6px 18px;padding:14px 0;border-bottom:1px solid var(--rule)}
+.tl-y{font-size:20px;color:var(--blue)}
+.tl-t{grid-column:2;font-family:var(--f-draw);text-transform:uppercase;letter-spacing:.1em;font-size:14px}
+.tl-d{grid-column:2;font-size:13.5px;color:var(--ink-2);max-width:70ch}
+@media (max-width:640px){.tl li{grid-template-columns:1fr}.tl-t,.tl-d{grid-column:1}}
+
 /* «Почему Вентпром»: ведомость доводов, та же механика, что и на главной */
 #why .proof{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:var(--gut)}
 #why .proof .it{border-left:2px solid var(--blue);padding-left:14px}
@@ -194,6 +209,17 @@ STATUS: 16.08.2026 заказчик ответил на все десять во
           </dl>
           <p class="tally" id="tally"></p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec sec--tight" id="stats">
+    <div class="wrap">
+      <div class="stat-grid">
+        <div class="stat"><span class="stat-n num">2009</span><span class="stat-l">Работает с года</span></div>
+        <div class="stat"><span class="stat-n num">18</span><span class="stat-l">Региональных представительств</span></div>
+        <div class="stat"><span class="stat-n num">13</span><span class="stat-l">Разделов каталога</span></div>
+        <div class="stat"><span class="stat-n num">3</span><span class="stat-l">Направления собственного производства</span></div>
       </div>
     </div>
   </section>
@@ -319,8 +345,7 @@ STATUS: 16.08.2026 заказчик ответил на все десять во
       </div>
       <p class="state-note">Остальной ассортимент — официально представляемый
         завод-партнёр на Юге России; техническую информацию использовать
-        разрешено, завод знает источник. Отгрузка: 13 транспортных
-        компаний, доставка до терминала — бесплатно.</p>
+        разрешено, завод знает источник.</p>
     </div>
   </section>
 
@@ -423,6 +448,24 @@ STATUS: 16.08.2026 заказчик ответил на все десять во
     </div>
   </section>
 
+  <section class="sec" id="timeline">
+    <div class="wrap">
+      <div class="dim">
+        <h2>Хронология</h2><i class="line"></i><span class="val">3 вехи</span>
+      </div>
+      <ol class="tl">
+        <li><span class="tl-y num">2009</span><span class="tl-t">Начало работы</span>
+          <span class="tl-d">Компания ведёт деятельность с 2009 года.</span></li>
+        <li><span class="tl-y num">2017</span><span class="tl-t">Регистрация юрлица</span>
+          <span class="tl-d">ОГРН 1176196015820 — дата регистрации ООО «Вентпром» как юридического лица,
+            не дата начала работы.</span></li>
+        <li><span class="tl-y num">2026</span><span class="tl-t">Текущее состояние</span>
+          <span class="tl-d">18 региональных представительств, 13 разделов каталога, соответствие
+            ГОСТ Р ИСО 9001-2015 заявлено заводом.</span></li>
+      </ol>
+    </div>
+  </section>
+
   <section class="sec" id="open">
     <div class="wrap">
       <div class="dim">
@@ -445,10 +488,10 @@ STATUS: 16.08.2026 заказчик ответил на все десять во
         <li>
           <div>
             <b>Реквизиты сертификатов</b>
-            <p>Цикл известен: сертификаты меняются раз в 5 лет. Номера, даты
-               действия конкретных документов и орган сертификации не переданы.
-               Раздел «Документы» остаётся перечнем тем, а не набором ссылок.</p>
-            <span class="st" data-s="wait">цикл известен, номеров нет</span>
+            <p>Номера, даты действия конкретных документов и орган
+               сертификации не переданы. Раздел «Документы» остаётся перечнем
+               тем, а не набором ссылок.</p>
+            <span class="st" data-s="wait">запрошено у завода</span>
           </div>
         </li>
         <li>
